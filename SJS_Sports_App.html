@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SJS Sports App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a school sports meet's official scorer's desk — confident, quick, legible from the back row
+   IDEA: the running track itself; every house is a lane, points are distance run
+   PICTURE: clay track band with white lane lines, house-colour bars racing to their totals
+   COLOUR and TYPE: track clay #a63a23 dominant, white lane lines, the houses' own colours as accents; Barlow Condensed numerals + Barlow
+   LAYOUT: clay sidebar like the track edge, working screens open straight onto the task, stacks to one column on phones */
+:root{color-scheme:light dark;--bg:light-dark(#f4f2ee,#111214);--card:light-dark(#fff,#1a1c1f);--ink:light-dark(#17191d,#ecebe7);--mut:light-dark(#5d6168,#a2a5ab);--line:light-dark(#e1ddd5,#2d3035);--soft:light-dark(#f8f6f2,#16181b);--clay:#a63a23;--clay2:#8a2e1b;--focus:light-dark(#1f5fbf,#7fb0ff);--disp:'Barlow Condensed','Arial Narrow','Roboto Condensed',Impact,sans-serif}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,'Segoe UI',system-ui,sans-serif;overflow-x:clip}
+a{color:inherit}
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100vh}
+.side{background:var(--clay2);color:#fff;position:sticky;top:0;height:100vh;overflow:auto;padding:18px 12px 24px;background-image:repeating-linear-gradient(90deg,transparent 0 54px,rgba(255,255,255,.07) 54px 56px)}
+.brand{font:800 28px/1 var(--disp);padding:4px 10px}
+.brand small{display:block;font:500 13px/1.35 Barlow,sans-serif;opacity:.85;margin-top:6px}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:14px}
+.nav a{color:#fff;text-decoration:none;padding:9px 12px;border-radius:10px;font-weight:600;font-size:15px;min-height:42px;display:flex;align-items:center;white-space:nowrap}
+.nav a:hover{background:rgba(255,255,255,.12)}
+.nav a.on{background:#fff;color:var(--clay2)}
+.nav .grp{font-size:13px;opacity:.75;padding:14px 12px 4px}
+.top{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:10px max(3vw,16px);border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
+.top .sess{display:flex;align-items:center;gap:8px;font-weight:600}
+.top .state{margin-left:auto;font-size:13px;color:var(--mut)}
+main{padding:20px max(3vw,16px) 60px;max-width:1320px}
+h1,h2,h3{font-family:var(--disp);line-height:1.05;margin:0;text-wrap:balance}
+h2{font-size:32px;margin-bottom:4px}
+h3{font-size:22px;margin-bottom:10px}
+.lead{color:var(--mut);margin:0 0 18px;max-width:70ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.stackv>*+*{margin-top:16px}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.row>label{flex:1 1 160px}
+label{display:block;font-size:13px;color:var(--mut);font-weight:600}
+label>input,label>select,label>textarea{margin-top:4px}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:44px;width:100%}
+textarea{min-height:110px;resize:vertical}
+input[type=color]{padding:3px;width:56px;cursor:pointer}
+input[type=checkbox]{width:20px;height:20px;min-height:0;accent-color:var(--clay);vertical-align:middle}
+.chk{display:flex;align-items:center;gap:8px;color:var(--ink);font-size:15px;font-weight:500;min-height:44px}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.btn{font:600 15px/1 Barlow,sans-serif;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:0 16px;min-height:44px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--mut)}
+.btn.pri{background:var(--clay);border-color:var(--clay);color:#fff}
+.btn.pri:hover{background:var(--clay2)}
+.btn.danger{color:#c0392b;border-color:color-mix(in srgb,#c0392b 40%,transparent)}
+.btn.sm{min-height:36px;padding:0 12px;font-size:14px}
+.x{border:0;background:transparent;color:var(--mut);font-size:22px;width:44px;height:44px;border-radius:10px;cursor:pointer}
+.x:hover{background:var(--soft);color:#c0392b}
+.mut{color:var(--mut)}
+.tiny{font-size:13px;color:var(--mut)}
+.hchip{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:700;font-size:14px;white-space:nowrap}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:middle;box-shadow:0 0 0 1px #0002}
+.tag{display:inline-block;font-size:12.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
+.tag.ok{background:#1f9a5222;border-color:#1f9a5255;color:light-dark(#156b39,#7fdca6)}
+.tag.rec{background:#e4002b1c;border-color:#e4002b55;color:light-dark(#b0001f,#ff8aa0)}
+.empty{padding:28px;text-align:center;color:var(--mut);border:2px dashed var(--line);border-radius:14px}
+table.t{width:100%;border-collapse:collapse;font-size:15px}
+.t th{text-align:left;font-size:13px;color:var(--mut);font-weight:700;padding:8px;border-bottom:2px solid var(--line)}
+.t td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.t td.n,.t th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.t input,.t select{min-height:40px;padding:6px 9px}
+.scroll{overflow-x:auto}
+.banner{background:color-mix(in srgb,var(--clay) 12%,var(--card));border:1px solid color-mix(in srgb,var(--clay) 35%,transparent);border-radius:12px;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+/* hero track */
+.hero{background:var(--clay);color:#fff;border-radius:18px;padding:22px clamp(16px,3vw,32px) 10px;background-image:repeating-linear-gradient(90deg,transparent 0 120px,rgba(255,255,255,.05) 120px 122px)}
+.hero .kick{font-weight:600;opacity:.9;font-size:15px}
+.hero h1{font-size:clamp(34px,5vw,52px);font-weight:800;margin:2px 0 6px}
+.hero .meta{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;font-size:15px}
+.prog{height:8px;background:rgba(255,255,255,.25);border-radius:9px;overflow:hidden;width:min(320px,100%)}
+.prog span{display:block;height:100%;background:#fff;border-radius:9px}
+.lanes{margin-top:16px}
+.lane{display:grid;grid-template-columns:44px 130px minmax(0,1fr) 96px;align-items:center;gap:12px;border-top:2px solid rgba(255,255,255,.6);padding:10px 0;min-height:66px}
+.lane:last-child{border-bottom:2px solid rgba(255,255,255,.6)}
+.lane .rk{font:800 34px/1 var(--disp);opacity:.9;text-align:center}
+.lane .nm{font:700 22px/1.1 var(--disp)}
+.lane .nm small{display:block;font:500 13px Barlow,sans-serif;opacity:.85}
+.lane .bar{height:26px;position:relative}
+.lane .bar span{position:absolute;left:0;top:0;bottom:0;border-radius:0 14px 14px 0;box-shadow:0 0 0 2px #fff;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.lane .pts{font:800 44px/1 var(--disp);text-align:right;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.lane .bar span{transition:none}}
+.pod{display:flex;gap:14px;align-items:center}
+.medal{flex:none;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font:800 26px var(--disp);color:#2a1a00;box-shadow:inset 0 -4px 0 #0002}
+.m1{background:#f3c64b}.m2{background:#cfd4da}.m3{background:#d99a5f}.mx{background:var(--soft);color:var(--ink)}
+.lbl{font-size:13px;font-weight:700;color:var(--mut)}
+.big{font:700 24px/1.15 var(--disp);margin:2px 0}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi b{display:block;font:800 36px/1 var(--disp)}
+.feed li{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.feed{list-style:none;margin:0;padding:0}
+/* results */
+.rlayout{display:grid;grid-template-columns:minmax(250px,320px) minmax(0,1fr);gap:16px;align-items:start}
+.evlist{max-height:70vh;overflow:auto;display:flex;flex-direction:column;gap:6px;padding-right:4px}
+.evi{all:unset;box-sizing:border-box;cursor:pointer;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:flex;gap:8px;justify-content:space-between;align-items:center;min-height:52px}
+.evi:hover{border-color:var(--mut)}
+.evi.on{border-color:var(--clay);box-shadow:0 0 0 2px var(--clay) inset}
+.evi:focus-visible{outline:3px solid var(--focus)}
+.evi .e1{font-weight:700}.evi .e2{font-size:13px;color:var(--mut)}
+.rrow{display:grid;grid-template-columns:62px 128px minmax(0,1fr) 96px 58px 40px;gap:8px;align-items:center;margin-bottom:8px}
+.rrow.nop{grid-template-columns:62px 128px minmax(0,1fr) 58px 40px}
+.ptag{font:700 18px var(--disp);text-align:right;white-space:nowrap}
+.filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.filters .q{grid-column:1/-1}
+/* houses */
+.hcard{border-radius:14px;border:1px solid var(--line);background:var(--card);overflow:hidden}
+.hcard .hh{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font:800 26px var(--disp)}
+.hcard .hb{padding:14px 16px;display:grid;gap:10px}
+/* scoreboard */
+.sb{background:#141414;color:#fff;border-radius:18px;padding:clamp(16px,3vw,34px);min-height:80vh}
+.sb .hero{border-radius:14px}
+.sb .lane{min-height:clamp(70px,11vh,120px)}
+.sb .lane .pts{font-size:clamp(44px,7vw,92px)}
+.sb .lane .nm{font-size:clamp(22px,3vw,38px)}
+.sb .lane{grid-template-columns:clamp(40px,5vw,70px) clamp(110px,16vw,230px) minmax(0,1fr) clamp(90px,12vw,190px)}
+.sb .lane .bar{height:clamp(24px,4vh,40px)}
+.sb table.t td,.sb table.t th{border-color:#333;color:#fff}
+.sb .tick{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:16px}
+.sb .tick div{background:#222;border-radius:12px;padding:12px 14px}
+:fullscreen .sb{border-radius:0;min-height:100vh}
+/* paper */
+.paper{background:#fff;color:#111;border-radius:6px;box-shadow:0 2px 18px #0002;padding:28px;max-width:900px;margin-top:16px;overflow-x:auto}
+/* toast + modal */
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);background:#17191d;color:#fff;padding:12px 18px;border-radius:12px;font-weight:600;transition:transform .25s;z-index:50;max-width:92vw}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.modal{position:fixed;inset:0;background:#0008;display:none;place-items:center;z-index:60;padding:16px}
+.modal.on{display:grid}
+.modal .card{max-width:440px;width:100%}
+@media(max-width:1000px){.g3{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.rlayout{grid-template-columns:minmax(0,1fr)}.evlist{max-height:42vh}}
+@media(max-width:860px){.app{grid-template-columns:minmax(0,1fr)}.side{position:static;height:auto;padding:12px}.nav{flex-direction:row;overflow-x:auto;margin-top:10px;padding-bottom:4px}.nav .grp{display:none}.nav a{flex:none}.g2{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){h2{font-size:28px}.lane{grid-template-columns:30px minmax(0,1fr) 70px;gap:8px}.lane .bar{grid-column:2/4;grid-row:2;height:16px}.lane .pts{font-size:34px}.lane .rk{font-size:26px}
+ .sb .lane{grid-template-columns:34px minmax(0,1fr) 84px}
+ .rrow,.rrow.nop{grid-template-columns:56px minmax(0,1fr) 80px 40px;padding-bottom:8px;border-bottom:1px solid var(--line)}.rrow select{grid-column:2/4;grid-row:1}.rrow .x{grid-column:4;grid-row:1}.rrow input[data-k=name]{grid-column:1/3;grid-row:2}.rrow.nop input[data-k=name]{grid-column:1/4}.rrow input[data-k=perf]{grid-column:3;grid-row:2}.rrow .ptag{grid-column:4;grid-row:2;font-size:15px}
+ .top{position:static}
+ table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mut);font-size:12px}.stack td:empty{display:none}.stack td.n{text-align:start}}
+@media print{.side,.top,.noprint,.toast,.modal{display:none!important}.app{display:block}main{padding:0;max-width:none}.paper{box-shadow:none;padding:0;margin:0;max-width:none;border-radius:0}body{background:#fff}}
+</style>
+<style id="pcss"></style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<div class="app">
+ <aside class="side">
+  <div class="brand">SJS Sports App<small id="schoolName">St. James H.S. School</small></div>
+  <nav class="nav" id="nav">
+   <div class="grp">Meet day</div>
+   <a href="#home">Dashboard</a>
+   <a href="#results">Enter results</a>
+   <a href="#scoreboard">Live scoreboard</a>
+   <a href="#champions">Champions</a>
+   <a href="#records">Meet records</a>
+   <a href="#reports">Reports &amp; certificates</a>
+   <div class="grp">Set up</div>
+   <a href="#events">Events / items</a>
+   <a href="#athletes">Athletes</a>
+   <a href="#houses">Houses</a>
+   <a href="#categories">Categories</a>
+   <a href="#points">Points rules</a>
+   <a href="#bonus">Special points</a>
+   <div class="grp">Manage</div>
+   <a href="#sessions">Sessions &amp; backup</a>
+   <a href="#setup">School details</a>
+  </nav>
+ </aside>
+ <div>
+  <header class="top">
+   <div class="sess"><label for="sessSel" style="color:inherit;font-size:15px">Session</label><select id="sessSel" style="width:auto;min-width:150px"></select></div>
+   <span class="state" id="saveState">Saved on this device</span>
+  </header>
+  <main id="main"></main>
+ </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true"><div class="card"><h3 id="mTitle">Are you sure?</h3><p id="mText" class="mut"></p><div class="row" style="justify-content:flex-end"><button class="btn" id="mNo">Cancel</button><button class="btn pri" id="mYes">Yes, continue</button></div></div></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const main=$('#main');
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4);
+const clone=o=>JSON.parse(JSON.stringify(o));
+const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+const ord=n=>{const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])};
+const POSW=['','First','Second','Third','Fourth','Fifth','Sixth','Seventh','Eighth'];
+const RANKL=['Champion House','Runner-up','2nd Runner-up'];
+const KEY='sjs_sports_app_v1';
+const PCSS=`.p-doc{font-family:Barlow,'Segoe UI',Arial,sans-serif;color:#111;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.p-head{text-align:center;border-bottom:3px double #333;padding-bottom:8px;margin-bottom:14px}
+.p-head h1{margin:0;font:800 26px/1.1 'Barlow Condensed','Arial Narrow',Arial,sans-serif;letter-spacing:.02em}
+.p-head .m{font-style:italic;font-size:13px}.p-head .a{font-size:12px}
+.p-head h2{margin:8px 0 0;font:700 19px/1.2 'Barlow Condensed','Arial Narrow',Arial,sans-serif}
+.p-doc h3{font:700 16px 'Barlow Condensed','Arial Narrow',Arial,sans-serif;margin:16px 0 6px;border-bottom:1px solid #999;padding-bottom:2px}
+.p-doc table{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:8px;page-break-inside:auto}
+.p-doc tr{page-break-inside:avoid}
+.p-doc th,.p-doc td{border:1px solid #888;padding:4px 6px;text-align:left}
+.p-doc th{background:#eee}
+.p-doc .n{text-align:right}
+.p-sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle;border:1px solid #0004}
+.p-sign{display:flex;justify-content:space-between;margin-top:46px;font-size:13px;gap:20px}
+.p-sign div{border-top:1px solid #333;padding-top:4px;min-width:170px;text-align:center}
+.p-foot{font-size:11px;color:#555;margin-top:10px}
+.cert{border:10px double #a63a23;padding:26px 40px;text-align:center;page-break-after:always;break-after:page;min-height:178mm;display:flex;flex-direction:column;justify-content:center;margin-bottom:18px}
+.cert .sch{font:800 30px/1.1 'Barlow Condensed','Arial Narrow',Arial,sans-serif}
+.cert .ct{font:800 44px/1 'Barlow Condensed','Arial Narrow',Arial,sans-serif;color:#a63a23;letter-spacing:.04em;margin:18px 0 10px}
+.cert .nm{font:700 34px/1.1 'Barlow Condensed','Arial Narrow',Arial,sans-serif;border-bottom:1px dotted #333;display:inline-block;padding:0 28px;margin:6px auto}
+.cert p{font-size:17px;line-height:1.7;margin:6px 0}
+.cert .hb{display:inline-block;padding:1px 12px;border-radius:20px;font-weight:700}`;
+$('#pcss').textContent=PCSS.replace(/\.p-doc\{/,'.p-doc{');
+
+/* ---------- storage ---------- */
+let canStore=true;
+function load(){try{const t=localStorage.getItem(KEY);return t?JSON.parse(t):null}catch(e){canStore=false;return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));canStore=true}catch(e){canStore=false}stamp()}
+function stamp(){$('#saveState').textContent=canStore?'Saved on this device · works offline':'This browser is not keeping data — download a backup often'}
+
+/* ---------- defaults ---------- */
+function baseSession(year){
+ return {id:uid(),year,title:'Annual Sports Meet',date:'',venue:'School Playground',created:Date.now(),
+  houses:[['David','#1f5fbf'],['Moses','#d23a2f'],['Joseph','#1f9a52'],['Daniel','#f2c12e']].map(([name,color])=>({id:uid(),name,color,captain:'',vice:'',master:''})),
+  cats:[['Minor','Nursery – Class II'],['Sub-Junior','Class III – V'],['Junior','Class VI – VIII'],['Senior','Class IX – XII']].map(([name,desc])=>({id:uid(),name,desc})),
+  types:[['Individual',[5,3,1],true,false],['Relay',[10,6,4],false,true],['Major Game',[15,10,5],false,true],['Minor / Fun',[3,2,1],true,false]].map(([name,pts,indiv,team])=>({id:uid(),name,pts,indiv,team})),
+  events:[],athletes:[],results:{},bonus:[]};
+}
+function blankRec(){return{val:'',holder:'',house:'',year:''}}
+function stdEvents(s){
+ const cid=n=>(s.cats.find(c=>c.name===n)||{}).id||'';
+ const tid=n=>(s.types.find(t=>t.name===n)||s.types[0]).id;
+ const L={'Minor':[['50m Race','Individual','time'],['Frog Race','Minor / Fun','none'],['Lemon & Spoon Race','Minor / Fun','none']],
+  'Sub-Junior':[['100m Race','Individual','time'],['Long Jump','Individual','dist'],['Sack Race','Minor / Fun','none'],['4x50m Relay','Relay','time']],
+  'Junior':[['100m Race','Individual','time'],['200m Race','Individual','time'],['Long Jump','Individual','dist'],['High Jump','Individual','dist'],['Shot Put','Individual','dist'],['4x100m Relay','Relay','time']],
+  'Senior':[['100m Race','Individual','time'],['200m Race','Individual','time'],['400m Race','Individual','time'],['800m Race','Individual','time'],['Long Jump','Individual','dist'],['High Jump','Individual','dist'],['Shot Put','Individual','dist'],['Discus Throw','Individual','dist'],['Javelin Throw','Individual','dist'],['4x100m Relay','Relay','time']]};
+ for(const [cn,list] of Object.entries(L))for(const g of ['Boys','Girls'])for(const [name,tn,measure] of list)s.events.push({id:uid(),name,catId:cid(cn),gender:g,typeId:tid(tn),measure,rec:blankRec()});
+ [['Football','Boys'],['Volleyball','Girls'],['Tug of War','Boys'],['Tug of War','Girls']].forEach(([name,g])=>s.events.push({id:uid(),name,catId:'',gender:g,typeId:tid('Major Game'),measure:'none',rec:blankRec()}));
+}
+function demo(s){
+ let seed=11;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+ const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+ const BF=['Lalremruata','Vanlalhriata','Zothanmawia','Lalrinfela','Malsawmtluanga','Lalthlamuana','Rohmingthanga','Lalbiakzuala','Vanlalruata','Lalnunsanga','Samuel','Joseph','Lalhruaitluanga','Zoramsanga','Lalmuanpuia','Ramdinthara'];
+ const GF=['Lalrinpuii','Zothanpuii','Vanlalhruaii','Lalremsiami','Malsawmkimi','Lalthlamuani','Rosangpuii','Lalnunmawii','Esther','Lalhmingsangi','Ruth','Zonunsiami','Lalchhanhimi','Vanlalrinchhani','Lalruatfeli','Laldinpuii'];
+ const SUR=['Ralte','Darlong','Sailo','Pachuau','Khiangte','Hmar','Chhangte','Fanai'];
+ const CLS=[['I','II'],['IV','V'],['VII','VIII'],['X','XI']];
+ let bi=0,gi=0;
+ s.cats.forEach((c,ci)=>s.houses.forEach(h=>['B','G'].forEach(g=>{for(let k=0;k<2;k++){const i=g==='B'?bi++:gi++;const f=(g==='B'?BF:GF)[i%16];s.athletes.push({id:uid(),name:f+' '+SUR[(i+Math.floor(i/16)*3)%8],cls:(CLS[ci]||['',''])[k],gender:g,houseId:h.id,catId:c.id,chest:String(101+s.athletes.length)})}})));
+ const base=n=>{n=n.toLowerCase();return /4x50/.test(n)?36:/4x100/.test(n)?60:/800m/.test(n)?165:/400m/.test(n)?68:/200m/.test(n)?29:/100m/.test(n)?13.8:/50m/.test(n)?8.6:/long/.test(n)?4.1:/high/.test(n)?1.28:/shot/.test(n)?7.6:/discus/.test(n)?21:/javelin/.test(n)?25:0};
+ const cf=[1.25,1.15,1.06,1];
+ const N=s.events.length;let at=Date.now()-N*90000;
+ s.events.forEach((e,ei)=>{
+  const t=s.types.find(x=>x.id===e.typeId);const ci=s.cats.findIndex(c=>c.id===e.catId);
+  const b=base(e.name),gf=e.gender==='Girls'?1.1:1,f=ci<0?1:cf[ci];
+  const mk=()=>e.measure==='time'?b*f*gf:b/f/(gf===1?1:1.18);
+  if(b&&rnd()<.55)e.rec={val:fmtPerf(e.measure==='time'?mk()*0.985:mk()*1.02,e.measure),holder:'Previous record',house:s.houses[Math.floor(rnd()*4)].name,year:'2025-26'};
+  if(rnd()>.62)return;
+  let rows;
+  if(t&&t.team){rows=shuf(s.houses).slice(0,t.pts.length).map((h,i)=>({pos:i+1,houseId:h.id,name:'',athId:'',perf:''}))}
+  else{const g=e.gender==='Boys'?'B':'G';const pool=shuf(s.athletes.filter(a=>a.catId===e.catId&&a.gender===g)).slice(0,(t?t.pts.length:3));
+   let ps=pool.map(()=>mk()*(1+rnd()*.1-.03));ps.sort((a,b)=>e.measure==='dist'?b-a:a-b);
+   rows=pool.map((a,i)=>({pos:i+1,houseId:a.houseId,name:a.name,athId:a.id,perf:e.measure==='none'?'':fmtPerf(ps[i],e.measure)}))}
+  if(t&&t.team&&e.measure==='time'){let ps=rows.map(()=>mk()*(1+rnd()*.08));ps.sort((a,b)=>a-b);rows.forEach((r,i)=>r.perf=fmtPerf(ps[i],'time'))}
+  s.results[e.id]={rows,at:at+=90000};
+ });
+ const hs=s.houses;s.bonus=[{id:uid(),houseId:hs[2].id,pts:10,reason:'March Past – 1st'},{id:uid(),houseId:hs[0].id,pts:7,reason:'March Past – 2nd'},{id:uid(),houseId:hs[3].id,pts:5,reason:'March Past – 3rd'},{id:uid(),houseId:hs[1].id,pts:-2,reason:'Discipline penalty'}];
+ s.demo=true;
+}
+function freshDB(withDemo,year){const s=baseSession(year||'2026-27');stdEvents(s);if(withDemo)demo(s);return{v:1,app:{school:'ST. JAMES H.S. SCHOOL',motto:'Faith And Service',address:'Gongrai, PO. Kendraicherra, Dist-Sepahijala, Tripura-799102',sign1:'Sports In-charge',sign2:'Principal'},active:s.id,sessions:{[s.id]:s}}}
+
+/* ---------- performance ---------- */
+function parsePerf(v){v=String(v||'').trim().replace(/[a-z\s]+$/i,'');if(!v)return NaN;if(v.includes(':')){const [m,sec]=v.split(':');return (+m)*60+(+sec)}return parseFloat(v)}
+function fmtPerf(x,m){if(m==='time'){if(x>=60){const mm=Math.floor(x/60),ss=(x-mm*60).toFixed(2).padStart(5,'0');return mm+':'+ss}return x.toFixed(2)}return x.toFixed(2)}
+const unitOf=m=>m==='time'?'s':m==='dist'?'m':'';
+const better=(a,b,m)=>m==='time'?a<b:a>b;
+
+/* ---------- state ---------- */
+let DB=load();
+if(!DB||!DB.sessions||!DB.sessions[DB.active]){DB=freshDB(true);save()}
+const S=()=>DB.sessions[DB.active];
+const ui={page:'home',sel:null,draft:null,evf:{cat:'',g:'',t:'',st:'',q:''},af:{q:'',cat:'',h:''},evCat:'',report:'summary',repCat:'',champCat:''};
+const Hs=(id,s=S())=>s.houses.find(h=>h.id===id);
+const Cs=(id,s=S())=>s.cats.find(c=>c.id===id);
+const Ts=(id,s=S())=>s.types.find(t=>t.id===id);
+const catName=(id,s=S())=>!id||id==='_open'?'Open':((Cs(id,s)||{}).name||'—');
+const txtOn=c=>{c=(c||'#888888').replace('#','');if(c.length===3)c=c.split('').map(x=>x+x).join('');const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16);return (0.299*r+0.587*g+0.114*b)>160?'#17191d':'#fff'};
+const chip=(h,t)=>h?`<span class="hchip" style="background:${h.color};color:${txtOn(h.color)}">${esc(t??h.name)}</span>`:'<span class="mut">—</span>';
+const dot=h=>`<i class="dot" style="background:${h?h.color:'#999'}"></i>`;
+const evLabel=(e,s=S())=>`${e.name} · ${e.gender} · ${catName(e.catId,s)}`;
+const hasRes=(e,s=S())=>{const r=s.results[e.id];return !!(r&&r.rows&&r.rows.length)};
+const fmtDate=d=>{if(!d)return'';const x=new Date(d+'T00:00');return isNaN(x)?d:x.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})};
+const genderOf=g=>g==='B'?'Boy':g==='G'?'Girl':'—';
+const cmpI=(a,b)=>b.pts-a.pts||b.g-a.g||b.s-a.s||b.b-a.b||a.name.localeCompare(b.name);
+const best=list=>{const l=list.slice().sort(cmpI);if(!l.length||!l[0].pts)return[];return l.filter(x=>x.pts===l[0].pts&&x.g===l[0].g&&x.s===l[0].s&&x.b===l[0].b)};
+function catKeys(s=S()){const k=s.cats.map(c=>c.id);if(s.events.some(e=>!e.catId))k.push('_open');return k}
+
+/* ---------- the scoring engine ---------- */
+function calc(s=S()){
+ const M={};s.houses.forEach(h=>M[h.id]={h,total:0,g:0,si:0,b:0,cat:{},type:{},bonus:0,ev:0});
+ let done=0,awarded=0;const recs=[],feed=[],cats={},all={};
+ const add=(m,key,o0,p,pos,e)=>{const o=m[key]||(m[key]={...o0,pts:0,g:0,s:0,b:0,ev:[]});o.pts+=p;if(pos==1)o.g++;else if(pos==2)o.s++;else if(pos==3)o.b++;o.ev.push(e.name+(e.catId?'':' (Open)')+' – '+ord(pos))};
+ s.events.forEach(e=>{
+  const r=s.results[e.id];if(!r||!r.rows||!r.rows.length)return;
+  const t=Ts(e.typeId,s)||{pts:[],indiv:false,team:false};done++;feed.push({e,r});
+  r.rows.forEach(row=>{
+   const p=+t.pts[row.pos-1]||0;const x=M[row.houseId];if(!x)return;
+   x.total+=p;awarded+=p;x.ev+=p?1:0;if(row.pos==1)x.g++;else if(row.pos==2)x.si++;else if(row.pos==3)x.b++;
+   const ck=e.catId||'_open';x.cat[ck]=(x.cat[ck]||0)+p;x.type[t.id]=(x.type[t.id]||0)+p;
+   if(t.indiv&&!t.team&&row.name&&String(row.name).trim()){
+    const a=row.athId&&s.athletes.find(z=>z.id===row.athId);
+    const gender=a&&a.gender?a.gender:(e.gender==='Boys'?'B':e.gender==='Girls'?'G':'');
+    const key=a?a.id:norm(row.name)+'|'+row.houseId;
+    const o0={key,name:a?a.name:String(row.name).trim(),houseId:a?a.houseId:row.houseId,gender,cls:a?a.cls:''};
+    add(cats[ck]||(cats[ck]={}),key,o0,p,row.pos,e);add(all,key,o0,p,row.pos,e);
+   }
+  });
+  if(e.measure!=='none'){const w=r.rows.filter(x=>x.pos==1&&!isNaN(parsePerf(x.perf)))[0];
+   if(w){const v=parsePerf(w.perf),rv=parsePerf(e.rec&&e.rec.val);if(isNaN(rv)||better(v,rv,e.measure))recs.push({e,row:w,v,old:e.rec,isNew:!isNaN(rv)||!(e.rec&&e.rec.val)})}}
+ });
+ s.bonus.forEach(b=>{const x=M[b.houseId];if(x){const v=+b.pts||0;x.total+=v;x.bonus+=v}});
+ const st=Object.values(M).sort((a,b)=>b.total-a.total||b.g-a.g||b.si-a.si||b.b-a.b);
+ st.forEach((x,i)=>{const p=st[i-1];x.rank=p&&p.total===x.total&&p.g===x.g&&p.si===x.si&&p.b===x.b?p.rank:i+1});
+ feed.sort((a,b)=>(b.r.at||0)-(a.r.at||0));
+ return{M,st,done,total:s.events.length,awarded,recs,feed,cats,all};
+}
+
+/* ---------- ui helpers ---------- */
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2600)}
+function ask(title,text,yes){return new Promise(res=>{$('#mTitle').textContent=title;$('#mText').textContent=text||'';$('#mYes').textContent=yes||'Yes, continue';const m=$('#modal');m.classList.add('on');const done=v=>{m.classList.remove('on');$('#mYes').onclick=$('#mNo').onclick=null;res(v)};$('#mYes').onclick=()=>done(true);$('#mNo').onclick=()=>done(false);$('#mYes').focus()})}
+let dl=null;(async()=>{try{if(window.claude&&window.claude.use)dl=await window.claude.use('downloads')}catch(e){dl=null}})();
+async function saveFile(name,data){
+ if(dl){try{await dl.save({filename:name,data});toast('Saved '+name);return}catch(e){if(e&&e.code==='declined')return}}
+ try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/octet-stream'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('Downloading '+name)}catch(e){toast('Download not available here — use Copy instead')}
+}
+const opt=(v,l,sel)=>`<option value="${esc(v)}" ${String(v)===String(sel)?'selected':''}>${esc(l)}</option>`;
+const houseOpts=(sel,blank)=>(blank?opt('',blank,sel):'')+S().houses.map(h=>opt(h.id,h.name,sel)).join('');
+const typeOpts=sel=>S().types.map(t=>opt(t.id,`${t.name} (${t.pts.join('/')})`,sel)).join('');
+const genOpts=sel=>['Boys','Girls','Mixed'].map(g=>opt(g,g,sel)).join('');
+const measOpts=sel=>[['time','Time (lower wins)'],['dist','Distance / height (higher wins)'],['none','Position only']].map(([v,l])=>opt(v,l,sel)).join('');
+function setPath(o,p,v){const k=p.split('.');let x=o;for(let i=0;i<k.length-1;i++)x=x[k[i]]||(x[k[i]]={});x[k[k.length-1]]=v}
+function personLine(list,empty){if(!list.length)return`<div class="big mut">${empty||'Not decided yet'}</div>`;return list.map(p=>`<div class="big">${esc(p.name)}</div><div class="mut">${chip(Hs(p.houseId))} ${p.pts} pts · ${p.g}G ${p.s}S ${p.b}B${list.length>1?' · joint':''}</div>`).join('')}
+
+/* ---------- pages ---------- */
+function lanesHTML(c){const max=Math.max(1,...c.st.map(x=>x.total));
+ return c.st.map(x=>`<div class="lane"><b class="rk">${x.rank}</b><div class="nm">${esc(x.h.name)}<small>${x.g}G · ${x.si}S · ${x.b}B</small></div><div class="bar"><span style="width:${Math.max(1.5,x.total/max*100)}%;background:${x.h.color}"></span></div><b class="pts">${x.total}</b></div>`).join('')}
+function catMatrix(c,s=S()){const ks=catKeys(s);
+ return `<div class="scroll"><table class="t"><thead><tr><th>Category</th>${c.st.map(x=>`<th class="n">${dot(x.h)}${esc(x.h.name)}</th>`).join('')}</tr></thead><tbody>
+ ${ks.map(k=>`<tr><td>${esc(catName(k,s))}</td>${c.st.map(x=>`<td class="n">${x.cat[k]||0}</td>`).join('')}</tr>`).join('')}
+ <tr><td>Special points</td>${c.st.map(x=>`<td class="n">${x.bonus}</td>`).join('')}</tr>
+ <tr><td><b>Total</b></td>${c.st.map(x=>`<td class="n"><b>${x.total}</b></td>`).join('')}</tr></tbody></table></div>`}
+
+function pHome(){
+ const s=S(),c=calc();const pct=c.total?Math.round(c.done/c.total*100):0;
+ const all=Object.values(c.all);const bb=best(all.filter(a=>a.gender==='B')),bg=best(all.filter(a=>a.gender==='G'));
+ const fin=c.done&&c.done===c.total;
+ const pod=c.done||c.st.some(x=>x.total)?c.st.slice(0,3).map(x=>`<div class="card pod"><span class="medal m${Math.min(x.rank,3)}">${x.rank}</span><div><div class="lbl">${RANKL[x.rank-1]||ord(x.rank)}${fin?'':' · so far'}</div><div class="big">${chip(x.h)}</div><div class="mut">${x.total} points</div></div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">No results yet. Open <a href="#results">Enter results</a> to start the scoreboard.</div>';
+ const feed=c.feed.slice(0,7).map(({e,r})=>{const w=r.rows.filter(x=>x.pos==1);return`<li><span><b>${esc(e.name)}</b> <span class="tiny">${esc(e.gender)} · ${esc(catName(e.catId))}</span></span><span>${w.map(x=>`${chip(Hs(x.houseId))} ${esc(x.name||'')} ${x.perf?`<span class="tiny">${esc(x.perf)} ${unitOf(e.measure)}</span>`:''}`).join(' ')}</span></li>`}).join('');
+ const catChamps=s.cats.map(ct=>{const l=Object.values(c.cats[ct.id]||{});const b=best(l.filter(a=>a.gender==='B')),g=best(l.filter(a=>a.gender==='G'));
+  return`<tr><td><b>${esc(ct.name)}</b></td><td>${b.length?b.map(p=>`${esc(p.name)} ${dot(Hs(p.houseId))}<span class="tiny">${p.pts}</span>`).join('<br>'):'<span class="mut">—</span>'}</td><td>${g.length?g.map(p=>`${esc(p.name)} ${dot(Hs(p.houseId))}<span class="tiny">${p.pts}</span>`).join('<br>'):'<span class="mut">—</span>'}</td></tr>`}).join('');
+ return `${s.demo?`<div class="banner noprint"><b>Demo data is loaded</b><span class="mut">Sample athletes and results show how the app works. Clear them before your real meet — houses, categories, rules and events stay.</span><button class="btn pri sm" data-act="clearDemo">Clear demo data</button></div>`:''}
+ <section class="hero"><div class="kick">${esc(DB.app.school)}</div><h1>${esc(s.title)} ${esc(s.year)}</h1>
+  <div class="meta"><span>${c.done} of ${c.total} events completed</span><div class="prog"><span style="width:${pct}%"></span></div>${s.date?`<span>${esc(fmtDate(s.date))}</span>`:''}${s.venue?`<span>${esc(s.venue)}</span>`:''}</div>
+  <div class="lanes">${lanesHTML(c)}</div></section>
+ <div class="g3" style="margin-top:16px">${pod}</div>
+ <div class="g2" style="margin-top:16px">
+  <div class="card pod"><span class="medal m1">B</span><div><div class="lbl">Best Athlete – Boy (whole meet)</div>${personLine(bb)}</div></div>
+  <div class="card pod"><span class="medal m1">G</span><div><div class="lbl">Best Athlete – Girl (whole meet)</div>${personLine(bg)}</div></div>
+ </div>
+ <div class="kpis" style="margin-top:16px">
+  <div class="card kpi"><b>${c.done}/${c.total}</b><span class="mut">events done</span></div>
+  <div class="card kpi"><b>${c.awarded}</b><span class="mut">event points awarded</span></div>
+  <div class="card kpi"><b>${c.recs.filter(r=>r.isNew&&r.old&&r.old.val).length}</b><span class="mut">meet records broken</span></div>
+  <div class="card kpi"><b>${s.athletes.length}</b><span class="mut">athletes registered</span></div>
+ </div>
+ <div class="g2" style="margin-top:16px">
+  <div class="card"><h3>House points by category</h3>${catMatrix(c)}</div>
+  <div class="card"><h3>Best Boy &amp; Best Girl by category</h3><table class="t stack"><thead><tr><th>Category</th><th>Best Boy</th><th>Best Girl</th></tr></thead><tbody>${catChamps}</tbody></table><p class="tiny">Counted from events whose points rule is marked “counts for Best Athlete”.</p></div>
+ </div>
+ <div class="card" style="margin-top:16px"><h3>Latest results</h3>${feed?`<ul class="feed">${feed}</ul>`:'<div class="empty">Results appear here as you save them.</div>'}</div>`;
+}
+
+function pScoreboard(){
+ const s=S(),c=calc();
+ const tick=c.feed.slice(0,6).map(({e,r})=>{const w=r.rows.slice().sort((a,b)=>a.pos-b.pos).slice(0,3);return`<div><b>${esc(e.name)}</b> <span style="opacity:.7">${esc(e.gender)} · ${esc(catName(e.catId))}</span><br>${w.map(x=>`${ord(x.pos)} ${chip(Hs(x.houseId))} ${esc(x.name||'')}`).join('<br>')}</div>`}).join('');
+ return `<div class="sb" id="sbx"><div class="row noprint" style="justify-content:space-between;margin-bottom:12px"><div><div style="opacity:.8">${esc(DB.app.school)}</div><h2 style="color:#fff">${esc(s.title)} ${esc(s.year)} — Live</h2></div>
+ <div class="row"><button class="btn sm" data-act="fs">Full screen</button><a class="btn sm" href="#scoreboard" target="_blank" rel="noopener">Open in new window</a></div></div>
+ <section class="hero"><div class="meta"><span>${c.done} of ${c.total} events completed</span>${c.st[0]&&c.st[0].total?`<span>Leading: <b>${esc(c.st[0].h.name)}</b></span>`:''}</div><div class="lanes">${lanesHTML(c)}</div></section>
+ ${tick?`<div class="tick">${tick}</div>`:''}<p style="opacity:.6;font-size:13px">Updates automatically when results are saved in another tab or window of this app on the same device.</p></div>`;
+}
+
+function evListHTML(){
+ const s=S(),f=ui.evf;
+ let list=s.events.filter(e=>(!f.cat||(e.catId||'_open')===f.cat)&&(!f.g||e.gender===f.g)&&(!f.t||e.typeId===f.t)&&(!f.q||norm(evLabel(e)).includes(norm(f.q))));
+ if(f.st)list=list.filter(e=>f.st==='done'?hasRes(e):!hasRes(e));
+ if(!list.length)return'<div class="empty">No events match. Add events on the <a href="#events">Events</a> page.</div>';
+ return list.map(e=>{const r=s.results[e.id];const w=r&&r.rows.find(x=>x.pos==1);
+  return`<button class="evi ${ui.sel===e.id?'on':''}" data-act="pick" data-id="${e.id}"><span><span class="e1">${esc(e.name)}</span><br><span class="e2">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc((Ts(e.typeId)||{}).name||'')}</span></span>${w?`<span class="tag ok">${dot(Hs(w.houseId))}Done</span>`:'<span class="tag">Pending</span>'}</button>`}).join('');
+}
+function athDatalist(e){const s=S();return s.athletes.filter(a=>(!e.catId||a.catId===e.catId)&&(e.gender==='Boys'?a.gender==='B':e.gender==='Girls'?a.gender==='G':true)).map(a=>`<option value="${esc(a.name)}">${esc((Hs(a.houseId)||{}).name||'')}${a.cls?' · Class '+esc(a.cls):''}${a.chest?' · #'+esc(a.chest):''}</option>`).join('')}
+function editorHTML(){
+ const s=S(),e=s.events.find(x=>x.id===ui.sel);
+ if(!e)return'<div class="empty">Pick an event on the left to enter its positions. Points go to the houses automatically.</div>';
+ const t=Ts(e.typeId)||{pts:[],name:'—'};const team=!!t.team;
+ if(!ui.draft||ui.draft.eid!==e.id){const r=s.results[e.id];ui.draft={eid:e.id,rows:r&&r.rows.length?clone(r.rows):(t.pts.length?t.pts:[0,0,0]).map((p,i)=>({pos:i+1,houseId:'',name:'',athId:'',perf:''}))}}
+ const hasP=e.measure!=='none';
+ const rows=ui.draft.rows.map((r,i)=>{const h=Hs(r.houseId);const p=+t.pts[r.pos-1]||0;return`<div class="rrow ${hasP?'':'nop'}">
+  <input type="number" min="1" data-r="${i}" data-k="pos" value="${esc(r.pos)}" aria-label="Position">
+  <select data-r="${i}" data-k="houseId" aria-label="House" style="${h?`background:${h.color};color:${txtOn(h.color)};font-weight:700`:''}">${houseOpts(r.houseId,'House…')}</select>
+  <input data-r="${i}" data-k="name" list="athList" autocomplete="off" aria-label="Name" placeholder="${team?'Team / captain (optional)':'Athlete name'}" value="${esc(r.name)}">
+  ${hasP?`<input data-r="${i}" data-k="perf" inputmode="decimal" aria-label="Performance" placeholder="${e.measure==='time'?'e.g. 12.45':'e.g. 4.35'}" value="${esc(r.perf)}">`:''}
+  <span class="ptag">${p} pts</span><button class="x" data-act="rowdel" data-r="${i}" aria-label="Remove row">×</button></div>`}).join('');
+ const rec=e.rec&&e.rec.val?`Meet record: <b>${esc(e.rec.val)} ${unitOf(e.measure)}</b> — ${esc(e.rec.holder)}${e.rec.house?' ('+esc(e.rec.house)+')':''}${e.rec.year?', '+esc(e.rec.year):''}`:(hasP?'No meet record yet — the winner will set the first one.':'');
+ return`<div class="card"><div class="row" style="justify-content:space-between;align-items:start"><div><h3 style="margin:0">${esc(e.name)}</h3><div class="mut">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc(t.name)} · points ${t.pts.join(' / ')||'none'}</div>${rec?`<div class="tiny" style="margin-top:4px">${rec}</div>`:''}</div>${hasRes(e)?'<span class="tag ok">Saved</span>':''}</div>
+ <div style="margin-top:14px" class="tiny">Position · House · ${team?'Team':'Athlete'}${hasP?' · '+(e.measure==='time'?'Time':'Distance'):''}</div>
+ <div style="margin-top:6px">${rows}</div><datalist id="athList">${athDatalist(e)}</datalist>
+ <div class="row" style="margin-top:10px"><button class="btn pri" data-act="saveRes">Save result</button><button class="btn" data-act="rowadd">Add row (tie / extra place)</button>${hasP?'<button class="btn" data-act="autopos">Rank by performance</button>':''}<button class="btn" data-act="nextEv">Next pending event</button>${hasRes(e)?'<button class="btn danger" data-act="clearRes">Clear result</button>':''}</div>
+ <p class="tiny">Typing a registered athlete's name fills their house. New names are added to Athletes automatically when you save. Two rows with the same position are treated as a tie and both get the points.</p></div>`;
+}
+function pResults(){
+ const f=ui.evf,s=S();
+ return`<h2>Enter results</h2><p class="lead">Choose an event, enter the places, save. House totals, champions and records update at once.</p>
+ <div class="rlayout"><div><div class="filters">
+  <select data-uf="cat" aria-label="Category">${opt('','All categories',f.cat)}${s.cats.map(c=>opt(c.id,c.name,f.cat)).join('')}${opt('_open','Open',f.cat)}</select>
+  <select data-uf="g" aria-label="Gender">${opt('','Boys & Girls',f.g)}${genOpts(f.g)}</select>
+  <select data-uf="t" aria-label="Type">${opt('','All types',f.t)}${s.types.map(t=>opt(t.id,t.name,f.t)).join('')}</select>
+  <select data-uf="st" aria-label="Status">${opt('','Any status',f.st)}${opt('pending','Pending',f.st)}${opt('done','Done',f.st)}</select>
+  <input class="q" data-uf="q" type="search" placeholder="Search events" value="${esc(f.q)}" aria-label="Search events"></div>
+  <div class="evlist" id="evList">${evListHTML()}</div></div>
+ <div id="editor">${editorHTML()}</div></div>`;
+}
+
+function pEvents(){
+ const s=S();const fc=ui.evCat;
+ const list=s.events.filter(e=>!fc||(e.catId||'_open')===fc);
+ return`<h2>Events / items</h2><p class="lead">Every item of the meet — races, jumps, throws, relays, major games, fun events. Each one belongs to a category, a gender and a points rule.</p>
+ <div class="card"><h3>Add an event</h3><div class="row">
+  <label>Event name<input id="neName" placeholder="e.g. 100m Race, Kabaddi"></label>
+  <label>Category<select id="neCat">${s.cats.map(c=>opt(c.id,c.name,'')).join('')}${opt('','Open (all categories)','x')}</select></label>
+  <label>Gender<select id="neGen">${genOpts('Boys')}</select></label>
+  <label>Points rule<select id="neType">${typeOpts('')}</select></label>
+  <label>Result by<select id="neMeas">${measOpts('time')}</select></label></div>
+  <div class="row" style="margin-top:6px"><label class="chk"><input type="checkbox" id="neAllCat"> Create for every category</label><label class="chk"><input type="checkbox" id="neBoth"> Create for Boys and Girls</label><button class="btn pri" data-act="addEvent">Add event</button></div></div>
+ <div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${list.length} events</h3><label style="flex:0 1 240px">Show<select data-act2="evCat">${opt('','All categories',fc)}${s.cats.map(c=>opt(c.id,c.name,fc)).join('')}${opt('_open','Open',fc)}</select></label></div>
+ <div class="scroll" style="margin-top:10px"><table class="t stack"><thead><tr><th>Event</th><th>Category</th><th>Gender</th><th>Points rule</th><th>Result by</th><th>Status</th><th></th></tr></thead><tbody>
+ ${list.map(e=>`<tr><td><input data-col="events" data-id="${e.id}" data-f="name" value="${esc(e.name)}" aria-label="Event name"></td>
+  <td><select data-col="events" data-id="${e.id}" data-f="catId">${s.cats.map(c=>opt(c.id,c.name,e.catId)).join('')}${opt('','Open',e.catId)}</select></td>
+  <td><select data-col="events" data-id="${e.id}" data-f="gender">${genOpts(e.gender)}</select></td>
+  <td><select data-col="events" data-id="${e.id}" data-f="typeId">${typeOpts(e.typeId)}</select></td>
+  <td><select data-col="events" data-id="${e.id}" data-f="measure">${measOpts(e.measure)}</select></td>
+  <td>${hasRes(e)?'<span class="tag ok">Done</span>':'<span class="tag">Pending</span>'}</td>
+  <td><button class="x" data-act="delEvent" data-id="${e.id}" aria-label="Delete event">×</button></td></tr>`).join('')||'<tr><td colspan="7"><div class="empty">No events yet.</div></td></tr>'}
+ </tbody></table></div></div>`;
+}
+
+function pAthletes(){
+ const s=S(),c=calc(),f=ui.af;
+ let list=s.athletes.filter(a=>(!f.cat||a.catId===f.cat)&&(!f.h||a.houseId===f.h)&&(!f.q||norm(a.name+' '+a.cls+' '+a.chest).includes(norm(f.q))));
+ const shown=list.slice(0,300);
+ return`<h2>Athletes</h2><p class="lead">Register students once, then pick them while entering results. Gender and category decide which Best Boy / Best Girl race they are in.</p>
+ <div class="g2"><div class="card"><h3>Add an athlete</h3><div class="row">
+  <label style="flex-basis:100%">Name<input id="naName" placeholder="Full name"></label>
+  <label>Class<input id="naCls" placeholder="e.g. VIII A"></label>
+  <label>Gender<select id="naGen">${opt('B','Boy')}${opt('G','Girl')}</select></label>
+  <label>House<select id="naHouse">${houseOpts('')}</select></label>
+  <label>Category<select id="naCat">${s.cats.map(c=>opt(c.id,c.name,'')).join('')}</select></label>
+  <label>Chest no.<input id="naChest" inputmode="numeric"></label></div>
+  <button class="btn pri" style="margin-top:10px" data-act="addAth">Add athlete</button></div>
+ <div class="card"><h3>Import many at once</h3><p class="tiny" style="margin-top:0">Paste from Excel, one per line: <b>Name, Class, Gender (B/G), House, Category, Chest no.</b> Columns may be separated by commas or tabs.</p>
+  <textarea id="impTxt" placeholder="Lalremruata Ralte, VIII A, B, David, Junior, 215"></textarea><button class="btn" style="margin-top:8px" data-act="importAth">Import list</button></div></div>
+ <div class="card" style="margin-top:16px"><div class="row"><label>Search<input data-af="q" type="search" value="${esc(f.q)}" placeholder="Name, class or chest no."></label><label>Category<select data-af="cat">${opt('','All',f.cat)}${s.cats.map(x=>opt(x.id,x.name,f.cat)).join('')}</select></label><label>House<select data-af="h">${houseOpts(f.h,'All')}</select></label></div>
+ <p class="tiny">${list.length} athletes${list.length>300?' · showing first 300, use search':''}</p>
+ <div class="scroll"><table class="t stack"><thead><tr><th>Name</th><th>Class</th><th>Gender</th><th>House</th><th>Category</th><th>Chest</th><th class="n">Points</th><th></th></tr></thead><tbody>
+ ${shown.map(a=>{const p=c.all[a.id];return`<tr><td><input data-col="athletes" data-id="${a.id}" data-f="name" value="${esc(a.name)}" aria-label="Name"></td><td><input data-col="athletes" data-id="${a.id}" data-f="cls" value="${esc(a.cls)}" style="width:90px" aria-label="Class"></td>
+ <td><select data-col="athletes" data-id="${a.id}" data-f="gender">${opt('','—',a.gender)}${opt('B','Boy',a.gender)}${opt('G','Girl',a.gender)}</select></td>
+ <td><select data-col="athletes" data-id="${a.id}" data-f="houseId">${houseOpts(a.houseId,'—')}</select></td>
+ <td><select data-col="athletes" data-id="${a.id}" data-f="catId">${opt('','—',a.catId)}${s.cats.map(x=>opt(x.id,x.name,a.catId)).join('')}</select></td>
+ <td><input data-col="athletes" data-id="${a.id}" data-f="chest" value="${esc(a.chest)}" style="width:80px" aria-label="Chest number"></td>
+ <td class="n">${p?`<b>${p.pts}</b> <span class="tiny">${p.g}G ${p.s}S ${p.b}B</span>`:'0'}</td><td><button class="x" data-act="delAth" data-id="${a.id}" aria-label="Delete athlete">×</button></td></tr>`}).join('')||'<tr><td colspan="8"><div class="empty">No athletes yet.</div></td></tr>'}
+ </tbody></table></div></div>`;
+}
+
+function pHouses(){
+ const s=S(),c=calc();
+ return`<h2>Houses</h2><p class="lead">Rename houses, change colours, and record captains. Changes show everywhere at once — scoreboard, reports and certificates.</p>
+ <div class="g2">${s.houses.map(h=>{const x=c.M[h.id];return`<div class="hcard"><div class="hh" style="background:${h.color};color:${txtOn(h.color)}"><span>${esc(h.name)}</span><span>${x?x.total:0} pts</span></div><div class="hb">
+  <div class="row"><label>House name<input data-col="houses" data-id="${h.id}" data-f="name" data-re="1" value="${esc(h.name)}"></label><label style="flex:0 0 auto">Colour<input type="color" data-col="houses" data-id="${h.id}" data-f="color" data-re="1" value="${esc(h.color)}"></label></div>
+  <div class="row"><label>Captain<input data-col="houses" data-id="${h.id}" data-f="captain" value="${esc(h.captain)}"></label><label>Vice captain<input data-col="houses" data-id="${h.id}" data-f="vice" value="${esc(h.vice)}"></label></div>
+  <label>House master / mistress<input data-col="houses" data-id="${h.id}" data-f="master" value="${esc(h.master)}"></label>
+  <div><button class="btn danger sm" data-act="delHouse" data-id="${h.id}">Delete house</button></div></div></div>`}).join('')}</div>
+ <button class="btn pri" style="margin-top:16px" data-act="addHouse">Add a house</button>`;
+}
+
+function pCategories(){
+ const s=S();
+ return`<h2>Categories</h2><p class="lead">Age or class groups such as Minor, Sub-Junior, Junior, Senior. Best Boy and Best Girl are found for every category separately.</p>
+ <div class="card"><div class="scroll"><table class="t stack"><thead><tr><th>Order</th><th>Category name</th><th>Classes / age group</th><th class="n">Events</th><th></th></tr></thead><tbody>
+ ${s.cats.map((c,i)=>`<tr><td><button class="btn sm" data-act="catUp" data-id="${c.id}" ${i?'':'disabled'} aria-label="Move up">↑</button> <button class="btn sm" data-act="catDown" data-id="${c.id}" ${i<s.cats.length-1?'':'disabled'} aria-label="Move down">↓</button></td>
+ <td><input data-col="cats" data-id="${c.id}" data-f="name" value="${esc(c.name)}" aria-label="Category name"></td><td><input data-col="cats" data-id="${c.id}" data-f="desc" value="${esc(c.desc)}" aria-label="Classes"></td>
+ <td class="n">${s.events.filter(e=>e.catId===c.id).length}</td><td><button class="x" data-act="delCat" data-id="${c.id}" aria-label="Delete category">×</button></td></tr>`).join('')}</tbody></table></div>
+ <div class="row" style="margin-top:12px"><label>New category<input id="ncName" placeholder="e.g. Super Senior"></label><label>Classes / age<input id="ncDesc" placeholder="e.g. Class XI – XII"></label><button class="btn pri" data-act="addCat">Add category</button></div></div>`;
+}
+
+function pPoints(){
+ const s=S();
+ return`<h2>Points rules</h2><p class="lead">Each event uses one rule. Write the points for 1st, 2nd, 3rd… separated by commas — add a fourth or fifth number to award more places.</p>
+ <div class="card"><div class="scroll"><table class="t stack"><thead><tr><th>Rule name</th><th>Points (1st, 2nd, 3rd…)</th><th>Counts for Best Athlete</th><th>Team event</th><th class="n">Events</th><th></th></tr></thead><tbody>
+ ${s.types.map(t=>`<tr><td><input data-col="types" data-id="${t.id}" data-f="name" value="${esc(t.name)}" aria-label="Rule name"></td><td><input data-col="types" data-id="${t.id}" data-f="pts" data-re="1" value="${esc(t.pts.join(', '))}" aria-label="Points"></td>
+ <td><input type="checkbox" data-col="types" data-id="${t.id}" data-f="indiv" ${t.indiv?'checked':''} aria-label="Counts for best athlete"></td><td><input type="checkbox" data-col="types" data-id="${t.id}" data-f="team" ${t.team?'checked':''} aria-label="Team event"></td>
+ <td class="n">${s.events.filter(e=>e.typeId===t.id).length}</td><td><button class="x" data-act="delType" data-id="${t.id}" aria-label="Delete rule">×</button></td></tr>`).join('')}</tbody></table></div>
+ <div class="row" style="margin-top:12px"><label>New rule name<input id="ntName" placeholder="e.g. Cross Country"></label><label>Points<input id="ntPts" placeholder="8, 5, 3, 1"></label><label class="chk"><input type="checkbox" id="ntInd" checked> Counts for Best Athlete</label><label class="chk"><input type="checkbox" id="ntTeam"> Team event</label><button class="btn pri" data-act="addType">Add rule</button></div></div>
+ <div class="card" style="margin-top:16px"><h3>How winners are decided</h3><p style="margin:0">House order: total points, then more golds, then silvers, then bronzes. Best Boy / Best Girl: points from individual events (rules marked “counts for Best Athlete”), then golds, silvers, bronzes; equal on all of these shows as joint winners. Team events (relays, major games) add to the house only.</p></div>`;
+}
+
+function pBonus(){
+ const s=S(),c=calc();
+ return`<h2>Special points</h2><p class="lead">Points outside the events — March Past, discipline, cleanliness, best turnout. Use a minus number for a penalty.</p>
+ <div class="card"><div class="row"><label>House<select id="nbH">${houseOpts('')}</select></label><label style="flex:0 1 130px">Points<input id="nbP" type="number" placeholder="10"></label>
+ <label style="flex-basis:240px">Reason<input id="nbR" list="bonusList" placeholder="March Past – 1st"></label><datalist id="bonusList"><option value="March Past – 1st"><option value="March Past – 2nd"><option value="March Past – 3rd"><option value="Discipline"><option value="Best Turnout"><option value="Cleanliness"><option value="Penalty"></datalist>
+ <button class="btn pri" data-act="addBonus">Add points</button></div></div>
+ <div class="g2" style="margin-top:16px"><div class="card"><h3>Entries</h3>${s.bonus.length?`<table class="t"><tbody>${s.bonus.map(b=>`<tr><td>${chip(Hs(b.houseId))}</td><td>${esc(b.reason)}</td><td class="n"><b>${b.pts>0?'+':''}${esc(b.pts)}</b></td><td><button class="x" data-act="delBonus" data-id="${b.id}" aria-label="Delete">×</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">No special points yet.</div>'}</div>
+ <div class="card"><h3>Special points per house</h3><table class="t"><tbody>${c.st.map(x=>`<tr><td>${dot(x.h)}${esc(x.h.name)}</td><td class="n"><b>${x.bonus}</b></td></tr>`).join('')}</tbody></table></div></div>`;
+}
+
+function rankTable(list){if(!list.length)return'<div class="empty">No points yet.</div>';
+ return`<table class="t stack"><thead><tr><th>#</th><th>Name</th><th>House</th><th class="n">Points</th><th class="n">G / S / B</th><th>Events</th></tr></thead><tbody>${list.slice(0,10).map((p,i)=>`<tr><td>${i+1}</td><td><b>${esc(p.name)}</b>${p.cls?` <span class="tiny">${esc(p.cls)}</span>`:''}</td><td>${chip(Hs(p.houseId))}</td><td class="n"><b>${p.pts}</b></td><td class="n">${p.g} / ${p.s} / ${p.b}</td><td class="tiny">${esc(p.ev.join(', '))}</td></tr>`).join('')}</tbody></table>`}
+function pChampions(){
+ const s=S(),c=calc();const ks=catKeys(s).filter(k=>k!=='_open'||c.cats._open);
+ const k=ui.champCat&&ks.includes(ui.champCat)?ui.champCat:'';
+ const src=k?Object.values(c.cats[k]||{}):Object.values(c.all);
+ const boys=src.filter(a=>a.gender==='B').sort(cmpI),girls=src.filter(a=>a.gender==='G').sort(cmpI);
+ const pod=c.st.slice(0,3).map(x=>`<div class="card pod"><span class="medal m${Math.min(x.rank,3)}">${x.rank}</span><div><div class="lbl">${RANKL[x.rank-1]||ord(x.rank)}</div><div class="big">${chip(x.h)}</div><div class="mut">${x.total} pts · ${x.g}G ${x.si}S ${x.b}B</div></div></div>`).join('');
+ return`<h2>Champions</h2><p class="lead">Champion House, Runner-up and the Best Boy and Best Girl of each category, worked out from every saved result.</p>
+ <div class="g3">${pod}</div>
+ <div class="row" style="margin:18px 0 12px">${[['','Whole meet'],...ks.map(x=>[x,catName(x)])].map(([v,l])=>`<button class="btn sm ${k===v?'pri':''}" data-act="champCat" data-id="${v}">${esc(l)}</button>`).join('')}</div>
+ <div class="g2"><div class="card pod"><span class="medal m1">B</span><div><div class="lbl">Best Boy · ${esc(k?catName(k):'whole meet')}</div>${personLine(best(boys))}</div></div><div class="card pod"><span class="medal m1">G</span><div><div class="lbl">Best Girl · ${esc(k?catName(k):'whole meet')}</div>${personLine(best(girls))}</div></div></div>
+ <div class="g2" style="margin-top:16px"><div class="card"><h3>Top boys</h3><div class="scroll">${rankTable(boys)}</div></div><div class="card"><h3>Top girls</h3><div class="scroll">${rankTable(girls)}</div></div></div>
+ ${src.some(a=>!a.gender)?'<p class="tiny">Some athletes have no gender set, so they are not in the Boy/Girl lists. Set it on the Athletes page.</p>':''}`;
+}
+
+function pRecords(){
+ const s=S(),c=calc();const rb={};c.recs.forEach(r=>rb[r.e.id]=r);
+ const list=s.events.filter(e=>e.measure!=='none');
+ return`<h2>Meet records</h2><p class="lead">Best-ever marks for timed and measured events. They carry into every new session. When a winner beats a record, it is flagged here — tap “Make record” to keep it.</p>
+ <div class="card"><div class="scroll"><table class="t stack"><thead><tr><th>Event</th><th>Record</th><th>Holder</th><th>House</th><th>Year</th><th>This session</th><th></th></tr></thead><tbody>
+ ${list.map(e=>{const r=rb[e.id];const w=s.results[e.id]&&s.results[e.id].rows.find(x=>x.pos==1);return`<tr><td><b>${esc(e.name)}</b><br><span class="tiny">${esc(e.gender)} · ${esc(catName(e.catId))}</span></td>
+ <td><input data-col="events" data-id="${e.id}" data-f="rec.val" value="${esc(e.rec&&e.rec.val)}" style="width:100px" placeholder="${unitOf(e.measure)}" aria-label="Record"></td>
+ <td><input data-col="events" data-id="${e.id}" data-f="rec.holder" value="${esc(e.rec&&e.rec.holder)}" aria-label="Holder"></td>
+ <td><input data-col="events" data-id="${e.id}" data-f="rec.house" value="${esc(e.rec&&e.rec.house)}" style="width:110px" aria-label="House"></td>
+ <td><input data-col="events" data-id="${e.id}" data-f="rec.year" value="${esc(e.rec&&e.rec.year)}" style="width:96px" aria-label="Year"></td>
+ <td>${w&&w.perf?`${esc(w.perf)} ${unitOf(e.measure)} · ${esc(w.name||'')} ${r?'<span class="tag rec">New record</span>':''}`:'<span class="mut">—</span>'}</td>
+ <td>${r?`<button class="btn sm pri" data-act="setRec" data-id="${e.id}">Make record</button>`:''}</td></tr>`}).join('')}</tbody></table></div></div>`;
+}
+
+/* ---------- reports ---------- */
+const REPS={summary:'House Points Summary',matrix:'Event-wise House Points',results:'Results Sheet',champions:'Individual Champions',certs:'Merit Certificates'};
+function repHTML(kind,cat){
+ const s=S(),c=calc(),a=DB.app;
+ const head=`<div class="p-head"><h1>${esc(a.school)}</h1>${a.motto?`<div class="m">Motto: ${esc(a.motto)}</div>`:''}<div class="a">${esc(a.address)}</div><h2>${esc(s.title)} ${esc(s.year)} — ${REPS[kind]}${cat?' · '+esc(catName(cat)):''}</h2>${s.date||s.venue?`<div class="a">${[s.date&&fmtDate(s.date),s.venue].filter(Boolean).map(esc).join(' · ')}</div>`:''}</div>`;
+ const sign=`<div class="p-sign"><div>${esc(a.sign1)}</div><div>${esc(a.sign2)}</div></div>`;
+ const sw=h=>h?`<span class="p-sw" style="background:${h.color}"></span>${esc(h.name)}`:'—';
+ const evs=s.events.filter(e=>!cat||(e.catId||'_open')===cat);
+ const foot=`<div class="p-foot">Generated by SJS Sports App on ${new Date().toLocaleString('en-IN')} · ${c.done} of ${c.total} events completed</div>`;
+ if(kind==='summary'){const ks=catKeys(s);
+  return`<div class="p-doc">${head}<table><thead><tr><th>Rank</th><th>House</th><th class="n">Gold</th><th class="n">Silver</th><th class="n">Bronze</th><th class="n">Event pts</th><th class="n">Special</th><th class="n">Total</th><th>Position</th></tr></thead><tbody>${c.st.map(x=>`<tr><td>${x.rank}</td><td>${sw(x.h)}</td><td class="n">${x.g}</td><td class="n">${x.si}</td><td class="n">${x.b}</td><td class="n">${x.total-x.bonus}</td><td class="n">${x.bonus}</td><td class="n"><b>${x.total}</b></td><td>${RANKL[x.rank-1]||ord(x.rank)}</td></tr>`).join('')}</tbody></table>
+  <h3>Points by category</h3><table><thead><tr><th>Category</th>${c.st.map(x=>`<th class="n">${sw(x.h)}</th>`).join('')}</tr></thead><tbody>${ks.map(k=>`<tr><td>${esc(catName(k))}</td>${c.st.map(x=>`<td class="n">${x.cat[k]||0}</td>`).join('')}</tr>`).join('')}</tbody></table>
+  <h3>Best athletes</h3><table><thead><tr><th>Category</th><th>Best Boy</th><th>Best Girl</th></tr></thead><tbody>${[...s.cats.map(x=>[x.id,x.name]),['','Whole meet']].map(([k,n])=>{const l=Object.values(k?c.cats[k]||{}:c.all);const f=g=>best(l.filter(p=>p.gender===g)).map(p=>`${esc(p.name)} (${esc((Hs(p.houseId)||{}).name||'')}, ${p.pts} pts)`).join('; ')||'—';return`<tr><td>${esc(n)}</td><td>${f('B')}</td><td>${f('G')}</td></tr>`}).join('')}</tbody></table>
+  ${s.bonus.length?`<h3>Special points</h3><table><tbody>${s.bonus.map(b=>`<tr><td>${sw(Hs(b.houseId))}</td><td>${esc(b.reason)}</td><td class="n">${esc(b.pts)}</td></tr>`).join('')}</tbody></table>`:''}${sign}${foot}</div>`}
+ if(kind==='matrix'){const tot={};
+  return`<div class="p-doc">${head}<table><thead><tr><th>#</th><th>Event</th><th>Category</th><th>Gender</th>${s.houses.map(h=>`<th class="n">${sw(h)}</th>`).join('')}</tr></thead><tbody>${evs.map((e,i)=>{const t=Ts(e.typeId)||{pts:[]};const r=s.results[e.id];const ph={};(r?r.rows:[]).forEach(x=>{ph[x.houseId]=(ph[x.houseId]||0)+(+t.pts[x.pos-1]||0)});s.houses.forEach(h=>tot[h.id]=(tot[h.id]||0)+(ph[h.id]||0));return`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(catName(e.catId))}</td><td>${esc(e.gender)}</td>${s.houses.map(h=>`<td class="n">${r?ph[h.id]||0:''}</td>`).join('')}</tr>`}).join('')}
+  <tr><td></td><td colspan="3"><b>Total event points</b></td>${s.houses.map(h=>`<td class="n"><b>${tot[h.id]||0}</b></td>`).join('')}</tr></tbody></table>${sign}${foot}</div>`}
+ if(kind==='results'){const ks=cat?[cat]:catKeys(s);
+  return`<div class="p-doc">${head}${ks.map(k=>{const l=evs.filter(e=>(e.catId||'_open')===k);if(!l.length)return'';return`<h3>${esc(catName(k))}</h3><table><thead><tr><th>Event</th><th>Pos</th><th>Name</th><th>House</th><th>Performance</th><th class="n">Pts</th></tr></thead><tbody>${l.map(e=>{const t=Ts(e.typeId)||{pts:[]};const r=s.results[e.id];const rows=r?r.rows.slice().sort((a,b)=>a.pos-b.pos):[];const rb=c.recs.find(x=>x.e.id===e.id);
+   if(!rows.length)return`<tr><td>${esc(e.name)} (${esc(e.gender)})</td><td colspan="5" style="color:#888">Not held yet</td></tr>`;
+   return rows.map((x,i)=>`<tr>${i?'':`<td rowspan="${rows.length}">${esc(e.name)} (${esc(e.gender)})${rb&&rb.old&&rb.old.val?' — NEW RECORD':''}</td>`}<td>${ord(x.pos)}</td><td>${esc(x.name||'')}</td><td>${sw(Hs(x.houseId))}</td><td>${x.perf?esc(x.perf)+' '+unitOf(e.measure):''}</td><td class="n">${+t.pts[x.pos-1]||0}</td></tr>`).join('')}).join('')}</tbody></table>`}).join('')}${sign}${foot}</div>`}
+ if(kind==='champions'){const ks=cat?[cat]:catKeys(s).filter(k=>c.cats[k]);
+  return`<div class="p-doc">${head}${ks.map(k=>{const l=Object.values(c.cats[k]||{});const tb=g=>{const x=l.filter(p=>p.gender===g).sort(cmpI).slice(0,5);return x.length?`<table><thead><tr><th>#</th><th>${g==='B'?'Boys':'Girls'}</th><th>Class</th><th>House</th><th class="n">G/S/B</th><th class="n">Points</th></tr></thead><tbody>${x.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.cls)}</td><td>${sw(Hs(p.houseId))}</td><td class="n">${p.g}/${p.s}/${p.b}</td><td class="n"><b>${p.pts}</b></td></tr>`).join('')}</tbody></table>`:''};return`<h3>${esc(catName(k))}</h3>${tb('B')}${tb('G')}`}).join('')||'<p>No individual points yet.</p>'}${sign}${foot}</div>`}
+ if(kind==='certs'){const out=[];const cert=(name,line)=>`<div class="cert"><div class="sch">${esc(a.school)}</div><div style="font-size:13px">${esc(a.address)}</div><div class="ct">CERTIFICATE OF MERIT</div><p>This is to certify that</p><div class="nm">${name}</div><p>${line}<br>at the <b>${esc(s.title)} ${esc(s.year)}</b>${s.date?` held on ${esc(fmtDate(s.date))}`:''}${s.venue?` at ${esc(s.venue)}`:''}.</p><div class="p-sign"><div>${esc(a.sign1)}</div><div>${esc(a.sign2)}</div></div></div>`;
+  const hb=h=>h?`<span class="hb" style="background:${h.color};color:${txtOn(h.color)}">${esc(h.name)} House</span>`:'';
+  evs.forEach(e=>{const t=Ts(e.typeId)||{};const r=s.results[e.id];if(!r)return;r.rows.filter(x=>x.pos<=3).sort((x,y)=>x.pos-y.pos).forEach(x=>{const h=Hs(x.houseId);const ath=x.athId&&s.athletes.find(z=>z.id===x.athId);
+   const ev=`<b>${esc(e.name)}</b> (${esc(catName(e.catId))}, ${esc(e.gender)})${x.perf?` with ${esc(x.perf)} ${unitOf(e.measure)}`:''}`;
+   if(t.team||!x.name)out.push(cert(esc(h?h.name+' House':''),`secured the <b>${POSW[x.pos]||ord(x.pos)} position</b> in ${ev}`));
+   else out.push(cert(esc(x.name),`${ath&&ath.cls?`of Class ${esc(ath.cls)}, `:''}${hb(h)}, secured the <b>${POSW[x.pos]||ord(x.pos)} position</b> in ${ev}`))})});
+  (cat?[cat]:s.cats.map(x=>x.id)).forEach(k=>{const l=Object.values(c.cats[k]||{});[['B','Best Boy'],['G','Best Girl']].forEach(([g,lab])=>best(l.filter(p=>p.gender===g)).forEach(p=>out.push(cert(esc(p.name),`${p.cls?`of Class ${esc(p.cls)}, `:''}${hb(Hs(p.houseId))}, has been adjudged the <b>${lab} — ${esc(catName(k))} category</b> with ${p.pts} points`))))});
+  return`<div class="p-doc">${out.join('')||'<p>No winners yet — certificates appear once results are saved.</p>'}</div>`}
+ return'';
+}
+function pReports(){
+ const s=S();const k=ui.report,cat=ui.repCat;
+ return`<div class="noprint"><h2>Reports &amp; certificates</h2><p class="lead">A4 sheets with the school header, ready to print or keep. Certificates are made for every 1st, 2nd and 3rd place and for each category's Best Boy and Best Girl.</p>
+ <div class="row">${Object.entries(REPS).map(([v,l])=>`<button class="btn sm ${k===v?'pri':''}" data-act="rep" data-id="${v}">${l}</button>`).join('')}</div>
+ <div class="row" style="margin-top:12px"><label style="flex:0 1 260px">Category<select data-act2="repCat">${opt('','All categories',cat)}${s.cats.map(c=>opt(c.id,c.name,cat)).join('')}${opt('_open','Open',cat)}</select></label>
+ <button class="btn pri" data-act="printRep">Print</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">Export all results (.csv for Excel)</button></div>
+ <p class="tiny">If Print does nothing here, download the page and print it from your browser — or use the offline copy of the app, where printing works directly.</p></div>
+ <div class="paper" id="paper">${repHTML(k,cat)}</div>`;
+}
+
+function pSessions(){
+ const ss=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0));
+ const cur=S();const ny=(()=>{const m=String(cur.year).match(/(\d{4})\D+(\d{2,4})/);if(!m)return'';const a=+m[1]+1,b=String(+m[2].slice(-2)+1).padStart(2,'0');return a+'-'+b.slice(-2)})();
+ return`<h2>Sessions &amp; backup</h2><p class="lead">Each academic year is its own session. Start a new one and keep the houses, categories, rules, events and meet records — results start empty.</p>
+ <div class="g2"><div class="card"><h3>Start a new academic session</h3><div class="row"><label>Session<input id="nsYear" value="${esc(ny)}" placeholder="2027-28"></label><label>Meet title<input id="nsTitle" value="${esc(cur.title)}"></label><label>Date<input id="nsDate" type="date"></label></div>
+ <label class="chk"><input type="checkbox" id="nsEv" checked> Copy events and meet records</label><label class="chk"><input type="checkbox" id="nsRec" checked> Update records with new records set in ${esc(cur.year)}</label><label class="chk"><input type="checkbox" id="nsAth"> Copy athletes list (update classes later)</label>
+ <button class="btn pri" data-act="newSess">Create session</button></div>
+ <div class="card"><h3>All sessions</h3>${ss.map(s=>{const c=calc(s);const w=c.st[0];return`<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:10px 0"><div><b>${esc(s.year)}</b> · ${esc(s.title)}<br><span class="tiny">${c.done}/${c.total} events · ${w&&w.total?'Leading: '+esc(w.h.name)+' ('+w.total+')':'no results'}</span></div><div class="row">${s.id===DB.active?'<span class="tag ok">Open now</span>':`<button class="btn sm" data-act="openSess" data-id="${s.id}">Open</button>`}<button class="x" data-act="delSess" data-id="${s.id}" aria-label="Delete session">×</button></div></div>`}).join('')}</div></div>
+ <div class="card" style="margin-top:16px"><h3>Backup &amp; restore</h3><p class="mut" style="margin-top:0">Data lives in this browser on this device. Download a backup after every meet day, and use it to move the data to another computer or phone.</p>
+ <div class="row"><button class="btn pri" data-act="backup">Download backup (.json)</button><button class="btn" data-act="copyBackup">Copy backup text</button><button class="btn" data-act="restoreFile">Restore from backup file</button></div>
+ <label style="margin-top:12px">Or paste backup text<textarea id="pasteTxt" placeholder='{"v":1,...}'></textarea></label><button class="btn" style="margin-top:8px" data-act="restorePaste">Restore pasted backup</button></div>`;
+}
+function pSetup(){
+ const a=DB.app,s=S();
+ return`<h2>School details</h2><p class="lead">Shown on the dashboard, reports and certificates.</p>
+ <div class="g2"><div class="card"><h3>School</h3><div class="stackv"><label>School name<input data-app="school" value="${esc(a.school)}"></label><label>Motto<input data-app="motto" value="${esc(a.motto)}"></label><label>Address<input data-app="address" value="${esc(a.address)}"></label>
+ <div class="row"><label>Signature 1 (left)<input data-app="sign1" value="${esc(a.sign1)}"></label><label>Signature 2 (right)<input data-app="sign2" value="${esc(a.sign2)}"></label></div></div></div>
+ <div class="card"><h3>This session</h3><div class="stackv"><label>Session name<input data-ses="year" value="${esc(s.year)}"></label><label>Meet title<input data-ses="title" value="${esc(s.title)}"></label><div class="row"><label>Date<input type="date" data-ses="date" value="${esc(s.date)}"></label><label>Venue<input data-ses="venue" value="${esc(s.venue)}"></label></div></div></div></div>
+ <div class="card" style="margin-top:16px"><h3>Clean up</h3><div class="row">${s.demo?'<button class="btn" data-act="clearDemo">Clear demo data</button>':''}<button class="btn danger" data-act="clearResults">Clear all results of ${esc(s.year)}</button><button class="btn danger" data-act="resetAll">Erase everything and start fresh</button></div></div>`;
+}
+
+const PAGES={home:pHome,scoreboard:pScoreboard,results:pResults,events:pEvents,athletes:pAthletes,houses:pHouses,categories:pCategories,points:pPoints,bonus:pBonus,champions:pChampions,records:pRecords,reports:pReports,sessions:pSessions,setup:pSetup};
+function render(){
+ const p=PAGES[ui.page]?ui.page:'home';
+ document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+p));
+ $('#schoolName').textContent=DB.app.school;
+ $('#sessSel').innerHTML=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0)).map(s=>opt(s.id,s.year+' · '+s.title,DB.active)).join('');
+ const y=window.scrollY;main.innerHTML=PAGES[p]();
+ if(ui.keepScroll){window.scrollTo(0,y);ui.keepScroll=false}
+ stamp();
+}
+function go(){ui.page=(location.hash||'#home').slice(1);if(!PAGES[ui.page])ui.page='home';render();window.scrollTo(0,0)}
+const rerender=()=>{ui.keepScroll=true;render()};
+
+/* ---------- actions ---------- */
+const val=id=>{const el=$('#'+id);return el?el.value.trim():''};
+const chk=id=>{const el=$('#'+id);return !!(el&&el.checked)};
+function matchAth(name,e,houseId){const s=S();const n=norm(name);if(!n)return null;
+ let l=s.athletes.filter(a=>norm(a.name)===n);const nar=f=>{const x=l.filter(f);if(x.length)l=x};if(l.length>1&&e&&e.catId)nar(a=>a.catId===e.catId);if(l.length>1&&houseId)nar(a=>a.houseId===houseId);return l.length===1?l[0]:null}
+function paintRow(row,r,e){if(!row||!e)return;const t=Ts(e.typeId)||{pts:[]};const sel=row.querySelector('select');const h=Hs(r.houseId);sel.value=r.houseId||'';sel.style.cssText=h?`background:${h.color};color:${txtOn(h.color)};font-weight:700`:'';row.querySelector('.ptag').textContent=(+t.pts[(parseInt(r.pos)||0)-1]||0)+' pts'}
+function nextPending(){const s=S();const i=s.events.findIndex(e=>e.id===ui.sel);const l=[...s.events.slice(i+1),...s.events.slice(0,i+1)];return l.find(e=>!hasRes(e))}
+const ACT={
+ pick:el=>{ui.sel=el.dataset.id;ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML();if(innerWidth<1000)$('#editor').scrollIntoView({behavior:'smooth'})},
+ rowadd:()=>{const r=ui.draft.rows;r.push({pos:r.length?Math.max(...r.map(x=>+x.pos||0))+1:1,houseId:'',name:'',athId:'',perf:''});$('#editor').innerHTML=editorHTML()},
+ rowdel:el=>{ui.draft.rows.splice(+el.dataset.r,1);$('#editor').innerHTML=editorHTML()},
+ autopos:()=>{const e=S().events.find(x=>x.id===ui.sel);const r=ui.draft.rows;const withP=r.filter(x=>!isNaN(parsePerf(x.perf)));if(withP.length<2){toast('Enter at least two performances first');return}
+  withP.sort((a,b)=>e.measure==='time'?parsePerf(a.perf)-parsePerf(b.perf):parsePerf(b.perf)-parsePerf(a.perf));let pos=0,prev=null;withP.forEach((x,i)=>{const v=parsePerf(x.perf);if(v!==prev)pos=i+1;x.pos=pos;prev=v});
+  ui.draft.rows=[...withP,...r.filter(x=>isNaN(parsePerf(x.perf)))];$('#editor').innerHTML=editorHTML();toast('Positions set from performance')},
+ saveRes:()=>{const s=S(),e=s.events.find(x=>x.id===ui.sel),t=Ts(e.typeId)||{};
+  const rows=ui.draft.rows.filter(r=>r.houseId).map(r=>({...r,pos:Math.max(1,parseInt(r.pos)||1),name:String(r.name||'').trim()}));
+  if(!rows.length){toast('Choose a house for at least one place');return}
+  let added=0;if(!t.team)rows.forEach(r=>{if(!r.name){r.athId='';return}const a=(r.athId&&s.athletes.find(z=>z.id===r.athId&&norm(z.name)===norm(r.name)))||matchAth(r.name,e,r.houseId);
+   if(a&&a.houseId===r.houseId)r.athId=a.id;else{const n={id:uid(),name:r.name,cls:'',gender:e.gender==='Boys'?'B':e.gender==='Girls'?'G':'',houseId:r.houseId,catId:e.catId||'',chest:''};s.athletes.push(n);r.athId=n.id;added++}});
+  rows.sort((a,b)=>a.pos-b.pos);s.results[e.id]={rows,at:Date.now()};save();ui.draft=null;
+  const rec=calc().recs.find(x=>x.e.id===e.id&&x.old&&x.old.val);
+  toast(rec?'Saved — NEW MEET RECORD!':'Saved — house points updated'+(added?` · ${added} new athlete${added>1?'s':''} added`:''));
+  $('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
+ clearRes:async()=>{if(!await ask('Clear this result?','The places and points for this event will be removed.','Clear result'))return;delete S().results[ui.sel];save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
+ nextEv:()=>{const n=nextPending();if(!n){toast('All events have results');return}ui.sel=n.id;ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
+ addEvent:()=>{const s=S();const name=val('neName');if(!name){toast('Type the event name');$('#neName').focus();return}
+  const cats=chk('neAllCat')?s.cats.map(c=>c.id):[$('#neCat').value];const gens=chk('neBoth')?['Boys','Girls']:[$('#neGen').value];let n=0;
+  cats.forEach(cid=>gens.forEach(g=>{s.events.push({id:uid(),name,catId:cid,gender:g,typeId:$('#neType').value,measure:$('#neMeas').value,rec:blankRec()});n++}));save();rerender();toast(`${n} event${n>1?'s':''} added`)},
+ delEvent:async el=>{const s=S(),e=s.events.find(x=>x.id===el.dataset.id);if(hasRes(e)&&!await ask('Delete this event?',`${evLabel(e)} has results. Its points will be removed from the houses.`,'Delete'))return;s.events=s.events.filter(x=>x!==e);delete s.results[e.id];save();rerender()},
+ addAth:()=>{const s=S();const name=val('naName');if(!name){toast('Type the athlete name');return}s.athletes.push({id:uid(),name,cls:val('naCls'),gender:$('#naGen').value,houseId:$('#naHouse').value,catId:$('#naCat').value,chest:val('naChest')});save();rerender();toast('Athlete added');setTimeout(()=>{const n=$('#naName');if(n)n.focus()},50)},
+ importAth:()=>{const s=S();const lines=val('impTxt').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);let n=0,skip=0;
+  const fh=x=>s.houses.find(h=>norm(h.name)===norm(x)),fc=x=>s.cats.find(c=>norm(c.name)===norm(x));
+  lines.forEach(l=>{const p=l.split(/\t|,/).map(x=>x.trim());if(!p[0]||/^name$/i.test(p[0])){skip++;return}const g=norm(p[2]);s.athletes.push({id:uid(),name:p[0],cls:p[1]||'',gender:/^(b|boy|m|male)/.test(g)?'B':/^(g|girl|f|female)/.test(g)?'G':'',houseId:(fh(p[3])||{}).id||'',catId:(fc(p[4])||{}).id||'',chest:p[5]||''});n++});
+  save();rerender();toast(`${n} athletes imported${skip?` · ${skip} lines skipped`:''}`)},
+ delAth:async el=>{const s=S();const used=s.events.some(e=>(s.results[e.id]?.rows||[]).some(r=>r.athId===el.dataset.id));if(used&&!await ask('Delete this athlete?','They appear in results. Their places stay but are no longer linked to this record.','Delete'))return;s.athletes=s.athletes.filter(a=>a.id!==el.dataset.id);save();rerender()},
+ addHouse:()=>{S().houses.push({id:uid(),name:'New House',color:'#7b4fd6',captain:'',vice:'',master:''});save();rerender()},
+ delHouse:async el=>{const s=S();const h=Hs(el.dataset.id);const used=Object.values(s.results).some(r=>r.rows.some(x=>x.houseId===h.id));if(!await ask(`Delete ${h.name} house?`,used?'This house has points in results. Those places will lose their house.':'You can add it again later.','Delete'))return;s.houses=s.houses.filter(x=>x!==h);save();rerender()},
+ addCat:()=>{const n=val('ncName');if(!n){toast('Type a category name');return}S().cats.push({id:uid(),name:n,desc:val('ncDesc')});save();rerender()},
+ delCat:async el=>{const s=S();const n=s.events.filter(e=>e.catId===el.dataset.id).length;if(!await ask('Delete this category?',n?`${n} events use it. They will move to Open.`:'','Delete'))return;s.events.forEach(e=>{if(e.catId===el.dataset.id)e.catId=''});s.athletes.forEach(a=>{if(a.catId===el.dataset.id)a.catId=''});s.cats=s.cats.filter(c=>c.id!==el.dataset.id);save();rerender()},
+ catUp:el=>{const c=S().cats,i=c.findIndex(x=>x.id===el.dataset.id);if(i>0){[c[i-1],c[i]]=[c[i],c[i-1]];save();rerender()}},
+ catDown:el=>{const c=S().cats,i=c.findIndex(x=>x.id===el.dataset.id);if(i<c.length-1){[c[i+1],c[i]]=[c[i],c[i+1]];save();rerender()}},
+ addType:()=>{const n=val('ntName');const pts=val('ntPts').split(/[,\s]+/).filter(Boolean).map(Number).filter(x=>!isNaN(x));if(!n||!pts.length){toast('Give the rule a name and points');return}S().types.push({id:uid(),name:n,pts,indiv:chk('ntInd'),team:chk('ntTeam')});save();rerender()},
+ delType:el=>{const s=S();const n=s.events.filter(e=>e.typeId===el.dataset.id).length;if(n){toast(`${n} events use this rule — change them first`);return}if(s.types.length<2){toast('Keep at least one rule');return}s.types=s.types.filter(t=>t.id!==el.dataset.id);save();rerender()},
+ addBonus:()=>{const p=parseFloat(val('nbP'));if(isNaN(p)){toast('Enter the points');return}S().bonus.push({id:uid(),houseId:$('#nbH').value,pts:p,reason:val('nbR')||'Special points'});save();rerender();toast('Points added')},
+ delBonus:el=>{const s=S();s.bonus=s.bonus.filter(b=>b.id!==el.dataset.id);save();rerender()},
+ champCat:el=>{ui.champCat=el.dataset.id;rerender()},
+ setRec:el=>{const s=S(),e=s.events.find(x=>x.id===el.dataset.id);const w=s.results[e.id].rows.find(x=>x.pos==1);e.rec={val:w.perf,holder:w.name||((Hs(w.houseId)||{}).name+' House'),house:(Hs(w.houseId)||{}).name||'',year:s.year};save();rerender();toast('Meet record updated')},
+ rep:el=>{ui.report=el.dataset.id;rerender()},
+ printRep:()=>{const st=document.createElement('style');st.textContent=ui.report==='certs'?'@page{size:A4 landscape;margin:8mm}':'@page{size:A4;margin:12mm}';document.head.appendChild(st);try{window.print()}catch(e){toast('Printing is blocked here — use Download')}setTimeout(()=>st.remove(),1500)},
+ dlRep:()=>{const s=S();const land=ui.report==='certs';const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(REPS[ui.report])} ${esc(s.year)}</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;700&display=swap" rel="stylesheet"><style>${PCSS}body{margin:16px;background:#fff}@page{size:A4 ${land?'landscape':'portrait'};margin:${land?8:12}mm}.np{font:600 15px sans-serif;padding:10px 18px;margin-bottom:14px;cursor:pointer}@media print{.np{display:none}body{margin:0}}</style></head><body><button class="np" onclick="print()">Print</button>${repHTML(ui.report,ui.repCat)}</body></html>`;saveFile(`SJS_${REPS[ui.report].replace(/\W+/g,'_')}_${s.year}.html`,html)},
+ csv:()=>{const s=S();const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;const L=[['Session','Event','Category','Gender','Rule','Position','House','Name','Class','Performance','Points'].join(',')];
+  s.events.forEach(e=>{const t=Ts(e.typeId)||{pts:[]};(s.results[e.id]?.rows||[]).forEach(r=>{const a=r.athId&&s.athletes.find(z=>z.id===r.athId);L.push([s.year,e.name,catName(e.catId),e.gender,t.name,r.pos,(Hs(r.houseId)||{}).name,r.name,a?a.cls:'',r.perf,+t.pts[r.pos-1]||0].map(q).join(','))})});
+  saveFile(`SJS_Sports_Results_${s.year}.csv`,'﻿'+L.join('\r\n'))},
+ newSess:()=>{const cur=S();const year=val('nsYear');if(!year){toast('Type the session, e.g. 2027-28');return}
+  const n={id:uid(),year,title:val('nsTitle')||cur.title,date:val('nsDate'),venue:cur.venue,created:Date.now(),houses:clone(cur.houses),cats:clone(cur.cats),types:clone(cur.types),events:[],athletes:chk('nsAth')?clone(cur.athletes):[],results:{},bonus:[]};
+  if(chk('nsEv')){n.events=clone(cur.events);if(chk('nsRec')){const c=calc(cur);c.recs.forEach(r=>{const e=n.events.find(x=>x.id===r.e.id);if(e)e.rec={val:r.row.perf,holder:r.row.name||((Hs(r.row.houseId,cur)||{}).name+' House'),house:(Hs(r.row.houseId,cur)||{}).name||'',year:cur.year}})}}
+  DB.sessions[n.id]=n;DB.active=n.id;ui.sel=null;ui.draft=null;save();location.hash='#home';render();toast(`Session ${year} started`)},
+ openSess:el=>{DB.active=el.dataset.id;ui.sel=null;ui.draft=null;save();rerender();toast('Opened '+S().year)},
+ delSess:async el=>{const id=el.dataset.id;if(Object.keys(DB.sessions).length<2){toast('This is the only session');return}const s=DB.sessions[id];if(!await ask(`Delete session ${s.year}?`,'All its results will be lost. Download a backup first if unsure.','Delete session'))return;delete DB.sessions[id];if(DB.active===id)DB.active=Object.keys(DB.sessions)[0];save();rerender()},
+ backup:()=>{const d=new Date();saveFile(`SJS_Sports_Backup_${S().year}_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`,JSON.stringify(DB))},
+ copyBackup:async()=>{try{await navigator.clipboard.writeText(JSON.stringify(DB));toast('Backup copied — paste it into a note or email')}catch(e){const t=$('#pasteTxt');t.value=JSON.stringify(DB);t.select();toast('Select-all and copy the text in the box')}},
+ restoreFile:()=>$('#fileIn').click(),
+ restorePaste:()=>restore(val('pasteTxt')),
+ clearDemo:async()=>{if(!await ask('Clear demo data?','Sample athletes, results, special points and demo records will be removed. Houses, categories, rules and events stay.','Clear demo'))return;const s=S();s.athletes=[];s.results={};s.bonus=[];s.events.forEach(e=>e.rec=blankRec());delete s.demo;save();rerender();toast('Demo data cleared — ready for your meet')},
+ clearResults:async()=>{if(!await ask('Clear all results?','Every place and special point of this session will be removed.','Clear results'))return;const s=S();s.results={};s.bonus=[];delete s.demo;save();rerender()},
+ resetAll:async()=>{if(!await ask('Erase everything?','All sessions and data on this device will be deleted. Download a backup first.','Erase all'))return;DB=freshDB(false);save();location.hash='#home';render()},
+ fs:()=>{const el=$('#sbx');try{if(document.fullscreenElement)document.exitFullscreen();else el.requestFullscreen().catch(()=>toast('Full screen is not allowed here — open the offline app'))}catch(e){toast('Full screen is not allowed here')}}
+};
+async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is not a valid backup');return}
+ if(!d||!d.sessions||!d.active||!d.sessions[d.active]){toast('That is not an SJS Sports App backup');return}
+ if(!await ask('Restore this backup?',`It has ${Object.keys(d.sessions).length} session(s). Data now on this device will be replaced.`,'Restore'))return;
+ DB=d;DB.app=DB.app||freshDB(false).app;save();location.hash='#home';render();toast('Backup restored')}
+
+main.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='SELECT')return;const f=ACT[el.dataset.act];if(f){e.preventDefault();f(el)}});
+main.addEventListener('input',e=>{const el=e.target;
+ if(el.dataset.r!=null&&ui.draft){const r=ui.draft.rows[+el.dataset.r];if(r){r[el.dataset.k]=el.value;if(el.dataset.k==='pos')paintRow(el.closest('.rrow'),r,S().events.find(x=>x.id===ui.sel))}return}
+ if(el.dataset.uf==='q'){ui.evf.q=el.value;$('#evList').innerHTML=evListHTML();return}
+ if(el.dataset.af==='q'){ui.af.q=el.value;clearTimeout(ui.at);ui.at=setTimeout(()=>{rerender();const q=main.querySelector('[data-af=q]');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},350)}
+});
+main.addEventListener('change',e=>{const el=e.target,s=S();
+ if(el.dataset.r!=null&&ui.draft){const i=+el.dataset.r,r=ui.draft.rows[i],k=el.dataset.k;if(!r)return;r[k]=el.value;const ev=s.events.find(x=>x.id===ui.sel);
+  if(k==='name'){const a=matchAth(el.value,ev,r.houseId)||matchAth(el.value,ev);if(a){r.athId=a.id;r.houseId=a.houseId}else r.athId=''}
+  if(k==='houseId'&&r.athId){const a=s.athletes.find(z=>z.id===r.athId);if(a&&a.houseId!==el.value)r.athId=''}
+  paintRow(el.closest('.rrow'),r,ev);return}
+ if(el.dataset.uf&&el.dataset.uf!=='q'){ui.evf[el.dataset.uf]=el.value;$('#evList').innerHTML=evListHTML();return}
+ if(el.dataset.af&&el.dataset.af!=='q'){ui.af[el.dataset.af]=el.value;rerender();return}
+ if(el.dataset.act2==='evCat'){ui.evCat=el.value;rerender();return}
+ if(el.dataset.act2==='repCat'){ui.repCat=el.value;rerender();return}
+ if(el.dataset.app){DB.app[el.dataset.app]=el.value;save();$('#schoolName').textContent=DB.app.school;return}
+ if(el.dataset.ses){s[el.dataset.ses]=el.value;save();render();return}
+ if(el.dataset.col){const it=s[el.dataset.col].find(x=>x.id===el.dataset.id);if(!it)return;let v=el.type==='checkbox'?el.checked:el.value;
+  if(el.dataset.f==='pts'){v=String(v).split(/[,\s]+/).filter(x=>x!=='').map(Number).filter(x=>!isNaN(x));if(!v.length){toast('Enter points like 5, 3, 1');rerender();return}}
+  if(el.dataset.f==='name'&&!String(v).trim()){toast('Name cannot be empty');rerender();return}
+  setPath(it,el.dataset.f,v);save();if(el.dataset.re)rerender()}
+});
+$('#sessSel').addEventListener('change',e=>{DB.active=e.target.value;ui.sel=null;ui.draft=null;save();render();toast('Opened '+S().year)});
+$('#fileIn').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>restore(r.result);r.readAsText(f);e.target.value=''});
+window.addEventListener('hashchange',go);
+window.addEventListener('storage',e=>{if(e.key===KEY){const d=load();if(d){DB=d;if(ui.page==='scoreboard'||ui.page==='home'||ui.page==='champions')rerender()}}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal').classList.contains('on'))$('#mNo').click()});
+go();
+}
+</script>
+</body>
+</html>
