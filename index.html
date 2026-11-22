@@ -981,7 +981,8 @@ function pAthletes(){
  const s=S(),c=calc(),f=ui.af;const E=s.entries||{};const evCount={};Object.values(E).forEach(l=>l.forEach(id=>evCount[id]=(evCount[id]||0)+1));
  let list=s.athletes.filter(a=>(!f.cat||(f.cat==='_none'?!a.catId:a.catId===f.cat))&&(!f.h||(f.h==='_none'?!a.houseId:a.houseId===f.h))&&(!f.g||a.gender===f.g)&&(!f.cls||norm(a.cls)===norm(f.cls))&&(!f.q||norm([a.name,a.cls,a.sec,a.roll,a.chest,a.adm].join(' ')).includes(norm(f.q))));
  list.sort((a,b)=>((Hs(a.houseId)||{}).name||'~').localeCompare((Hs(b.houseId)||{}).name||'~')||(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.name).localeCompare(norm(b.name)));
- const shown=list.slice(0,300);ui.mShown=shown.map(a=>a.id);const classes=[...new Set(s.athletes.map(a=>a.cls).filter(Boolean))].sort((a,b)=>(classNum(a)??99)-(classNum(b)??99)||a.localeCompare(b));
+ const PG=ui.aPer||100,pages=Math.max(1,Math.ceil(list.length/PG));if((ui.aPage||0)>=pages)ui.aPage=pages-1;const pg=ui.aPage||0;const shown=list.slice(pg*PG,pg*PG+PG);ui.mShown=shown.map(a=>a.id);
+ const pager=pages>1?`<div class="row pager" style="margin:8px 0;align-items:center"><button class="btn sm" data-act="aPg" data-id="${pg-1}" ${pg?'':'disabled'}>← Previous</button><select data-act2="aPage" style="width:auto" aria-label="Page">${Array.from({length:pages},(_,i)=>{const a=list[i*PG],b=list[Math.min(list.length,(i+1)*PG)-1];return opt(i,`Page ${i+1} of ${pages}: ${i*PG+1}–${Math.min(list.length,(i+1)*PG)}${a&&b?` (${a.cls||'—'}${a.cls!==b.cls?' to '+(b.cls||'—'):''})`:''}`,pg)}).join('')}</select><button class="btn sm" data-act="aPg" data-id="${pg+1}" ${pg<pages-1?'':'disabled'}>Next →</button><select data-act2="aPer" style="width:auto" aria-label="Rows per page">${[50,100,200,500].map(n=>opt(n,n+' per page',PG)).join('')}</select></div>`:'';const classes=[...new Set(s.athletes.map(a=>a.cls).filter(Boolean))].sort((a,b)=>(classNum(a)??99)-(classNum(b)??99)||a.localeCompare(b));
  const cnt=h=>s.athletes.filter(a=>a.houseId===h).length;const noHouse=s.athletes.filter(a=>!a.houseId).length;
  const I=(f,a,w,ph)=>`<input data-col="athletes" data-id="${a.id}" data-f="${f}" value="${esc(a[f]||'')}"${w?` style="width:${w}px"`:''} aria-label="${ph}">`;
  return`<h2>Athletes / participants</h2><p class="lead">The house member list. Add students one by one, or upload the whole list from Excel. Gender and category decide which Best Boy / Best Girl race each student is in.</p>
@@ -1001,17 +1002,17 @@ function pAthletes(){
   <label>Class<select data-af="cls">${opt('','All',f.cls)}${classes.map(x=>opt(x,x,f.cls)).join('')}</select></label>
   <label>Category<select data-af="cat">${opt('','All',f.cat)}${s.cats.map(x=>opt(x.id,x.name,f.cat)).join('')}${opt('_none','Not set',f.cat)}</select></label>
   <label>Gender<select data-af="g">${opt('','All',f.g)}${opt('B','Boys',f.g)}${opt('G','Girls',f.g)}</select></label></div>
-  <div class="row" style="margin-top:8px;justify-content:space-between"><p class="tiny" style="margin:0">${list.length} members${list.length>300?' · showing first 300, use search or filters':''} · ${list.filter(a=>a.gender==='B').length} boys, ${list.filter(a=>a.gender==='G').length} girls</p>
+  <div class="row" style="margin-top:8px;justify-content:space-between"><p class="tiny" style="margin:0">${list.length} members${pages>1?` · showing ${pg*PG+1}–${Math.min(list.length,pg*PG+PG)}`:''} · ${list.filter(a=>a.gender==='B').length} boys, ${list.filter(a=>a.gender==='G').length} girls</p>
   <div class="row"><button class="btn sm" data-act="autoCat">Fill missing categories from class</button><button class="btn sm" data-act="autoChest">Number chest nos by house</button></div></div>
  ${ui.msel.size?`<div class="banner" style="margin-top:8px"><b>${ui.msel.size} selected</b><select id="mbHouse" style="width:auto">${houseOpts('','No house')}</select><button class="btn sm" data-act="mBulk" data-id="house">Set house</button><select id="mbCat" style="width:auto">${opt('','No category','')}${s.cats.map(c=>opt(c.id,c.name,'')).join('')}</select><button class="btn sm" data-act="mBulk" data-id="cat">Set category</button><button class="btn sm danger" data-act="mBulk" data-id="del">Delete</button><button class="btn sm" data-act="mBulk" data-id="clear">Clear selection</button></div>`:''}
- <div class="scroll" style="margin-top:8px"><table class="t stack"><thead><tr><th><input type="checkbox" data-msel="all" aria-label="Select all shown" ${shown.length&&shown.every(a=>ui.msel.has(a.id))?'checked':''}></th><th>Name</th><th>Class</th><th>Sec</th><th>Roll</th><th>Gender</th><th>House</th><th>Category</th><th>Chest</th><th>Adm No</th><th class="n">Events</th><th class="n">Points</th><th></th></tr></thead><tbody>
+ ${pager}<div class="scroll" style="margin-top:8px"><table class="t stack"><thead><tr><th><input type="checkbox" data-msel="all" aria-label="Select all shown" ${shown.length&&shown.every(a=>ui.msel.has(a.id))?'checked':''}></th><th>Name</th><th>Class</th><th>Sec</th><th>Roll</th><th>Gender</th><th>House</th><th>Category</th><th>Chest</th><th>Adm No</th><th class="n">Events</th><th class="n">Points</th><th></th></tr></thead><tbody>
  ${shown.map(a=>{const p=c.all[a.id];return`<tr><td><input type="checkbox" data-msel="${a.id}" ${ui.msel.has(a.id)?'checked':''} aria-label="Select"></td><td>${I('name',a,0,'Name')}${a.sjs?' <span class="tiny" title="From SJS App">SJS</span>':''}</td><td>${I('cls',a,70,'Class')}</td><td>${I('sec',a,50,'Section')}</td><td>${I('roll',a,56,'Roll number')}</td>
  <td><select data-col="athletes" data-id="${a.id}" data-f="gender">${opt('','—',a.gender)}${opt('B','Boy',a.gender)}${opt('G','Girl',a.gender)}</select></td>
  <td><select data-col="athletes" data-id="${a.id}" data-f="houseId">${houseOpts(a.houseId,'—')}</select></td>
  <td><select data-col="athletes" data-id="${a.id}" data-f="catId">${opt('','—',a.catId)}${s.cats.map(x=>opt(x.id,x.name,a.catId)).join('')}</select></td>
  <td>${I('chest',a,64,'Chest number')}</td><td>${I('adm',a,84,'Admission number')}</td>
  <td class="n">${evCount[a.id]||0}</td><td class="n">${p?`<b>${p.pts}</b> <span class="tiny">${p.g}G ${p.s}S ${p.b}B</span>`:'0'}</td><td><button class="x" data-act="delAth" data-id="${a.id}" aria-label="Delete member">×</button></td></tr>`}).join('')||'<tr><td colspan="13"><div class="empty">No members yet — add one above or upload your Excel list.</div></td></tr>'}
- </tbody></table></div></div>`;
+ </tbody></table></div>${pager}</div>`;
 }
 /* ---------- event entries ---------- */
 function eligible(e,s=S()){return s.athletes.filter(a=>(!e.catId||a.catId===e.catId||!a.catId)&&(e.gender==='Boys'?a.gender!=='G':e.gender==='Girls'?a.gender!=='B':true))}
@@ -1909,7 +1910,8 @@ const ACT={
  impGo:async()=>{const p=ui.imp;if(!p)return;if((p.kind==='prog'||p.kind==='entries')&&isLocked())return;if(p.kind==='members'&&p.mode==='replace'&&p.removed.length&&!await ask('Replace the member list?',`${p.removed.length} members who are not in the file will be removed.`,'Replace list'))return;
   if(p.kind==='prog'){applyProg(p);toast(`Imported: ${p.add} added${p.mode==='replace'?`, ${p.rem} removed`:''}${p.evUpd.length?` · ${p.evUpd.length} events updated`:''}${p.evNew.length?` · ${p.evNew.length} new items`:''}`);ui.imp=null;rerender();return}
   if(p.kind==='members'){applyMembers(p);toast(`Imported: ${p.add} added, ${p.upd} updated${p.mode==='replace'?`, ${p.removed.length} removed`:''}`)}else{applyEntries(p);toast(`Imported ${p.add.length} entries${p.newMem.length?` · ${p.newMem.length} new members`:''}`)}ui.imp=null;rerender()},
- afHouse:el=>{ui.af.h=el.dataset.id;rerender()},
+ afHouse:el=>{ui.af.h=el.dataset.id;ui.aPage=0;rerender()},
+ aPg:el=>{ui.aPage=Math.max(0,+el.dataset.id);rerender();const t=$('.pager');if(t)t.scrollIntoView({block:'start'})},
  autoCat:()=>{const s=S();let n=0,miss=0;s.athletes.forEach(a=>{if(!a.catId){const c=catForClass(a.cls);if(c){a.catId=c;n++}else miss++}});save();rerender();toast(n?`${n} categories filled from class${miss?` · ${miss} could not be matched — check class names or the classes written in Categories`:''}`:'Nothing to fill — check the classes written in Categories (e.g. Class VI – VIII)')},
  autoChest:async()=>{const s=S();if(!await ask('Number chest nos by house?','Each house gets its own series: first house 101, 102 …, second house 201 … Existing chest numbers are replaced.','Number them'))return;
   s.houses.forEach((h,i)=>{let n=(i+1)*100+1;s.athletes.filter(a=>a.houseId===h.id).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.name).localeCompare(norm(b.name))).forEach(a=>{a.chest=String(n++)})});save();rerender();toast('Chest numbers set')},
@@ -1979,7 +1981,7 @@ main.addEventListener('input',e=>{const el=e.target;
  if(el.dataset.r!=null&&ui.draft){const r=ui.draft.rows[+el.dataset.r];if(r){r[el.dataset.k]=el.value;if(el.dataset.k==='pos')paintRow(el.closest('.rrow'),r,S().events.find(x=>x.id===ui.sel))}return}
  if(el.dataset.uf==='q'){ui.evf.q=el.value;$('#evList').innerHTML=evListHTML();return}
  if(el.dataset.ef==='q'){ui.enf.q=el.value;$('#enList2').innerHTML=enListHTML();return}
- if(el.dataset.af==='q'){ui.af.q=el.value;clearTimeout(ui.at);ui.at=setTimeout(()=>{rerender();const q=main.querySelector('[data-af=q]');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},350)}
+ if(el.dataset.af==='q'){ui.af.q=el.value;ui.aPage=0;clearTimeout(ui.at);ui.at=setTimeout(()=>{rerender();const q=main.querySelector('[data-af=q]');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},350)}
 });
 main.addEventListener('change',e=>{const el=e.target,s=S();
  if(el.dataset.r!=null&&ui.draft){const i=+el.dataset.r,r=ui.draft.rows[i],k=el.dataset.k;if(!r)return;r[k]=el.value;const ev=s.events.find(x=>x.id===ui.sel);
@@ -1987,7 +1989,7 @@ main.addEventListener('change',e=>{const el=e.target,s=S();
   if(k==='houseId'&&r.athId){const a=s.athletes.find(z=>z.id===r.athId);if(a&&a.houseId!==el.value)r.athId=''}
   paintRow(el.closest('.rrow'),r,ev);return}
  if(el.dataset.uf&&el.dataset.uf!=='q'){ui.evf[el.dataset.uf]=el.value;$('#evList').innerHTML=evListHTML();return}
- if(el.dataset.af&&el.dataset.af!=='q'){ui.af[el.dataset.af]=el.value;rerender();return}
+ if(el.dataset.af&&el.dataset.af!=='q'){ui.af[el.dataset.af]=el.value;ui.aPage=0;rerender();return}
  if(el.dataset.act2==='evCat'){ui.evCat=el.value;rerender();return}
  if(el.dataset.act2==='repCat'){ui.repCat=el.value;rerender();return}
  if(el.dataset.act2==='repDay'){ui.repDay=el.value;rerender();return}
@@ -1996,6 +1998,8 @@ main.addEventListener('change',e=>{const el=e.target,s=S();
  if(el.id==='meName'){try{localStorage.setItem(ME_KEY,el.value.trim())}catch(e){}toast('Name saved on this device');return}
  if(el.dataset.act2&&/^h(How|Scope|Class|G)$/.test(el.dataset.act2)){const k=el.dataset.act2;if(k==='hClass')ui.hClass=el.value;else if(k==='hG')ui.hG=el.value;else{ui[k]=el.value;ui.hPrev=ui.hPrev}rerender();return}
  if(el.dataset.hf==='none'){ui.hOnlyNone=el.checked;rerender();return}
+ if(el.dataset.act2==='aPage'){ui.aPage=+el.value;rerender();return}
+ if(el.dataset.act2==='aPer'){ui.aPer=+el.value;ui.aPage=0;rerender();return}
  if(el.dataset.act2==='impMode'){ui.impMode[el.dataset.k]=el.value;if(ui.imp&&ui.imp.kind===el.dataset.k)ui.imp=null;rerender();return}
  if(el.id==='xlsIn'){const f=el.files[0];const k=el.dataset.k;el.value='';if(!f)return;ui.impFile=f.name;readAnyFile(f).then(sh=>{const p=k==='members'?planMembers(sh,ui.impMode.members):isProgBook(sh)?planProg(sh,ui.impMode.entries):planEntries(sh,ui.impMode.entries);if(!p.read&&p.kind!=='prog'||p.kind==='prog'&&!p.read){toast(k==='members'?'No sheet with a “Name” column was found. Use the template from this page.':'No sheet with “Event” and “Participant name” columns was found. Use the template from this page.');return}ui.imp=p;rerender()}).catch(err=>toast(err.message||'Could not read that file'));return}
  if(el.dataset.ef&&el.dataset.ef!=='q'){ui.enf[el.dataset.ef]=el.value;$('#enList2').innerHTML=enListHTML();return}
