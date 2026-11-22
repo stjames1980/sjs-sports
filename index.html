@@ -1003,7 +1003,7 @@ function pAthletes(){
   <label>Category<select data-af="cat">${opt('','All',f.cat)}${s.cats.map(x=>opt(x.id,x.name,f.cat)).join('')}${opt('_none','Not set',f.cat)}</select></label>
   <label>Gender<select data-af="g">${opt('','All',f.g)}${opt('B','Boys',f.g)}${opt('G','Girls',f.g)}</select></label></div>
   <div class="row" style="margin-top:8px;justify-content:space-between"><p class="tiny" style="margin:0">${list.length} members${pages>1?` · showing ${pg*PG+1}–${Math.min(list.length,pg*PG+PG)}`:''} · ${list.filter(a=>a.gender==='B').length} boys, ${list.filter(a=>a.gender==='G').length} girls</p>
-  <div class="row"><button class="btn sm" data-act="autoCat">Fill missing categories from class</button><button class="btn sm" data-act="autoChest">Number chest nos by house</button></div></div>
+  <div class="row"><button class="btn sm" data-act="autoCat">Fill missing categories from class</button><button class="btn sm" data-act="recatAll">Update all categories from class</button><button class="btn sm" data-act="autoChest">Number chest nos by house</button></div></div>
  ${ui.msel.size?`<div class="banner" style="margin-top:8px"><b>${ui.msel.size} selected</b><select id="mbHouse" style="width:auto">${houseOpts('','No house')}</select><button class="btn sm" data-act="mBulk" data-id="house">Set house</button><select id="mbCat" style="width:auto">${opt('','No category','')}${s.cats.map(c=>opt(c.id,c.name,'')).join('')}</select><button class="btn sm" data-act="mBulk" data-id="cat">Set category</button><button class="btn sm danger" data-act="mBulk" data-id="del">Delete</button><button class="btn sm" data-act="mBulk" data-id="clear">Clear selection</button></div>`:''}
  ${pager}<div class="scroll" style="margin-top:8px"><table class="t stack"><thead><tr><th><input type="checkbox" data-msel="all" aria-label="Select all shown" ${shown.length&&shown.every(a=>ui.msel.has(a.id))?'checked':''}></th><th>Name</th><th>Class</th><th>Sec</th><th>Roll</th><th>Gender</th><th>House</th><th>Category</th><th>Chest</th><th>Adm No</th><th class="n">Events</th><th class="n">Points</th><th></th></tr></thead><tbody>
  ${shown.map(a=>{const p=c.all[a.id];return`<tr><td><input type="checkbox" data-msel="${a.id}" ${ui.msel.has(a.id)?'checked':''} aria-label="Select"></td><td>${I('name',a,0,'Name')}${a.sjs?' <span class="tiny" title="From SJS App">SJS</span>':''}</td><td>${I('cls',a,70,'Class')}</td><td>${I('sec',a,50,'Section')}</td><td>${I('roll',a,56,'Roll number')}</td>
@@ -1061,6 +1061,9 @@ function pHouses(){
  <button class="btn pri" style="margin-top:16px" data-act="addHouse">Add a house</button>`;
 }
 
+function planRecat(){const s=S();let ch=0,miss=0;const by={};s.athletes.forEach(a=>{const c=catForClass(a.cls);if(!c){miss++;return}if(c!==a.catId){ch++;const k=(catName(a.catId)||'none')+' → '+catName(c);by[k]=(by[k]||0)+1}});return{ch,miss,by}}
+function catTester(){const s=S();const cls=[...new Set(s.athletes.map(a=>a.cls).filter(Boolean))].sort((a,b)=>(classNum(a)??99)-(classNum(b)??99));if(!cls.length)return'';
+ return`<div class="tiny" style="margin-top:10px"><b>Classes go to:</b> ${cls.map(c=>{const k=catForClass(c);return`${esc(c)} → ${k?esc(catName(k)):'<span style="color:#b45309">no category</span>'}`}).join(' · ')}</div>`}
 function pCategories(){
  const s=S();
  return`<h2>Categories</h2><p class="lead">Age or class groups such as Minor, Sub-Junior, Junior, Senior. Best Boy and Best Girl are found for every category separately.</p>
@@ -1068,7 +1071,9 @@ function pCategories(){
  ${s.cats.map((c,i)=>`<tr><td><button class="btn sm" data-act="catUp" data-id="${c.id}" ${i?'':'disabled'} aria-label="Move up">↑</button> <button class="btn sm" data-act="catDown" data-id="${c.id}" ${i<s.cats.length-1?'':'disabled'} aria-label="Move down">↓</button></td>
  <td><input data-col="cats" data-id="${c.id}" data-f="name" value="${esc(c.name)}" aria-label="Category name"></td><td><input data-col="cats" data-id="${c.id}" data-f="desc" value="${esc(c.desc)}" aria-label="Classes"></td>
  <td class="n">${s.events.filter(e=>e.catId===c.id).length}</td><td><button class="x" data-act="delCat" data-id="${c.id}" aria-label="Delete category">×</button></td></tr>`).join('')}</tbody></table></div>
- <div class="chips" style="margin-top:12px"><b>Quick add</b>${[['Sub-Minor','Nursery – KG'],['Super Senior','Class XI – XII'],['Open','All classes'],['Staff','Teachers'],['Cultural','All classes']].map(([n,d])=>`<button class="chip" data-act="addCatQuick" data-n="${n}" data-d="${d}">+ ${n}</button>`).join('')}</div>
+ <div class="chips" style="margin-top:12px"><b>Quick add</b>${[['Sub-Minor','Nursery – UKG'],['Super Senior','Class XI – XII'],['Open','All classes'],['Staff','Teachers'],['Cultural','All classes']].map(([n,d])=>`<button class="chip" data-act="addCatQuick" data-n="${n}" data-d="${d}">+ ${n}</button>`).join('')}</div>
+ ${catTester()}
+ <div class="banner" style="margin-top:12px"><b>After adding or changing a category</b><span class="mut">re-sort every member into the right category from their class.</span><button class="btn pri sm" data-act="recatAll">Update all members' categories</button></div>
  <div class="row" style="margin-top:12px"><label>New category<input id="ncName" placeholder="e.g. Sub-Minor"></label><label>Classes / age<input id="ncDesc" placeholder="e.g. Class XI – XII"></label><button class="btn pri" data-act="addCat">Add category</button></div></div>`;
 }
 
@@ -1966,6 +1971,9 @@ const ACT={
  hStep:el=>{const c=classList();const i=c.findIndex(x=>x.k===ui.hClass)+(+el.dataset.id);if(c[i]){ui.hClass=c[i].k;rerender();window.scrollTo(0,0)}},
  hSet:el=>{const s=S();const a=s.athletes.find(z=>z.id===el.dataset.id);if(!a)return;const old=a.houseId||'';a.houseId=el.dataset.h;ui.undoH={map:{[a.id]:old},label:`${a.name} → ${(Hs(a.houseId)||{}).name}`,at:Date.now()};save();rerender()},
  hAutoClass:()=>{const n=applyHousePlan(planHouses('none',ui.hHow||'gender',ui.hClass),'Rest of '+classTitle(classList().find(c=>c.k===ui.hClass))+' assigned automatically');rerender();toast(n?`${n} students given a house`:'Everyone in this class already has a house')},
+ recatAll:async()=>{const p=planRecat();if(!p.ch){toast(p.miss?`Nothing to change · ${p.miss} members' classes match no category`:'Every member is already in the right category');return}
+  if(!await ask(`Change ${p.ch} members' category?`,Object.entries(p.by).map(([k,n])=>`${k}: ${n}`).join('  •  ')+(p.miss?`  •  ${p.miss} members match no category and stay as they are`:''),'Update categories'))return;
+  const s=S();s.athletes.forEach(a=>{const c=catForClass(a.cls);if(c)a.catId=c});save();rerender();toast(`${p.ch} members moved to the right category`)},
  fs:()=>{const el=$('#sbx');try{if(document.fullscreenElement)document.exitFullscreen();else el.requestFullscreen().catch(()=>toast('Full screen is not allowed here — open the offline app'))}catch(e){toast('Full screen is not allowed here')}}
 };
 async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is not a valid backup');return}
