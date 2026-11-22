@@ -117,6 +117,7 @@ table.t{width:100%;border-collapse:collapse;font-size:15px}
 .ptag{font:700 18px var(--disp);text-align:right;white-space:nowrap}
 .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}.chips b{font-size:13px;color:var(--mut);margin-right:4px;min-width:118px}.chip{font:600 14px Barlow,sans-serif;border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:999px;padding:0 12px;min-height:36px;cursor:pointer}.chip:hover{border-color:var(--pri);color:var(--pri)}.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}.chip.on .mut{color:#ffffffc0}.chip .dot{margin-right:4px}
 .dprog{display:grid;grid-template-columns:80px 130px minmax(0,1fr) 90px;gap:10px;align-items:center;padding:6px 0}.dbar{height:10px;background:var(--soft);border:1px solid var(--line);border-radius:9px;overflow:hidden}.dbar span{display:block;height:100%;background:var(--pri)}@media(max-width:600px){.dprog{grid-template-columns:70px minmax(0,1fr) 70px}.dprog>span:nth-child(2){display:none}}
+.hg{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}@media(max-width:860px){.hg{grid-template-columns:minmax(0,1fr)}}@media(max-width:600px){.hb{min-width:0;flex:1 1 40%}.hbtns{width:100%}.hnm{min-width:0}}.hlist{display:flex;flex-direction:column}.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}.hrow.nohouse .hnm b{color:#b45309}.hnm{display:flex;flex-direction:column;min-width:160px}.hbtns{display:flex;gap:6px;flex-wrap:wrap}.hb{font:600 14px Barlow,sans-serif;min-height:40px;min-width:76px;padding:0 12px;border-radius:999px;border:2px solid var(--hc);background:var(--card);color:var(--ink);cursor:pointer}.hb:hover{background:color-mix(in srgb,var(--hc) 18%,var(--card))}.hb.on{background:var(--hc);color:var(--ht)}.hb:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .enh{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px}.enh ol{margin:8px 0 0;padding-left:22px}.enh li{display:flex;justify-content:space-between;align-items:center;gap:6px}.enh li .x{width:32px;height:32px;font-size:18px}.imp{border-color:#b4530966;background:color-mix(in srgb,#b45309 5%,var(--card))}
 .filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
 .filters .q{grid-column:1/-1}
@@ -182,6 +183,7 @@ table.t{width:100%;border-collapse:collapse;font-size:15px}
    <a href="#events">Events / items</a>
    <a href="#entries">Event entries</a>
    <a href="#athletes">Athletes / participants</a>
+   <a href="#housing">Assign houses</a>
    <a href="#houses">Houses</a>
    <a href="#categories">Categories</a>
    <a href="#points">Points rules</a>
@@ -490,7 +492,7 @@ if(!DB||!DB.sessions||!DB.sessions[DB.active]){DB=freshDB(true);save()}
 if(DB.app&&DB.app.logo===undefined){DB.app.logo=DEF_LOGO;save()}
 Object.values(DB.sessions).forEach(x=>{if(!x.entries)x.entries={};if(!x.days)x.days=[{id:uid(),name:'Day 1',date:x.date||''},{id:uid(),name:'Day 2',date:''}]});
 const S=()=>DB.sessions[DB.active];
-const ui={msel:new Set(),sjsBusy:'',pbHouse:'',swap:null,sday:'',repDay:'',atStart:'09:00',atGap:10,impMode:{members:'merge',entries:'replace'},imp:null,impFile:'',enf:{cat:'',g:'',q:'',day:''},ens:null,enHouse:'',certSel:'all',page:'home',sel:null,draft:null,evf:{cat:'',g:'',t:'',st:'',q:'',day:''},af:{q:'',cat:'',h:'',g:'',cls:''},evCat:'',report:'summary',repCat:'',champCat:''};
+const ui={hmode:'auto',hHow:'gender',hScope:'none',hPrev:false,hClass:'',hOnlyNone:false,hG:'',undoH:null,msel:new Set(),sjsBusy:'',pbHouse:'',swap:null,sday:'',repDay:'',atStart:'09:00',atGap:10,impMode:{members:'merge',entries:'replace'},imp:null,impFile:'',enf:{cat:'',g:'',q:'',day:''},ens:null,enHouse:'',certSel:'all',page:'home',sel:null,draft:null,evf:{cat:'',g:'',t:'',st:'',q:'',day:''},af:{q:'',cat:'',h:'',g:'',cls:''},evCat:'',report:'summary',repCat:'',champCat:''};
 const Hs=(id,s=S())=>s.houses.find(h=>h.id===id);
 const Cs=(id,s=S())=>s.cats.find(c=>c.id===id);
 const Ts=(id,s=S())=>s.types.find(t=>t.id===id);
@@ -1706,10 +1708,56 @@ function sjsCard(){const s=S();const noH=s.athletes.filter(a=>!a.houseId).length
  <p class="tiny" style="margin-top:0">Copies every class and student (name, class, section, roll, gender, admission no) from your SJS App — no typing. Press again any time to add new admissions and update classes; houses, chest numbers and entries here are kept. Needs the internet and the Admin or a staff Gmail.</p>
  <div class="row"><button class="btn pri" data-act="sjsImport" ${ui.sjsBusy?'disabled':''}>${fromS?'Refresh from SJS App':'Import students from SJS App'}</button>${ui.sjsBusy?`<span class="tiny" id="sjsBusy">${esc(ui.sjsBusy)}</span>`:fromS?`<span class="tiny">${fromS} members came from SJS App</span>`:''}</div>
  ${ui.imp&&ui.imp.kind==='sjs'?sjsPlanHTML():''}
- <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:12px"><h3 style="font-size:19px">Assign houses ${noH?`<span class="tag rec">${noH} without a house</span>`:'<span class="tag ok">every member has a house</span>'}</h3>
- <div class="row"><label style="flex:1 1 220px">How<select id="ahMode">${opt('gender','Balanced in each class, boys and girls separately','')}${opt('class','Balanced in each class','')}</select></label>
- <label style="flex:1 1 200px">Who<select id="ahScope">${opt('none','Only members without a house','')}${opt('all','Everyone (start again)','')}</select></label><button class="btn" data-act="assignH">Assign houses</button></div>
- <p class="tiny">Goes class by class in roll order and gives each student the house that has the fewest in that class, so every house gets a fair share. Or fill the House column in Excel (Download current list), or tick students below and use “Set house”.</p></div></div>`}
+ <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:12px" class="row"><b>Houses:</b> ${noH?`<span class="tag rec">${noH} without a house</span>`:'<span class="tag ok">every member has a house</span>'}<a class="btn" href="#housing">Assign houses — automatic or manual</a></div></div></div>`}
+
+/* ---------- Assign houses page: automatic (balanced, preview, undo) + manual (tap per student) ---------- */
+function planHouses(scope,mode,onlyKey){const s=S();const H=s.houses;const out={};if(!H.length)return out;
+ const gk=a=>norm(a.cls)+'|'+norm(a.sec);const key=a=>gk(a)+(mode==='gender'?'|'+a.gender:'');const cnt={},tot={};H.forEach(h=>tot[h.id]=0);
+ const valid=a=>a.houseId&&tot[a.houseId]!=null;const redo=a=>(scope==='all'&&(!onlyKey||gk(a)===onlyKey))||!valid(a);
+ s.athletes.forEach(a=>{if(valid(a)&&!redo(a)){tot[a.houseId]++;const k=key(a);(cnt[k]=cnt[k]||{})[a.houseId]=((cnt[k]||{})[a.houseId]||0)+1}});
+ s.athletes.filter(a=>redo(a)&&(!onlyKey||gk(a)===onlyKey)).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.cls).localeCompare(norm(b.cls))||norm(a.sec).localeCompare(norm(b.sec))||(+a.roll||9999)-(+b.roll||9999)||norm(a.name).localeCompare(norm(b.name)))
+  .forEach(a=>{const k=key(a);const c=cnt[k]=cnt[k]||{};const h=H.slice().sort((x,y)=>(c[x.id]||0)-(c[y.id]||0)||tot[x.id]-tot[y.id])[0];out[a.id]=h.id;c[h.id]=(c[h.id]||0)+1;tot[h.id]++});
+ return out}
+function applyHousePlan(plan,label){const s=S();const undo={};Object.entries(plan).forEach(([id,hid])=>{const a=s.athletes.find(z=>z.id===id);if(a){undo[id]=a.houseId||'';a.houseId=hid}});if(Object.keys(undo).length)ui.undoH={map:undo,label,at:Date.now()};save();return Object.keys(undo).length}
+function houseCounts(list,s=S()){const r={};s.houses.forEach(h=>r[h.id]={B:0,G:0,T:0});r._none={B:0,G:0,T:0};list.forEach(a=>{const k=a.houseId&&r[a.houseId]?a.houseId:'_none';r[k].T++;if(a.gender==='B')r[k].B++;else if(a.gender==='G')r[k].G++});return r}
+function countsTable(list,title){const s=S();const c=houseCounts(list);const max=Math.max(1,...s.houses.map(h=>c[h.id].T));
+ return`<table class="t"><thead><tr><th>${esc(title||'House')}</th><th class="n">Boys</th><th class="n">Girls</th><th class="n">Total</th><th style="width:40%"></th></tr></thead><tbody>
+ ${s.houses.map(h=>`<tr><td>${chip(h)}</td><td class="n">${c[h.id].B}</td><td class="n">${c[h.id].G}</td><td class="n"><b>${c[h.id].T}</b></td><td><div class="dbar"><span style="width:${c[h.id].T/max*100}%;background:${h.color}"></span></div></td></tr>`).join('')}
+ ${c._none.T?`<tr><td><span class="tag rec">No house</span></td><td class="n">${c._none.B}</td><td class="n">${c._none.G}</td><td class="n"><b>${c._none.T}</b></td><td></td></tr>`:''}</tbody></table>`}
+const classKey=a=>norm(a.cls)+'|'+norm(a.sec);
+function classList(s=S()){const m={};s.athletes.forEach(a=>{const k=classKey(a);(m[k]=m[k]||{k,cls:a.cls||'',sec:a.sec||'',n:0,none:0}).n++;if(!a.houseId||!Hs(a.houseId))m[k].none++});
+ return Object.values(m).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.cls).localeCompare(norm(b.cls))||norm(a.sec).localeCompare(norm(b.sec)))}
+const classTitle=c=>c?(c.cls?'Class '+c.cls:'No class')+(c.sec?' – '+c.sec:''):'';
+function pHousing(){const s=S();const mode=ui.hmode||'auto';const all=s.athletes;const noH=all.filter(a=>!a.houseId||!Hs(a.houseId)).length;
+ const undo=ui.undoH?`<div class="banner"><b>${Object.keys(ui.undoH.map).length} students changed</b><span class="mut">${esc(ui.undoH.label)}</span><button class="btn sm" data-act="hUndo">Undo</button></div>`:'';
+ if(!all.length)return`<h2>Assign houses</h2><div class="empty">No members yet. Import them from SJS App or upload the Excel list on <a href="#athletes">Athletes / participants</a>.</div>`;
+ const head=`<h2>Assign houses</h2><p class="lead">Give every student a house — automatically in one click, or by hand class by class. You can mix both: do most automatically, then change any student by hand.</p>
+ <div class="chips"><button class="chip ${mode==='auto'?'on':''}" data-act="hMode" data-id="auto">Automatic</button><button class="chip ${mode==='manual'?'on':''}" data-act="hMode" data-id="manual">Manual — class by class</button>${noH?`<span class="tag rec" style="margin-left:8px">${noH} without a house</span>`:'<span class="tag ok" style="margin-left:8px">every student has a house</span>'}</div>${undo}`;
+ if(mode==='auto'){const sc=ui.hScope||'none',md=ui.hHow||'gender';const plan=ui.hPrev?planHouses(sc,md):null;
+  const after=plan?all.map(a=>plan[a.id]?{...a,houseId:plan[a.id]}:a):null;
+  return head+`<div class="g2" style="margin-top:12px"><div class="card"><h3>Automatic</h3>
+   <label>How<select data-act2="hHow">${opt('gender','Balanced in every class — boys and girls separately (best)',md)}${opt('class','Balanced in every class',md)}</select></label>
+   <label style="margin-top:10px">Who<select data-act2="hScope">${opt('none',`Only students without a house (${noH})`,sc)}${opt('all',`Everyone — start again (${all.length})`,sc)}</select></label>
+   <div class="row" style="margin-top:12px"><button class="btn" data-act="hPreview">Preview</button><button class="btn pri" data-act="hAuto">Assign now</button></div>
+   <p class="tiny">The app goes class by class (and section by section) in roll-number order and gives each student the house that has the fewest boys or girls in that class so far. Every house ends up with a fair share of every class — good for sports, since each house gets students of every age. Students who already have a house keep it unless you choose “Everyone”.</p></div>
+   <div class="card"><h3>${plan?`Preview — ${Object.keys(plan).length} students would change`:'Whole school now'}</h3>${countsTable(after||all)}${plan?`<div class="row" style="margin-top:10px"><button class="btn pri" data-act="hAuto">Assign now</button><button class="btn" data-act="hPrevOff">Close preview</button></div>`:''}</div></div>
+   <div class="card" style="margin-top:16px"><h3>Class by class</h3><div class="scroll"><table class="t stack"><thead><tr><th>Class</th><th class="n">Students</th>${s.houses.map(h=>`<th class="n">${dot(h)}${esc(h.name)}</th>`).join('')}<th class="n">No house</th><th></th></tr></thead><tbody>
+   ${classList().map(c=>{const l=(after||all).filter(a=>classKey(a)===c.k);const k=houseCounts(l);return`<tr><td><b>${esc(classTitle(c))}</b></td><td class="n">${c.n}</td>${s.houses.map(h=>`<td class="n">${k[h.id].T} <span class="tiny">(${k[h.id].B}B ${k[h.id].G}G)</span></td>`).join('')}<td class="n">${k._none.T?`<span class="tag rec">${k._none.T}</span>`:'0'}</td><td><button class="btn sm" data-act="hOpenClass" data-id="${esc(c.k)}">Open</button></td></tr>`}).join('')}</tbody></table></div></div>`}
+ /* manual */
+ const cls=classList();let ck=ui.hClass&&cls.find(c=>c.k===ui.hClass)?ui.hClass:(cls.find(c=>c.none)||cls[0]).k;ui.hClass=ck;const ci=cls.findIndex(c=>c.k===ck);const cur=cls[ci];
+ let list=all.filter(a=>classKey(a)===ck);if(ui.hOnlyNone)list=list.filter(a=>!a.houseId||!Hs(a.houseId));if(ui.hG)list=list.filter(a=>a.gender===ui.hG);
+ list.sort((a,b)=>(+a.roll||9999)-(+b.roll||9999)||norm(a.name).localeCompare(norm(b.name)));
+ return head+`<div class="card" style="margin-top:12px"><div class="row" style="align-items:end">
+  <label style="flex:1 1 220px">Class<select data-act2="hClass">${cls.map(c=>opt(c.k,`${classTitle(c)} — ${c.n} students${c.none?` (${c.none} without a house)`:''}`,ck)).join('')}</select></label>
+  <button class="btn" data-act="hStep" data-id="-1" ${ci>0?'':'disabled'}>← Previous class</button><button class="btn" data-act="hStep" data-id="1" ${ci<cls.length-1?'':'disabled'}>Next class →</button></div>
+  <div class="row" style="margin-top:8px"><label class="chk"><input type="checkbox" data-hf="none" ${ui.hOnlyNone?'checked':''}> Only students without a house</label>
+  <label style="flex:0 1 160px">Show<select data-act2="hG">${opt('','Boys and girls',ui.hG||'')}${opt('B','Boys only',ui.hG||'')}${opt('G','Girls only',ui.hG||'')}</select></label>
+  <button class="btn sm" data-act="hAutoClass">Fill the rest of this class automatically</button></div></div>
+ <div class="g2 hg" style="margin-top:16px"><div class="card"><h3>${esc(classTitle(cur))}</h3>
+  <p class="tiny" style="margin-top:0">Tap a house beside each student. It is saved at once.</p>
+  <div class="hlist">${list.map(a=>`<div class="hrow ${a.houseId&&Hs(a.houseId)?'':'nohouse'}"><span class="hnm"><b>${esc(a.name)}</b><span class="tiny">${a.roll?'Roll '+esc(a.roll)+' · ':''}${genderOf(a.gender)}</span></span>
+   <span class="hbtns">${s.houses.map(h=>`<button class="hb ${a.houseId===h.id?'on':''}" style="--hc:${h.color};--ht:${txtOn(h.color)}" data-act="hSet" data-id="${a.id}" data-h="${h.id}" aria-label="${esc(h.name)}">${esc(h.name)}</button>`).join('')}</span></div>`).join('')||'<div class="empty">Everyone in this class has a house. Untick “Only students without a house” to change them.</div>'}</div></div>
+  <div class="card"><h3>This class</h3>${countsTable(all.filter(a=>classKey(a)===ck))}<h3 style="margin-top:16px">Whole school</h3>${countsTable(all)}</div></div>`}
 
 function pReports(){
  const s=S();const k=ui.report,cat=ui.repCat;
@@ -1756,7 +1804,7 @@ function pSetup(){
  <div class="card" style="margin-top:16px"><h3>Clean up</h3><div class="row">${s.demo?'<button class="btn" data-act="clearDemo">Clear demo data</button>':''}<button class="btn danger" data-act="clearResults">Clear all results of ${esc(s.year)}</button><button class="btn danger" data-act="resetAll">Erase everything and start fresh</button></div></div>`;
 }
 
-const PAGES={home:pHome,scoreboard:pScoreboard,results:pResults,events:pEvents,athletes:pAthletes,houses:pHouses,categories:pCategories,points:pPoints,bonus:pBonus,champions:pChampions,records:pRecords,reports:pReports,schedule:pSchedule,entries:pEntries,certificate:pCertDesign,sessions:pSessions,setup:pSetup};
+const PAGES={home:pHome,scoreboard:pScoreboard,results:pResults,events:pEvents,athletes:pAthletes,houses:pHouses,categories:pCategories,points:pPoints,bonus:pBonus,champions:pChampions,records:pRecords,reports:pReports,housing:pHousing,schedule:pSchedule,entries:pEntries,certificate:pCertDesign,sessions:pSessions,setup:pSetup};
 function paintSess(){$('#sessSel').innerHTML=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0)).map(s=>opt(s.id,s.year+' · '+s.title,DB.active)).join('')}
 function render(){
  const p=PAGES[ui.page]?ui.page:'home';
@@ -1906,6 +1954,15 @@ const ACT={
   else if(k==='del'){if(!await ask(`Delete ${ids.length} members?`,'Their past results stay but are no longer linked.','Delete'))return;const rm=new Set(ids);s.athletes=s.athletes.filter(a=>!rm.has(a.id));const E=s.entries||{};Object.keys(E).forEach(x=>E[x]=E[x].filter(id=>!rm.has(id)));toast(`${ids.length} deleted`)}
   else if(k==='clear'){}
   ui.msel=new Set();save();rerender()},
+ hMode:el=>{ui.hmode=el.dataset.id;ui.hPrev=false;rerender()},
+ hPreview:()=>{ui.hPrev=true;rerender()},hPrevOff:()=>{ui.hPrev=false;rerender()},
+ hAuto:async()=>{const sc=ui.hScope,md=ui.hHow;if(sc==='all'&&!await ask('Give every student a new house?','All houses are worked out again. Results already saved keep the house they were saved with. You can Undo straight after.','Reassign everyone'))return;
+  const n=applyHousePlan(planHouses(sc,md),sc==='all'?'All students reassigned automatically':'Students without a house assigned automatically');ui.hPrev=false;rerender();toast(n?`${n} students given a house`:'Everyone already has a house')},
+ hUndo:()=>{const u=ui.undoH;if(!u)return;const s=S();Object.entries(u.map).forEach(([id,h])=>{const a=s.athletes.find(z=>z.id===id);if(a)a.houseId=h});ui.undoH=null;save();rerender();toast('Undone')},
+ hOpenClass:el=>{ui.hmode='manual';ui.hClass=el.dataset.id;rerender();window.scrollTo(0,0)},
+ hStep:el=>{const c=classList();const i=c.findIndex(x=>x.k===ui.hClass)+(+el.dataset.id);if(c[i]){ui.hClass=c[i].k;rerender();window.scrollTo(0,0)}},
+ hSet:el=>{const s=S();const a=s.athletes.find(z=>z.id===el.dataset.id);if(!a)return;const old=a.houseId||'';a.houseId=el.dataset.h;ui.undoH={map:{[a.id]:old},label:`${a.name} → ${(Hs(a.houseId)||{}).name}`,at:Date.now()};save();rerender()},
+ hAutoClass:()=>{const n=applyHousePlan(planHouses('none',ui.hHow||'gender',ui.hClass),'Rest of '+classTitle(classList().find(c=>c.k===ui.hClass))+' assigned automatically');rerender();toast(n?`${n} students given a house`:'Everyone in this class already has a house')},
  fs:()=>{const el=$('#sbx');try{if(document.fullscreenElement)document.exitFullscreen();else el.requestFullscreen().catch(()=>toast('Full screen is not allowed here — open the offline app'))}catch(e){toast('Full screen is not allowed here')}}
 };
 async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is not a valid backup');return}
@@ -1936,6 +1993,8 @@ main.addEventListener('change',e=>{const el=e.target,s=S();
  if(el.dataset.act2==='certSel'){ui.certSel=el.value;rerender();return}
  if(el.dataset.msel){if(el.dataset.msel==='all'){(ui.mShown||[]).forEach(id=>el.checked?ui.msel.add(id):ui.msel.delete(id))}else{el.checked?ui.msel.add(el.dataset.msel):ui.msel.delete(el.dataset.msel)}rerender();return}
  if(el.id==='meName'){try{localStorage.setItem(ME_KEY,el.value.trim())}catch(e){}toast('Name saved on this device');return}
+ if(el.dataset.act2&&/^h(How|Scope|Class|G)$/.test(el.dataset.act2)){const k=el.dataset.act2;if(k==='hClass')ui.hClass=el.value;else if(k==='hG')ui.hG=el.value;else{ui[k]=el.value;ui.hPrev=ui.hPrev}rerender();return}
+ if(el.dataset.hf==='none'){ui.hOnlyNone=el.checked;rerender();return}
  if(el.dataset.act2==='impMode'){ui.impMode[el.dataset.k]=el.value;if(ui.imp&&ui.imp.kind===el.dataset.k)ui.imp=null;rerender();return}
  if(el.id==='xlsIn'){const f=el.files[0];const k=el.dataset.k;el.value='';if(!f)return;ui.impFile=f.name;readAnyFile(f).then(sh=>{const p=k==='members'?planMembers(sh,ui.impMode.members):isProgBook(sh)?planProg(sh,ui.impMode.entries):planEntries(sh,ui.impMode.entries);if(!p.read&&p.kind!=='prog'||p.kind==='prog'&&!p.read){toast(k==='members'?'No sheet with a “Name” column was found. Use the template from this page.':'No sheet with “Event” and “Participant name” columns was found. Use the template from this page.');return}ui.imp=p;rerender()}).catch(err=>toast(err.message||'Could not read that file'));return}
  if(el.dataset.ef&&el.dataset.ef!=='q'){ui.enf[el.dataset.ef]=el.value;$('#enList2').innerHTML=enListHTML();return}
