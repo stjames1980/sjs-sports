@@ -71,6 +71,7 @@ a{color:inherit}
 .palres button .pt{flex:1;min-width:0}.palres button .pt b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.palres button .pt small{color:var(--mut);font-size:13px}
 .palres button.on,.palres button:hover{background:var(--soft);outline:1px solid var(--line)}
 .palres .none{padding:22px;text-align:center;color:var(--mut)}
+.stdc tr.off td:not(:first-child){opacity:.5}.stdtabs .chip{font-size:13.5px}.stdc select[data-std=g]{min-width:150px}.stdc select[data-std=type]{min-width:170px}.stdc input[data-std=name]{min-width:190px}@media(max-width:700px){.chips.stdtabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}.stdtabs .chip{flex:none}.stdc select,.stdc input[data-std=name]{min-width:0!important}}
 .palft{font-size:12px;color:var(--mut);padding:8px 14px;border-top:1px solid var(--line)}
 .top{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:10px max(3vw,16px);border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
 .top .sess{display:flex;align-items:center;gap:8px;font-weight:600}
@@ -688,11 +689,62 @@ function pResults(){
  <div id="editor">${editorHTML()}</div></div>`;
 }
 
+/* ---------- Standard event list (editable template, kept for every session) ---------- */
+const STD0=(()=>{const I='Individual',F='Minor / Fun',R='Relay',M='Major Game';
+ const G=[['Sub-Minor (Nursery – UKG)','Sub-Minor',[['30m Race',I,'time'],['Frog Race',F],['Ball in the Basket',F],['Balloon Race',F],['Toy Collecting Race',F],['Fruit Picking Race',F]]],
+  ['Minor (Class I – II)','Minor',[['50m Race',I,'time'],['Sack Race',F],['Lemon & Spoon Race',F],['Frog Race',F],['Obstacle Race',F],['Shoe Race',F],['Potato Race',F]]],
+  ['Sub-Junior (Class III – V)','Sub-Junior',[['50m Race',I,'time'],['100m Race',I,'time'],['Standing Broad Jump',I,'dist'],['Ball Throw',I,'dist'],['Sack Race',F],['Three-legged Race',F],['Obstacle Race',F],['Skipping Race',F],['4x50m Relay',R,'time']]],
+  ['Junior (Class VI – VIII)','Junior',[['100m Race',I,'time'],['200m Race',I,'time'],['400m Race',I,'time'],['600m Race',I,'time'],['Long Jump',I,'dist'],['High Jump',I,'dist'],['Shot Put',I,'dist'],['Ball Throw',I,'dist'],['4x100m Relay',R,'time'],['Slow Cycle Race',F]]],
+  ['Senior (Class IX – X)','Senior',[['100m Race',I,'time'],['200m Race',I,'time'],['400m Race',I,'time'],['800m Race',I,'time'],['1500m Race',I,'time','Boys'],['Hurdles',I,'time','BG',0],['Long Jump',I,'dist'],['High Jump',I,'dist'],['Shot Put',I,'dist'],['Discus Throw',I,'dist'],['Javelin Throw',I,'dist'],['4x100m Relay',R,'time'],['4x400m Relay',R,'time']]],
+  ['Super Senior (Class XI – XII)','Super Senior',[['100m Race',I,'time'],['200m Race',I,'time'],['400m Race',I,'time'],['800m Race',I,'time'],['1500m Race',I,'time'],['3000m Race',I,'time','Boys'],['Hurdles',I,'time','BG',0],['Long Jump',I,'dist'],['Triple Jump',I,'dist'],['High Jump',I,'dist'],['Shot Put',I,'dist'],['Discus Throw',I,'dist'],['Javelin Throw',I,'dist'],['4x100m Relay',R,'time'],['4x400m Relay',R,'time']]],
+  ['House team events & major games','',[['Tug of War',M],['Football',M,'none','Boys'],['Volleyball',M],['Kabaddi',M],['Kho-Kho',M],['Basketball',M,'none','BG',0],['Cricket',M,'none','Boys',0],['Badminton',I,'none','BG',0],['Table Tennis',I,'none','BG',0],['Chess',I,'none','Mixed',0],['Carrom',I,'none','Mixed',0]]],
+  ['Cultural – Primary (Class I – V)','Sub-Junior',[['Recitation',I,'none','Mixed'],['Solo Song',I,'none','Mixed'],['Drawing',I,'none','Mixed'],['Handwriting',I,'none','Mixed'],['Fancy Dress',I,'none','Mixed'],['Story Telling',I,'none','Mixed']]],
+  ['Cultural – Junior (Class VI – VIII)','Junior',[['Elocution',I,'none','Mixed'],['Quiz',R,'none','Mixed'],['Solo Song',I,'none','Mixed'],['Group Song',R,'none','Mixed'],['Drawing & Painting',I,'none','Mixed'],['Essay Writing',I,'none','Mixed']]],
+  ['Cultural – Senior (Class IX – XII)','Senior',[['Debate',R,'none','Mixed'],['Extempore Speech',I,'none','Mixed'],['Quiz',R,'none','Mixed'],['Solo Song',I,'none','Mixed'],['Group Song',R,'none','Mixed'],['Solo Dance',I,'none','Mixed'],['Group Dance',R,'none','Mixed'],['Essay Writing',I,'none','Mixed'],['Poster Making',I,'none','Mixed']]],
+  ['Staff, parents & guests','Staff',[["Teachers' Race",F,'none','Mixed',0],['Musical Chairs',F,'none','Mixed',0],['Lemon & Spoon Race',F,'none','Mixed',0],['Needle & Thread Race',F,'none','Mixed',0],["Guests' Ball Throw",F,'none','Mixed',0]]]];
+ return G.map(([name,cat,items],gi)=>({id:'g'+gi,name,cat,items:items.map(([n,type,m,g,on],ii)=>({id:'g'+gi+'i'+ii,name:n,type,m:m||'none',g:g||'BG',on:on!==0}))}))})();
+const stdList=()=>DB.app.std||STD0;
+const stdEdit=()=>{if(!DB.app.std)DB.app.std=JSON.parse(JSON.stringify(STD0));return DB.app.std};
+const ckey=x=>String(x||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+function stdCat(g,s=S()){if(ui.stdMap&&ui.stdMap[g.id]!=null)return ui.stdMap[g.id];if(!g.cat)return'';const c=s.cats.find(c=>ckey(c.name)===ckey(g.cat));return c?c.id:null}
+function stdType(name,s=S()){const k=ckey(name);let t=s.types.find(t=>ckey(t.name)===k);if(!t){const team=/relay|major|team|game/.test(k);t=s.types.find(x=>!!x.team===team)||s.types[0]}return t}
+const stdGens=it=>it.g==='BG'?['Boys','Girls']:[it.g];
+function stdHave(it,catId,s=S()){const n=norm(it.name);return stdGens(it).filter(g=>s.events.some(e=>(e.catId||'')===(catId||'')&&norm(e.name)===n&&e.gender===g)).length}
+function stdPlan(groups){const s=S();const add=[];let skip=0,nocat=0;
+ groups.forEach(g=>{const cid=stdCat(g,s);if(cid===null){nocat+=g.items.filter(i=>i.on).length;return}
+  g.items.filter(i=>i.on&&i.name.trim()).forEach(it=>{const n=norm(it.name);stdGens(it).forEach(gen=>{if(s.events.some(e=>(e.catId||'')===cid&&norm(e.name)===n&&e.gender===gen)){skip++;return}if(add.some(a=>a.catId===cid&&norm(a.name)===n&&a.gender===gen))return;const ty=stdType(it.type,s);add.push({id:uid(),name:it.name.trim(),catId:cid,gender:gen,typeId:ty?ty.id:'',measure:it.m||'none',rec:blankRec()})})})});
+ return{add,skip,nocat}}
+function stdHTML(){const s=S();const L=stdList();
+ if(!ui.stdOpen)return`<div class="card stdc"><div class="row" style="align-items:center;justify-content:space-between"><div style="flex:1 1 320px"><h3 style="margin:0 0 4px">Standard event list</h3><p class="tiny" style="margin:0">Ready-made events that most schools hold — every category from Nursery to Class XII, house team games and cultural items. Tick, edit or delete, then add them all in one click.${DB.app.std?' <b>Your own edited list is saved.</b>':''}</p></div><button class="btn pri" data-act="stdToggle">Open standard list</button></div></div>`;
+ const gi=Math.max(0,L.findIndex(g=>g.id===ui.stdG));const g=L[gi]||L[0];if(!g)return'';
+ const cid=stdCat(g,s);const catSel=`<select data-std="gcat" data-gi="${g.id}" aria-label="Add to category">${cid===null?opt('_x','— choose a category —','_x'):''}${s.cats.map(c=>opt(c.id,c.name,cid)).join('')}${opt('','Open (all categories)',cid===null?'_x':cid)}</select>`;
+ const tnames=[...new Set([...s.types.map(t=>t.name),...g.items.map(i=>i.type)])];
+ const allPlan=stdPlan(L),gPlan=stdPlan([g]);
+ return`<div class="card stdc"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Standard event list</h3><div class="row"><button class="btn sm" data-act="stdReset">Reset to default list</button><button class="btn sm" data-act="stdToggle">Close</button></div></div>
+ <p class="tiny" style="margin:6px 0 10px">Pick a group, untick what your school does not hold, rename or add items, then press <b>Add</b>. Events already in the app are skipped, so it is safe to press again. Your changes to this list are saved for every new session.</p>
+ <div class="chips stdtabs">${L.map(x=>{const on=x.items.filter(i=>i.on).length;const c=stdCat(x,s);return`<button class="chip ${x.id===g.id?'on':''}" data-act="stdTab" data-id="${x.id}">${esc(x.name)} <span class="mut">${on}</span>${c===null?' <span class="tag rec" title="Category not found">!</span>':''}</button>`}).join('')}<button class="chip" data-act="stdAddGroup">+ New group</button></div>
+ <div class="row" style="margin-top:12px;align-items:end"><label style="flex:2 1 260px">Group name<input data-std="gname" data-gi="${g.id}" value="${esc(g.name)}"></label><label style="flex:1 1 200px">Add to category${catSel}</label>
+  <button class="btn sm danger" data-act="stdDelGroup" data-id="${g.id}">Delete group</button></div>
+ ${cid===null?`<div class="banner" style="margin-top:8px"><b>No “${esc(g.cat)}” category</b><span class="mut">Choose which category these events go to, or add “${esc(g.cat)}” on the <a href="#categories">Categories</a> page.</span></div>`:''}
+ <div class="scroll" style="margin-top:10px"><table class="t stack"><thead><tr><th><input type="checkbox" data-std="gall" data-gi="${g.id}" ${g.items.length&&g.items.every(i=>i.on)?'checked':''} aria-label="Tick all"></th><th>Event / item</th><th>Gender</th><th>Points rule</th><th>Result by</th><th>In the app</th><th></th></tr></thead><tbody>
+ ${g.items.map(it=>{const h=cid===null?0:stdHave(it,cid,s),n=stdGens(it).length;return`<tr class="${it.on?'':'off'}"><td><input type="checkbox" data-std="on" data-gi="${g.id}" data-ii="${it.id}" ${it.on?'checked':''} aria-label="Include"></td>
+  <td><input data-std="name" data-gi="${g.id}" data-ii="${it.id}" value="${esc(it.name)}" aria-label="Event name"></td>
+  <td><select data-std="g" data-gi="${g.id}" data-ii="${it.id}">${[['BG','Boys and Girls'],['Boys','Boys only'],['Girls','Girls only'],['Mixed','Mixed']].map(([v,l])=>opt(v,l,it.g)).join('')}</select></td>
+  <td><select data-std="type" data-gi="${g.id}" data-ii="${it.id}">${tnames.map(x=>{const ty=s.types.find(t=>t.name===x);return opt(x,ty?`${x} (${ty.pts.join('/')})`:x,it.type)}).join('')}</select></td>
+  <td><select data-std="m" data-gi="${g.id}" data-ii="${it.id}">${measOpts(it.m)}</select></td>
+  <td>${h>=n?'<span class="tag ok">Added</span>':h?`<span class="tag">${h} of ${n}</span>`:'<span class="tiny">—</span>'}</td>
+  <td><button class="x" data-act="stdDel" data-gi="${g.id}" data-id="${it.id}" aria-label="Delete item">×</button></td></tr>`}).join('')||'<tr><td colspan="7"><div class="empty">No items in this group yet — add one below.</div></td></tr>'}
+ </tbody></table></div>
+ <div class="row" style="margin-top:10px;align-items:end"><label style="flex:1 1 240px">New item in this group<input id="stdNew" placeholder="e.g. Hopping Race"></label><button class="btn" data-act="stdAddItem" data-id="${g.id}">+ Add item</button></div>
+ <div class="row" style="margin-top:14px;justify-content:flex-end;border-top:1px solid var(--line);padding-top:12px">
+  <button class="btn" data-act="stdApplyAll">Add all groups (${allPlan.add.length} new)</button>
+  <button class="btn pri" data-act="stdApply" data-id="${g.id}" ${gPlan.add.length?'':'disabled'}>${gPlan.add.length?`Add ${gPlan.add.length} events to ${esc(cid===null?'…':cid?catName(cid):'Open')}`:cid===null?'Choose a category first':'All ticked events are already added'}</button></div></div>`}
 function pEvents(){
  const s=S();const fc=ui.evCat;
  const list=s.events.filter(e=>!fc||(e.catId||'_open')===fc);
  return`<h2>Events / items</h2><p class="lead">Every item of the meet — races, jumps, throws, relays, major games, fun events. Each one belongs to a category, a gender and a points rule.</p>
- <div class="card"><h3>Add an event or item</h3>
+ ${stdHTML()}
+ <div class="card" style="margin-top:16px"><h3>Add an event or item</h3>
   <div class="tiny" style="margin-bottom:6px">Quick pick — tap one to fill the form, then choose category and gender:</div>
   ${Object.entries(PRESETS).map(([g,l])=>`<div class="chips"><b>${esc(g)}</b>${l.map(([n,t,m,gd])=>`<button class="chip" data-act="preset" data-n="${esc(n)}" data-t="${esc(t)}" data-m="${m||'none'}" data-g="${gd||''}">${esc(n)}</button>`).join('')}</div>`).join('')}
   <div class="row" style="margin-top:10px">
@@ -1865,7 +1917,7 @@ const ICO={home:'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10',results:'M4 20h4L19 9l-4-4
 const svgI=k=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICO[k]||ICO.events}"/></svg>`;
 const NAV=[
  {id:'meet',g:'Meet day',items:[['home','Dashboard','dashboard home overview'],['results','Enter results','points marks winner position first second third result'],['scoreboard','Live scoreboard','score board tv projector standings'],['champions','Champions','champion house runner up best boy best girl individual winner'],['records','Meet records','record best ever']]},
- {id:'ready',g:'Get ready',steps:true,items:[['houses','Houses','house colour color name david moses joseph daniel'],['categories','Categories','category sub minor junior senior age group class'],['athletes','Athletes / participants','students members list upload excel import sjs app delete'],['housing','Assign houses','house assign automatic manual'],['events','Events / items','event item race game cultural add copy'],['schedule','Schedule (day-wise)','day 1 day 2 time programme timetable'],['entries','Event entries','participants entries names replace'],['points','Points rules','points rule 5 3 1 relay team'],['bonus','Special points','march past discipline bonus penalty']]},
+ {id:'ready',g:'Get ready',steps:true,items:[['houses','Houses','house colour color name david moses joseph daniel'],['categories','Categories','category sub minor junior senior age group class'],['athletes','Athletes / participants','students members list upload excel import sjs app delete'],['housing','Assign houses','house assign automatic manual'],['events','Events / items','event item race game cultural add copy standard list'],['schedule','Schedule (day-wise)','day 1 day 2 time programme timetable'],['entries','Event entries','participants entries names replace'],['points','Points rules','points rule 5 3 1 relay team'],['bonus','Special points','march past discipline bonus penalty']]},
  {id:'print',g:'Print & share',items:[['reports','Reports & certificates','print report certificate excel download results sheet'],['certificate','Certificate design','certificate design layout signature logo']]},
  {id:'manage',g:'Manage',items:[['sessions','Sessions & backup','session year backup restore live sharing clear new'],['setup','School details','school name logo motto address signature']]}];
 const NAVL=Object.fromEntries(NAV.flatMap(g=>g.items.map(([k,l])=>[k,l])));
@@ -1956,6 +2008,21 @@ const ACT={
  addEvent:()=>{const s=S();const name=val('neName');if(!name){toast('Type the event name');$('#neName').focus();return}
   const cats=chk('neAllCat')?s.cats.map(c=>c.id):[$('#neCat').value];const gens=chk('neBoth')?['Boys','Girls']:[$('#neGen').value];let n=0;
   cats.forEach(cid=>gens.forEach(g=>{s.events.push({id:uid(),name,catId:cid,gender:g,typeId:$('#neType').value,measure:$('#neMeas').value,rec:blankRec()});n++}));ui.preset=null;save();rerender();toast(`${n} event${n>1?'s':''} added`)},
+ stdToggle:()=>{ui.stdOpen=!ui.stdOpen;rerender()},
+ stdTab:el=>{ui.stdG=el.dataset.id;rerender()},
+ stdDel:el=>{const L=stdEdit();const g=L.find(x=>x.id===el.dataset.gi);if(!g)return;g.items=g.items.filter(i=>i.id!==el.dataset.id);save();rerender()},
+ stdAddItem:el=>{const name=val('stdNew');if(!name){toast('Type the item name');$('#stdNew').focus();return}const L=stdEdit();const g=L.find(x=>x.id===el.dataset.id);if(!g)return;
+  const last=g.items[g.items.length-1];g.items.push({id:uid(),name,type:last?last.type:'Individual',m:last?last.m:'time',g:last?last.g:'BG',on:true});save();rerender();toast(name+' added to the list');setTimeout(()=>{const n=$('#stdNew');if(n)n.focus()},50)},
+ stdAddGroup:()=>{const L=stdEdit();const id=uid();L.push({id,name:'New group',cat:'',items:[]});ui.stdG=id;save();rerender();setTimeout(()=>{const n=main.querySelector('[data-std=gname]');if(n){n.focus();n.select()}},50)},
+ stdDelGroup:async el=>{const L=stdEdit();const g=L.find(x=>x.id===el.dataset.id);if(!g||!await ask(`Delete the group “${g.name}”?`,'Only removes it from the standard list. Events already added to the app stay.','Delete'))return;DB.app.std=L.filter(x=>x!==g);ui.stdG='';save();rerender()},
+ stdReset:async()=>{if(!DB.app.std){toast('The list is already the default');return}if(!await ask('Reset the standard list?','Your own changes to the list are removed. Events already added to the app stay.','Reset'))return;delete DB.app.std;ui.stdMap={};save();rerender();toast('Standard list reset')},
+ stdApply:async el=>{const g=stdList().find(x=>x.id===el.dataset.id);if(!g)return;const p=stdPlan([g]);if(!p.add.length){toast('Nothing new to add');return}
+  const cn=p.add[0].catId?catName(p.add[0].catId):'Open';if(!await ask(`Add ${p.add.length} events to ${cn}?`,`${p.add.slice(0,6).map(e=>e.name+' ('+e.gender+')').join(', ')}${p.add.length>6?' …':''}${p.skip?` · ${p.skip} already in the app, skipped`:''}`,'Add events'))return;
+  S().events.push(...p.add);save();rerender();toast(`${p.add.length} events added to ${cn}`)},
+ stdApplyAll:async()=>{const L=stdList();const p=stdPlan(L);if(!p.add.length){toast(p.nocat?'Choose a category for the groups marked !':'Every ticked event is already in the app');return}
+  const by={};p.add.forEach(e=>{const k=e.catId?catName(e.catId):'Open';by[k]=(by[k]||0)+1});
+  if(!await ask(`Add ${p.add.length} events?`,Object.entries(by).map(([k,v])=>`${k}: ${v}`).join(' · ')+(p.skip?` · ${p.skip} already there, skipped`:'')+(p.nocat?` · ${p.nocat} items not added — their category is missing (groups marked !)`:''),'Add all'))return;
+  S().events.push(...p.add);save();rerender();toast(`${p.add.length} events added`)},
  catEv:el=>{ui.evCat=el.dataset.id;location.hash='#events'},
  copyEvents:async()=>{const s=S(),f=$('#cpFrom').value,to=$('#cpTo').value,g=$('#cpGen').value;if(f===to){toast('Choose two different categories');return}
   const src=s.events.filter(e=>e.catId===f&&(!g||e.gender===g||e.gender==='Mixed'));if(!src.length){toast('No events in that category to copy');return}
@@ -2097,6 +2164,13 @@ main.addEventListener('input',e=>{const el=e.target;
  if(el.dataset.af==='q'){ui.af.q=el.value;ui.aPage=0;clearTimeout(ui.at);ui.at=setTimeout(()=>{rerender();const q=main.querySelector('[data-af=q]');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},350)}
 });
 main.addEventListener('change',e=>{const el=e.target,s=S();
+ if(el.dataset.std){const k=el.dataset.std;
+  if(k==='gcat'){const L=stdList();const g=L.find(x=>x.id===el.dataset.gi);if(!g||el.value==='_x')return;ui.stdMap=ui.stdMap||{};ui.stdMap[g.id]=el.value;const E=stdEdit().find(x=>x.id===g.id);if(E){E.cat=el.value?catName(el.value):'';delete ui.stdMap[g.id]}save();rerender();return}
+  const L=stdEdit();const g=L.find(x=>x.id===el.dataset.gi);if(!g)return;
+  if(k==='gname'){g.name=el.value.trim()||g.name;save();rerender();return}
+  if(k==='gall'){g.items.forEach(i=>i.on=el.checked);save();rerender();return}
+  const it=g.items.find(i=>i.id===el.dataset.ii);if(!it)return;
+  if(k==='on')it.on=el.checked;else if(k==='name'){if(!el.value.trim()){el.value=it.name;return}it.name=el.value.trim()}else it[k]=el.value;save();rerender();return}
  if(el.dataset.r!=null&&ui.draft){const i=+el.dataset.r,r=ui.draft.rows[i],k=el.dataset.k;if(!r)return;r[k]=el.value;const ev=s.events.find(x=>x.id===ui.sel);
   if(k==='name'){const a=matchAth(el.value,ev,r.houseId)||matchAth(el.value,ev);if(a){r.athId=a.id;r.houseId=a.houseId}else r.athId=''}
   if(k==='houseId'&&r.athId){const a=s.athletes.find(z=>z.id===r.athId);if(a&&a.houseId!==el.value)r.athId=''}
