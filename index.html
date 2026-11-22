@@ -588,7 +588,7 @@ function pHome(){
   <div class="card"><h3>House points by category</h3>${catMatrix(c)}</div>
   <div class="card"><h3>Best Boy &amp; Best Girl by category</h3><table class="t stack"><thead><tr><th>Category</th><th>Best Boy</th><th>Best Girl</th></tr></thead><tbody>${catChamps}</tbody></table><p class="tiny">Counted from events whose points rule is marked “counts for Best Athlete”.</p></div>
  </div>
- <div class="card" style="margin-top:16px"><h3>Latest results</h3>${feed?`<ul class="feed">${feed}</ul>`:'<div class="empty">Results appear here as you save them.</div>'}</div>`;
+ <div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Latest results</h3><button class="btn sm" data-act="xlsRes">Download all results (Excel)</button></div><div style="height:8px"></div>${feed?`<ul class="feed">${feed}</ul>`:'<div class="empty">Results appear here as you save them.</div>'}</div>`;
 }
 
 function pScoreboard(){
@@ -1451,13 +1451,53 @@ function dayWorkbook(){const s=S(),D=ui.sday||'';const days=D?[D]:[...(s.days||[
   l.forEach((a,i)=>part.push([i+1,a.chest||'',a.name,a.cls||'',(Hs(a.houseId)||{}).name||'','',''].map(v=>({v,s:4}))));part.push([null])}));
  return buildXLSX([{name:'Programme',rows:prog,widths:[14,11,30,14,10,18,9,30],freeze:true,landscape:true,active:true},{name:'Participants',rows:part,widths:[6,10,30,9,14,12,11],landscape:false}])}
 
+/* ---------- full results workbook (.xlsx) ---------- */
+function resultsWorkbook(){
+ const s=S(),c=calc(),a=DB.app,cat=ui.repCat,day=ui.repDay;const T=(v)=>({v:v??'',s:4}),N=v=>({v:typeof v==='number'?v:(v===''||v==null?'':+v),s:4}),Hd=v=>({v,s:1});
+ const filt=[day?dayLabel(day):'',cat?catName(cat):''].filter(Boolean).join(' · ');
+ const title=t=>[[{v:`${a.school} — ${s.title} ${s.year} — ${t}${filt?' · '+filt:''}`,s:2}],[{v:`Generated ${new Date().toLocaleString('en-IN')} · ${c.done} of ${c.total} events completed`,s:3}],[null]];
+ const evs=repEvents(cat);const hn=id=>(Hs(id)||{}).name||'';
+ /* 1 summary */
+ const sum=title('House Points Summary');sum.push(['Rank','House','Gold','Silver','Bronze','Event points','Special points','Total','Position'].map(Hd));
+ c.st.forEach(x=>sum.push([N(x.rank),T(x.h.name),N(x.g),N(x.si),N(x.b),N(x.total-x.bonus),N(x.bonus),N(x.total),T(RANKL[x.rank-1]||ord(x.rank))]));
+ sum.push([null],[{v:'Points by category',s:2}],[Hd('Category'),...c.st.map(x=>Hd(x.h.name))]);
+ catKeys(s).forEach(k=>sum.push([T(catName(k)),...c.st.map(x=>N(x.cat[k]||0))]));
+ sum.push([T('Special points'),...c.st.map(x=>N(x.bonus))],[T('TOTAL'),...c.st.map(x=>N(x.total))]);
+ /* 2 all results */
+ const res=[['Sl','Day','Time','Event / item','Category','Gender','Points rule','Position','Name','Class','House','Performance','Points','Record'].map(Hd)];let sl=0;
+ const recIds=new Set(c.recs.filter(r=>r.old&&r.old.val).map(r=>r.e.id));
+ evs.forEach(e=>{const t=Ts(e.typeId)||{pts:[]};const r=s.results[e.id];const dn=e.dayId&&dayById(e.dayId)?dayById(e.dayId).name:'';
+  if(!r||!r.rows.length){res.push([N(++sl),T(dn),T(fmtTime(e.time)),T(e.name),T(catName(e.catId)),T(e.gender),T(t.name),T(''),T('Not held yet'),T(''),T(''),T(''),T(''),T('')]);return}
+  r.rows.slice().sort((x,y)=>x.pos-y.pos).forEach(x=>{const at=x.athId&&s.athletes.find(z=>z.id===x.athId);res.push([N(++sl),T(dn),T(fmtTime(e.time)),T(e.name),T(catName(e.catId)),T(e.gender),T(t.name),T(ord(x.pos)),T(x.name||(t.team?hn(x.houseId)+' House':'')),T(at?at.cls:''),T(hn(x.houseId)),T(x.perf?x.perf+' '+unitOf(e.measure):''),N(+t.pts[x.pos-1]||0),T(x.pos==1&&recIds.has(e.id)?'NEW RECORD':'')])})});
+ /* 3 event-wise matrix */
+ const mx=title('Event-wise House Points');mx.push([Hd('Event / item'),Hd('Category'),Hd('Gender'),...s.houses.map(h=>Hd(h.name))]);const tot={};
+ evs.forEach(e=>{const t=Ts(e.typeId)||{pts:[]};const r=s.results[e.id];const ph={};(r?r.rows:[]).forEach(x=>{ph[x.houseId]=(ph[x.houseId]||0)+(+t.pts[x.pos-1]||0)});s.houses.forEach(h=>tot[h.id]=(tot[h.id]||0)+(ph[h.id]||0));
+  mx.push([T(e.name),T(catName(e.catId)),T(e.gender),...s.houses.map(h=>r?N(ph[h.id]||0):T(''))])});
+ mx.push([T('TOTAL'),T(''),T(''),...s.houses.map(h=>N(tot[h.id]||0))]);
+ /* 4 champions */
+ const ch=title('Individual Champions');ch.push(['Category','Award','Name','Class','House','Points','Gold','Silver','Bronze'].map(Hd));
+ [...s.cats.map(x=>[x.id,x.name]),['','Whole meet']].forEach(([k,n])=>{const l=Object.values(k?c.cats[k]||{}:c.all);[['B','Best Boy'],['G','Best Girl']].forEach(([g,lab])=>{const b=best(l.filter(p=>p.gender===g));if(!b.length)ch.push([T(n),T(lab),T('—'),T(''),T(''),T(''),T(''),T(''),T('')]);b.forEach(p=>ch.push([T(n),T(lab+(b.length>1?' (joint)':'')),T(p.name),T(p.cls),T(hn(p.houseId)),N(p.pts),N(p.g),N(p.s),N(p.b)]))})});
+ ch.push([null],[{v:'Top 10 in each category',s:2}],['Category','Gender','Rank','Name','Class','House','Points','Gold','Silver','Bronze','Events'].map(Hd));
+ catKeys(s).forEach(k=>{const l=Object.values(c.cats[k]||{});[['B','Boys'],['G','Girls']].forEach(([g,gl])=>l.filter(p=>p.gender===g).sort(cmpI).slice(0,10).forEach((p,i)=>ch.push([T(catName(k)),T(gl),N(i+1),T(p.name),T(p.cls),T(hn(p.houseId)),N(p.pts),N(p.g),N(p.s),N(p.b),T(p.ev.join(', '))])))});
+ /* 5 special points + records */
+ const sp=[['House','Points','Reason'].map(Hd),...s.bonus.map(b=>[T(hn(b.houseId)),N(+b.pts||0),T(b.reason)])];if(!s.bonus.length)sp.push([T('No special points'),T(''),T('')]);
+ const rc=[['Event / item','Category','Gender','Meet record','Holder','House','Year','Best this session','New record?'].map(Hd)];
+ s.events.filter(e=>e.measure!=='none').forEach(e=>{const w=s.results[e.id]&&s.results[e.id].rows.find(x=>x.pos==1);rc.push([T(e.name),T(catName(e.catId)),T(e.gender),T(e.rec&&e.rec.val?e.rec.val+' '+unitOf(e.measure):''),T(e.rec&&e.rec.holder),T(e.rec&&e.rec.house),T(e.rec&&e.rec.year),T(w&&w.perf?w.perf+' '+unitOf(e.measure)+' · '+(w.name||hn(w.houseId)+' House'):''),T(recIds.has(e.id)?'YES':'')])});
+ return buildXLSX([
+  {name:'House Summary',rows:sum,widths:[16,16,8,8,8,13,14,10,16],active:true,landscape:true},
+  {name:'All Results',rows:res,widths:[6,9,10,24,13,9,15,9,26,8,12,14,8,13],freeze:true,landscape:true},
+  {name:'Event-wise Points',rows:mx,widths:[26,14,9,...s.houses.map(()=>11)],landscape:true},
+  {name:'Champions',rows:ch,widths:[14,18,26,8,12,8,7,7,8,8,60],landscape:true},
+  {name:'Special Points',rows:sp,widths:[16,10,40],freeze:true},
+  {name:'Meet Records',rows:rc,widths:[24,13,9,14,22,12,10,30,12],freeze:true,landscape:true}])}
+
 function pReports(){
  const s=S();const k=ui.report,cat=ui.repCat;
  return`<div class="noprint"><h2>Reports &amp; certificates</h2><p class="lead">A4 sheets with the school header, ready to print or keep. Certificates are made for every 1st, 2nd and 3rd place and for each category's Best Boy and Best Girl.</p>
  <div class="row">${Object.entries(REPS).map(([v,l])=>`<button class="btn sm ${k===v?'pri':''}" data-act="rep" data-id="${v}">${l}</button>`).join('')}</div>
  <div class="row" style="margin-top:12px"><label style="flex:0 1 220px">Day<select data-act2="repDay">${opt('','All days',ui.repDay)}${(s.days||[]).map(d=>opt(d.id,dayLabel(d.id),ui.repDay)).join('')}${opt('_none','Not scheduled',ui.repDay)}</select></label><label style="flex:0 1 260px">Category<select data-act2="repCat">${opt('','All categories',cat)}${s.cats.map(c=>opt(c.id,c.name,cat)).join('')}${opt('_open','Open',cat)}</select></label>
  ${k==='certs'?`<label style="flex:0 1 260px">Certificates for<select data-act2="certSel">${opt('all','All winners + Best Boy/Girl',ui.certSel)}${opt('first','1st place only',ui.certSel)}${opt('best','Best Boy & Best Girl only',ui.certSel)}${opt('blank','Blank certificate (fill by hand)',ui.certSel)}</select></label>${ui.certSel==='blank'?`<label style="flex:0 1 220px">Sport picture<select data-act2="blankSport">${SPORTS.filter(x=>x[0]!=='auto').map(x=>opt(x[0],x[1],ui.blankSport||'trophy')).join('')}</select></label>`:''}`:''}
- <button class="btn pri" data-act="printRep">Print</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">Export all results (.csv for Excel)</button></div>
+ <button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
  <p class="tiny">${k==='certs'?'Click any text on a certificate below to correct it before printing. Change colours, wording and pictures in <a href="#certificate">Certificate design</a>. In the print window choose Paper: A4, Layout: Landscape, Margins: None, and tick Background graphics. ':''}If Print does nothing here, download the page and print it from your browser — or use the offline copy of the app, where printing works directly.</p></div>
  <div class="paper ${k==='certs'?'certs':''}" id="paper">${repHTML(k,cat)}</div>`;
 }
@@ -1620,6 +1660,7 @@ const ACT={
  dayRep:el=>{ui.report=el.dataset.id;ui.repDay=ui.sday;ui.repCat='';location.hash='#reports'},
  dayXls:()=>{const d=ui.sday;saveFile(xlsName('Schedule_'+(d?(d==='_none'?'Unscheduled':(dayById(d)||{}).name||'Day'):'All_Days').replace(/\W+/g,'_')),dayWorkbook())},
  toEntries:el=>{ui.ens=el.dataset.id},
+ xlsRes:()=>{const d=ui.repDay,c=ui.repCat;saveFile(xlsName('Sports_Results'+(d?'_'+((dayById(d)||{}).name||'Unscheduled'):'')+(c?'_'+catName(c):'')).replace(/\s+/g,'_'),resultsWorkbook())},
  fs:()=>{const el=$('#sbx');try{if(document.fullscreenElement)document.exitFullscreen();else el.requestFullscreen().catch(()=>toast('Full screen is not allowed here — open the offline app'))}catch(e){toast('Full screen is not allowed here')}}
 };
 async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is not a valid backup');return}
