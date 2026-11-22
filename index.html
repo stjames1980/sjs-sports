@@ -663,7 +663,12 @@ function pEvents(){
   <label>Points rule<select id="neType">${typeOpts(ui.preset?ui.preset.typeId:'')}</select></label>
   <label>Result by<select id="neMeas">${measOpts(ui.preset?ui.preset.measure:'time')}</select></label></div>
   <div class="row" style="margin-top:6px"><label class="chk"><input type="checkbox" id="neAllCat"> Create for every category</label><label class="chk"><input type="checkbox" id="neBoth"> Create for Boys and Girls</label><button class="btn pri" data-act="addEvent">Add event</button></div></div>
- <div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${list.length} events</h3><label style="flex:0 1 240px">Show<select data-act2="evCat">${opt('','All categories',fc)}${s.cats.map(c=>opt(c.id,c.name,fc)).join('')}${opt('_open','Open',fc)}</select></label></div>
+ <div class="card" style="margin-top:16px"><h3>Copy events to another category</h3><p class="tiny" style="margin:0 0 8px">Quick way to fill a new or empty category — e.g. copy all Junior events to Senior. Copies name, gender, points rule and result type; events already there with the same name and gender are skipped. Results, day and records are not copied.</p>
+  <div class="row"><label>Copy from<select id="cpFrom">${s.cats.map(c=>opt(c.id,c.name+' ('+s.events.filter(e=>e.catId===c.id).length+')',(s.cats.find(x=>x.id!==fc&&s.events.some(e=>e.catId===x.id))||{}).id)).join('')}</select></label>
+  <label>Copy to<select id="cpTo">${s.cats.map(c=>opt(c.id,c.name+' ('+s.events.filter(e=>e.catId===c.id).length+')',fc&&fc!=='_open'?fc:(s.cats.find(x=>!s.events.some(e=>e.catId===x.id))||{}).id)).join('')}</select></label>
+  <label>Gender<select id="cpGen">${opt('','Boys and Girls','')}${opt('Boys','Boys only','')}${opt('Girls','Girls only','')}</select></label>
+  <button class="btn pri" data-act="copyEvents">Copy events</button></div></div>
+ <div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${list.length} events${fc?` in ${esc(fc==='_open'?'Open':(s.cats.find(c=>c.id===fc)||{}).name||'')}`:''}</h3><label style="flex:0 1 240px">Show<select data-act2="evCat">${opt('','All categories',fc)}${s.cats.map(c=>opt(c.id,c.name,fc)).join('')}${opt('_open','Open',fc)}</select></label></div>
  <div class="scroll" style="margin-top:10px"><table class="t stack"><thead><tr><th>Event</th><th>Category</th><th>Gender</th><th>Points rule</th><th>Result by</th><th>Certificate picture</th><th>Status</th><th></th></tr></thead><tbody>
  ${list.map(e=>`<tr><td><input data-col="events" data-id="${e.id}" data-f="name" value="${esc(e.name)}" aria-label="Event name"></td>
   <td><select data-col="events" data-id="${e.id}" data-f="catId">${s.cats.map(c=>opt(c.id,c.name,e.catId)).join('')}${opt('','Open',e.catId)}</select></td>
@@ -1070,9 +1075,10 @@ function pCategories(){
  <div class="card"><div class="scroll"><table class="t stack"><thead><tr><th>Order</th><th>Category name</th><th>Classes / age group</th><th class="n">Events</th><th></th></tr></thead><tbody>
  ${s.cats.map((c,i)=>`<tr><td><button class="btn sm" data-act="catUp" data-id="${c.id}" ${i?'':'disabled'} aria-label="Move up">↑</button> <button class="btn sm" data-act="catDown" data-id="${c.id}" ${i<s.cats.length-1?'':'disabled'} aria-label="Move down">↓</button></td>
  <td><input data-col="cats" data-id="${c.id}" data-f="name" value="${esc(c.name)}" aria-label="Category name"></td><td><input data-col="cats" data-id="${c.id}" data-f="desc" value="${esc(c.desc)}" aria-label="Classes"></td>
- <td class="n">${s.events.filter(e=>e.catId===c.id).length}</td><td><button class="x" data-act="delCat" data-id="${c.id}" aria-label="Delete category">×</button></td></tr>`).join('')}</tbody></table></div>
+ <td class="n"><button class="btn sm" data-act="catEv" data-id="${c.id}" title="Open this category's events to edit">${s.events.filter(e=>e.catId===c.id).length} · Edit ›</button></td><td><button class="x" data-act="delCat" data-id="${c.id}" aria-label="Delete category">×</button></td></tr>`).join('')}</tbody></table></div>
  <div class="chips" style="margin-top:12px"><b>Quick add</b>${[['Sub-Minor','Nursery – UKG'],['Super Senior','Class XI – XII'],['Open','All classes'],['Staff','Teachers'],['Cultural','All classes']].map(([n,d])=>`<button class="chip" data-act="addCatQuick" data-n="${n}" data-d="${d}">+ ${n}</button>`).join('')}</div>
  ${catTester()}
+ <p class="tiny" style="margin:10px 0 0">The <b>Events</b> number is only a count. Click <b>Edit ›</b> to open, change or add that category's events on the <b>Events / items</b> page.</p>
  <div class="banner" style="margin-top:12px"><b>After adding or changing a category</b><span class="mut">re-sort every member into the right category from their class.</span><button class="btn pri sm" data-act="recatAll">Update all members' categories</button></div>
  <div class="row" style="margin-top:12px"><label>New category<input id="ncName" placeholder="e.g. Sub-Minor"></label><label>Classes / age<input id="ncDesc" placeholder="e.g. Class XI – XII"></label><button class="btn pri" data-act="addCat">Add category</button></div></div>`;
 }
@@ -1861,6 +1867,14 @@ const ACT={
  addEvent:()=>{const s=S();const name=val('neName');if(!name){toast('Type the event name');$('#neName').focus();return}
   const cats=chk('neAllCat')?s.cats.map(c=>c.id):[$('#neCat').value];const gens=chk('neBoth')?['Boys','Girls']:[$('#neGen').value];let n=0;
   cats.forEach(cid=>gens.forEach(g=>{s.events.push({id:uid(),name,catId:cid,gender:g,typeId:$('#neType').value,measure:$('#neMeas').value,rec:blankRec()});n++}));ui.preset=null;save();rerender();toast(`${n} event${n>1?'s':''} added`)},
+ catEv:el=>{ui.evCat=el.dataset.id;location.hash='#events'},
+ copyEvents:async()=>{const s=S(),f=$('#cpFrom').value,to=$('#cpTo').value,g=$('#cpGen').value;if(f===to){toast('Choose two different categories');return}
+  const src=s.events.filter(e=>e.catId===f&&(!g||e.gender===g||e.gender==='Mixed'));if(!src.length){toast('No events in that category to copy');return}
+  const key=e=>e.name.trim().toLowerCase()+'|'+e.gender;const have=new Set(s.events.filter(e=>e.catId===to).map(key));const add=src.filter(e=>!have.has(key(e)));
+  const tn=(s.cats.find(c=>c.id===to)||{}).name,fn=(s.cats.find(c=>c.id===f)||{}).name;
+  if(!add.length){toast(`${tn} already has all these events`);return}
+  if(!await ask(`Copy ${add.length} events to ${tn}?`,`From ${fn}${src.length>add.length?` · ${src.length-add.length} already there, skipped`:''}. You can rename or delete any of them afterwards.`,'Copy'))return;
+  add.forEach(e=>s.events.push({id:uid(),name:e.name,catId:to,gender:e.gender,typeId:e.typeId,measure:e.measure,art:e.art,rec:blankRec()}));ui.evCat=to;save();rerender();toast(`${add.length} events copied to ${tn}`)},
  delEvent:async el=>{const s=S(),e=s.events.find(x=>x.id===el.dataset.id);if(hasRes(e)&&!await ask('Delete this event?',`${evLabel(e)} has results. Its points will be removed from the houses.`,'Delete'))return;s.events=s.events.filter(x=>x!==e);delete s.results[e.id];if(s.entries)delete s.entries[e.id];save();rerender()},
  addAth:()=>{const s=S();const name=val('naName');if(!name){toast('Type the name');$('#naName').focus();return}const cls=val('naCls');s.athletes.push({id:uid(),name,cls,sec:val('naSec'),roll:val('naRoll'),gender:$('#naGen').value,houseId:$('#naHouse').value,catId:$('#naCat').value||catForClass(cls),chest:val('naChest'),adm:val('naAdm'),remarks:''});save();rerender();toast(name+' added');setTimeout(()=>{const n=$('#naName');if(n)n.focus()},50)},
  importAth:()=>{const s=S();const lines=val('impTxt').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);let n=0,skip=0;
