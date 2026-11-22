@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SJS Sports App</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#0b4f31"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -74,7 +75,7 @@ table.t{width:100%;border-collapse:collapse;font-size:15px}
 .t th{text-align:left;font-size:13px;color:var(--mut);font-weight:700;padding:8px;border-bottom:2px solid var(--line)}
 .t td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
 .t td.n,.t th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.t input,.t select{min-height:40px;padding:6px 9px}
+.t input,.t select{min-height:40px;padding:6px 9px}.t select[data-f=gender]{min-width:86px}.t select[data-f=houseId]{min-width:112px}.t select[data-f=catId]{min-width:118px}
 .scroll{overflow-x:auto}
 .banner{background:color-mix(in srgb,var(--pri) 12%,var(--card));border:1px solid color-mix(in srgb,var(--pri) 35%,transparent);border-radius:12px;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
 /* hero track */
@@ -301,7 +302,7 @@ $('#pcss').textContent=PCSS.replace(/\.p-doc\{/,'.p-doc{');
 const FB_CFG={apiKey:"AIzaSyD5nDjNVJrb9ePPq5SIC7tiqAdhYXogbOo",authDomain:"sjs-timetable.firebaseapp.com",projectId:"sjs-timetable",storageBucket:"sjs-timetable.firebasestorage.app",messagingSenderId:"352312773603",appId:"1:352312773603:web:ab84f9b0019c03c39e6ed6"};
 const LIVE_KEY='sjs_sports_live';
 const SY={state:'off',user:null,fs:null,unsub:[],sesUnsub:[],subSid:null,last:{},ready:{},applying:false,timer:null,readonly:false,err:'',pending:0,remoteActive:null,pendingRender:false};
-const CFG_FIELDS=['id','year','title','date','venue','created','demo','houses','cats','types','events','maxEntry','days'];
+const CFG_FIELDS=['id','year','title','date','venue','created','demo','houses','cats','types','events','maxEntry','days','locked','maxPerStudent'];
 const SJ=o=>{const f=x=>Array.isArray(x)?x.map(f):x&&typeof x==='object'?Object.keys(x).sort().reduce((a,k)=>(x[k]!==undefined&&(a[k]=f(x[k])),a),{}):x;return JSON.stringify(f(o===undefined?null:o))};
 const clean=o=>JSON.parse(JSON.stringify(o));
 const pickCfg=s=>{const o={};CFG_FIELDS.forEach(k=>{if(s[k]!==undefined)o[k]=s[k]});return clean(o)};
@@ -489,7 +490,7 @@ if(!DB||!DB.sessions||!DB.sessions[DB.active]){DB=freshDB(true);save()}
 if(DB.app&&DB.app.logo===undefined){DB.app.logo=DEF_LOGO;save()}
 Object.values(DB.sessions).forEach(x=>{if(!x.entries)x.entries={};if(!x.days)x.days=[{id:uid(),name:'Day 1',date:x.date||''},{id:uid(),name:'Day 2',date:''}]});
 const S=()=>DB.sessions[DB.active];
-const ui={pbHouse:'',swap:null,sday:'',repDay:'',atStart:'09:00',atGap:10,impMode:{members:'merge',entries:'replace'},imp:null,impFile:'',enf:{cat:'',g:'',q:'',day:''},ens:null,enHouse:'',certSel:'all',page:'home',sel:null,draft:null,evf:{cat:'',g:'',t:'',st:'',q:'',day:''},af:{q:'',cat:'',h:'',g:'',cls:''},evCat:'',report:'summary',repCat:'',champCat:''};
+const ui={msel:new Set(),sjsBusy:'',pbHouse:'',swap:null,sday:'',repDay:'',atStart:'09:00',atGap:10,impMode:{members:'merge',entries:'replace'},imp:null,impFile:'',enf:{cat:'',g:'',q:'',day:''},ens:null,enHouse:'',certSel:'all',page:'home',sel:null,draft:null,evf:{cat:'',g:'',t:'',st:'',q:'',day:''},af:{q:'',cat:'',h:'',g:'',cls:''},evCat:'',report:'summary',repCat:'',champCat:''};
 const Hs=(id,s=S())=>s.houses.find(h=>h.id===id);
 const Cs=(id,s=S())=>s.cats.find(c=>c.id===id);
 const Ts=(id,s=S())=>s.types.find(t=>t.id===id);
@@ -627,6 +628,8 @@ function editorHTML(){
  <div style="margin-top:14px" class="tiny">Position · House · ${team?'Team':'Athlete'}${hasP?' · '+(e.measure==='time'?'Time':'Distance'):''}</div>
  <div style="margin-top:6px">${rows}</div><datalist id="athList">${athDatalist(e)}</datalist>
  <div class="row" style="margin-top:10px"><button class="btn pri" data-act="saveRes">Save result</button><button class="btn" data-act="rowadd">Add row (tie / extra place)</button>${hasP?'<button class="btn" data-act="autopos">Rank by performance</button>':''}<button class="btn" data-act="nextEv">Next pending event</button>${hasRes(e)?'<button class="btn danger" data-act="clearRes">Clear result</button>':''}</div>
+ ${(()=>{const r=s.results[e.id];if(!r)return'';const h=r.hist||[];return`<div class="tiny" style="margin-top:10px">${r.rows&&r.rows.length?`Saved by <b>${esc(r.by||'—')}</b> · ${esc(fmtWhen(r.at))}`:`Cleared by ${esc(r.by||'—')} · ${esc(fmtWhen(r.at))}`}${h.length?` <details style="display:inline-block;margin-left:6px"><summary style="cursor:pointer">${h.length} earlier version${h.length>1?'s':''}</summary><ul style="margin:6px 0;padding-left:18px">${h.map((x,i)=>`<li>${esc(fmtWhen(x.at))} · ${esc(x.by||'—')}: ${esc(rowsSummary(x.rows))} <button class="btn sm" data-act="restoreVer" data-id="${i}">Restore</button></li>`).join('')}</ul></details>`:''}</div>`})()}
+ ${s.locked?'<div class="banner" style="margin-top:10px"><b>Locked</b><span class="mut">Results are final. Unlock in Sessions &amp; backup to change.</span></div>':''}
  <p class="tiny">Typing a registered athlete's name fills their house. New names are added to Athletes automatically when you save. Two rows with the same position are treated as a tie and both get the points.</p></div>`;
 }
 function pResults(){
@@ -744,7 +747,7 @@ function catForClass(cls,s=S()){const n=classNum(cls);if(n==null)return'';for(co
 const parseGender=v=>{v=norm(v);return/^(b|boy|m|male|man)/.test(v)?'B':/^(g|girl|f|female|woman|lady)/.test(v)?'G':''};
 const findHouse=v=>{v=norm(v).replace(/\s*house$/,'');if(!v)return null;const s=S();return s.houses.find(h=>norm(h.name)===v)||s.houses.find(h=>v.startsWith(norm(h.name))||norm(h.name).startsWith(v))||null};
 const findCat=v=>{v=norm(v);if(!v)return null;return S().cats.find(c=>norm(c.name)===v)||S().cats.find(c=>norm(c.name).replace(/[^a-z]/g,'')===v.replace(/[^a-z]/g,''))||null};
-const HDR={name:/^(name|full ?name|participant|student|athlete|member)/,cls:/^(class|std|standard|grade)/,sec:/^(sec|section|div)/,roll:/^roll/,gender:/^(gender|sex|boy ?\/ ?girl)/,house:/^house/,cat:/^(category|cat\b|age ?group)/,chest:/^(chest|bib)/,adm:/^(adm|admission|reg)/,event:/^(event|item|game)/,remarks:/^(remark|note)/};
+const HDR={mid:/^member ?id$/,name:/^(name|full ?name|participant|student|athlete|member)/,cls:/^(class|std|standard|grade)/,sec:/^(sec|section|div)/,roll:/^roll/,gender:/^(gender|sex|boy ?\/ ?girl)/,house:/^house/,cat:/^(category|cat\b|age ?group)/,chest:/^(chest|bib)/,adm:/^(adm|admission|reg)/,event:/^(event|item|game)/,remarks:/^(remark|note)/};
 function mapHeader(rows){for(let i=0;i<Math.min(rows.length,15);i++){const r=rows[i]||[];const m={};r.forEach((h,ci)=>{const t=norm(String(h).replace(/[*()]/g,' '));for(const [k,re] of Object.entries(HDR))if(m[k]==null&&re.test(t)){m[k]=ci;break}});if(m.name!=null)return{at:i,m}}return null}
 const SKIP_SHEET=/^(instructions?|lists?|read ?me|help|how to use)$/i;
 const memberKey=a=>a.adm?'adm:'+norm(a.adm):'n:'+norm(a.name)+'|'+norm(a.cls)+'|'+(a.houseId||'');
@@ -754,17 +757,18 @@ function planMembers(sheets,mode){
  for(const sh of sheets){if(sh.hidden||SKIP_SHEET.test(String(sh.name).trim()))continue;const h=mapHeader(sh.rows);if(!h)continue;const sheetHouse=findHouse(sh.name);read++;
   for(let i=h.at+1;i<sh.rows.length;i++){const r=sh.rows[i]||[];const g=k=>h.m[k]!=null?String(r[h.m[k]]??'').trim():'';const name=g('name');if(!name)continue;
    const hv=g('house'),house=findHouse(hv)||(!hv?sheetHouse:null);const cls=[g('cls')].filter(Boolean).join('');const cat=findCat(g('cat'));
-   const rec={name,cls,sec:g('sec'),roll:g('roll'),gender:parseGender(g('gender')),houseId:house?house.id:'',catId:cat?cat.id:catForClass(cls),chest:g('chest'),adm:g('adm'),remarks:g('remarks'),_row:`${sh.name}, row ${i+1}`};
+   const rec={_mid:g('mid'),name,cls,sec:g('sec'),roll:g('roll'),gender:parseGender(g('gender')),houseId:house?house.id:'',catId:cat?cat.id:catForClass(cls),chest:g('chest'),adm:g('adm'),remarks:g('remarks'),_row:`${sh.name}, row ${i+1}`};
    if(!rec.houseId)probs.push(`${rec._row}: “${name}” — house ${hv?'“'+hv+'” not found':'missing'}`);
    if(!rec.gender)probs.push(`${rec._row}: “${name}” — gender missing (use Boy or Girl)`);
    if(g('cat')&&!cat)probs.push(`${rec._row}: “${name}” — category “${g('cat')}” not found`);
    rows.push(rec)}}
- const idx={},idx2={};s.athletes.forEach(a=>{idx[memberKey(a)]=a;if(!idx2[memberKey2(a)])idx2[memberKey2(a)]=a});
- let add=0,upd=0;const seen=new Set();rows.forEach(r=>{const ex=idx[memberKey(r)]||idx2[memberKey2(r)];if(ex&&!seen.has(ex.id)){r._ex=ex;upd++;seen.add(ex.id)}else{r._ex=null;add++}});
+ const idx={},idx2={},byId={},byAdm={},byNC={};s.athletes.forEach(a=>{byId[a.id]=a;idx[memberKey(a)]=a;if(!idx2[memberKey2(a)])idx2[memberKey2(a)]=a;if(a.adm)(byAdm[norm(a.adm)]=byAdm[norm(a.adm)]||[]).push(a);(byNC[norm(a.name)+'|'+norm(a.cls)]=byNC[norm(a.name)+'|'+norm(a.cls)]||[]).push(a)});
+ const one=l=>l&&l.length===1?l[0]:null;
+ let add=0,upd=0;const seen=new Set();rows.forEach(r=>{const ex=(r._mid&&byId[r._mid])||(r.adm&&one(byAdm[norm(r.adm)]))||idx[memberKey(r)]||idx2[memberKey2(r)]||one(byNC[norm(r.name)+'|'+norm(r.cls)]);if(ex&&!seen.has(ex.id)){r._ex=ex;upd++;seen.add(ex.id)}else{r._ex=null;add++}});
  const removed=mode==='replace'?s.athletes.filter(a=>!seen.has(a.id)):[];
  return{kind:'members',rows,add,upd,removed,probs,mode,read}}
 function applyMembers(plan){const s=S();
- plan.rows.forEach(r=>{const{_row,_ex,...v}=r;if(_ex){Object.keys(v).forEach(k=>{if(v[k]!=='')_ex[k]=v[k]})}else s.athletes.push({id:uid(),...v})});
+ plan.rows.forEach(r=>{const{_row,_ex,_mid,...v}=r;if(_ex){Object.keys(v).forEach(k=>{if(v[k]!=='')_ex[k]=v[k]})}else s.athletes.push({id:uid(),...v})});
  if(plan.mode==='replace'){const rm=new Set(plan.removed.map(a=>a.id));s.athletes=s.athletes.filter(a=>!rm.has(a.id));const E=s.entries||{};Object.keys(E).forEach(k=>E[k]=E[k].filter(id=>!rm.has(id)))}
  save()}
 function eventIndex(s=S()){const m={};s.events.forEach(e=>{m[norm(evLabel(e,s))]=e});return m}
@@ -791,13 +795,13 @@ function applyEntries(plan){const s=S();s.entries=s.entries||{};
  plan.newMem.forEach(a=>{const{_new,...v}=a;s.athletes.push(v)});
  if(plan.mode==='replace'){const hs={};plan.add.forEach(({eid,aid})=>{const a=s.athletes.find(z=>z.id===aid)||plan.newMem.find(z=>z.id===aid);if(a)(hs[eid]=hs[eid]||new Set()).add(a.houseId)});Object.entries(hs).forEach(([eid,set])=>{s.entries[eid]=(s.entries[eid]||[]).filter(id=>{const a=s.athletes.find(z=>z.id===id);return!(a&&set.has(a.houseId))})})}
  plan.add.forEach(({eid,aid})=>{const l=s.entries[eid]||(s.entries[eid]=[]);if(!l.includes(aid))l.push(aid)});save()}
-const MCOLS=[['Name *',30,1],['Class',10],['Section',9],['Roll No',9],['Gender *',11,1],['House *',14,1],['Category',15],['Chest No',10],['Admission No',14],['Remarks',22]];
+const MCOLS=[['Name *',30,1],['Class',10],['Section',9],['Roll No',9],['Gender *',11,1],['House *',14,1],['Category',15],['Chest No',10],['Admission No',14],['Remarks',22],['Member ID',0]];
 function listsSheet(s){const evs=s.events.map(e=>evLabel(e,s));const n=Math.max(s.houses.length,2,s.cats.length,evs.length);const rows=[[{v:'Houses',s:1},{v:'Gender',s:1},{v:'Categories',s:1},{v:'Events / items',s:1}]];
  for(let i=0;i<n;i++)rows.push([s.houses[i]?s.houses[i].name:null,['Boy','Girl'][i]||null,s.cats[i]?s.cats[i].name:null,evs[i]||null]);return{name:'Lists',hidden:true,rows,widths:[16,10,16,44]}}
 const LREF=(col,n)=>`Lists!$${col}$2:$${col}$${Math.max(2,n+1)}`;
 function memberSheets(s,fill){const rowsFor=h=>s.athletes.filter(a=>h?a.houseId===h.id:true).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||a.name.localeCompare(b.name));
- const mk=(name,h)=>{const cols=h?MCOLS.filter(c=>c[0]!=='House *'):MCOLS;const rows=[cols.map(c=>({v:c[0],s:c[2]?5:1}))];const data=fill&&h?rowsFor(h):[];
-  data.forEach(a=>rows.push(cols.map(c=>{const k={'Name *':a.name,'Class':a.cls,'Section':a.sec,'Roll No':a.roll,'Gender *':a.gender==='B'?'Boy':a.gender==='G'?'Girl':'','House *':(Hs(a.houseId)||{}).name,'Category':(Cs(a.catId)||{}).name,'Chest No':a.chest,'Admission No':a.adm,'Remarks':a.remarks}[c[0]];return{v:k||'',s:4}})));
+ const mk=(name,h)=>{const cols=h?MCOLS.filter(c=>c[0]!=='House *'):MCOLS;const rows=[cols.map(c=>({v:c[0],s:c[2]?5:1}))];const data=fill?(h?rowsFor(h):s.athletes.filter(a=>!a.houseId||!Hs(a.houseId)).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.sec).localeCompare(norm(b.sec))||(+a.roll||9999)-(+b.roll||9999)||a.name.localeCompare(b.name))):[];
+  data.forEach(a=>rows.push(cols.map(c=>{const k={'Name *':a.name,'Class':a.cls,'Section':a.sec,'Roll No':a.roll,'Gender *':a.gender==='B'?'Boy':a.gender==='G'?'Girl':'','House *':(Hs(a.houseId)||{}).name,'Category':(Cs(a.catId)||{}).name,'Chest No':a.chest,'Admission No':a.adm,'Remarks':a.remarks,'Member ID':a.id}[c[0]];return{v:k||'',s:4}})));
   const target=Math.max(rows.length+40,h?150:300);while(rows.length<target)rows.push(cols.map(()=>({v:'',s:4})));
   const ci=t=>cols.findIndex(c=>c[0]===t);const last=rows.length;const valid=[{ref:`${colL(ci('Gender *'))}2:${colL(ci('Gender *'))}${last}`,f:LREF('B',2)},{ref:`${colL(ci('Category'))}2:${colL(ci('Category'))}${last}`,f:LREF('C',s.cats.length)}];
   if(!h)valid.push({ref:`${colL(ci('House *'))}2:${colL(ci('House *'))}${last}`,f:LREF('A',s.houses.length)});
@@ -808,7 +812,7 @@ function memberTemplate(fill){const s=S();return buildXLSX([instrSheet(fill?'Hou
  '1. Fill EITHER the “All Houses” sheet (choose the House in each row) OR the sheet for each house (David, Moses …). Do not type the same student in both.',
  '2. Orange columns are needed: Name, Gender (Boy / Girl) and House. Use the drop-down lists for Gender, House and Category.',
  '3. Category can be left blank — the app fills it from the Class using your categories (for example Class VI–VIII → Junior). Class can be written as 8, VIII or Class VIII.',
- '4. Admission No is optional but recommended: the app uses it to recognise the same student when you upload again. Without it, Name + Class + House are used.',
+ '4. When you download the current list, a hidden Member ID column lets the app recognise every student exactly — you can change the house, class or name and upload back safely. Students without a house are on the “All Houses” sheet: just fill the House column.',
  '5. In the app, open Athletes / participants → Upload filled Excel. Choose “Add new and update existing” to add or correct, or “Replace the whole list” to start again.',
  '6. You can also download the current list from the app, correct it in Excel, and upload it back.'
  ]),...memberSheets(s,fill),listsSheet(s)])}
@@ -942,6 +946,8 @@ function planProg(sheets,mode){
  Object.values(ent).forEach(({e,hid,list})=>{const old=(E[e.id]||[]).filter(id=>{const x=s.athletes.find(z=>z.id===id);return x&&x.houseId===hid});
   const plus=list.filter(id=>!old.includes(id)),minus=mode==='replace'?old.filter(id=>!list.includes(id)):[];add+=plus.length;rem+=minus.length;if(plus.length||minus.length){evTouched.add(e.id);if(changes.length<40)changes.push(`${evLabel(e)} · ${(Hs(hid)||{}).name}: ${plus.length?'+'+plus.length:''}${plus.length&&minus.length?' / ':''}${minus.length?'−'+minus.length:''}`)}
   const n=slotsFor(e);if(list.length>n)probs.push(`${evLabel(e)} · ${(Hs(hid)||{}).name}: ${list.length} participants — more than ${n} per house`)});
+ {const sim=clone(s.entries||{});Object.values(ent).forEach(({e,hid,list})=>{const cur=sim[e.id]||[];const keep=mode==='replace'?cur.filter(id=>{const x=s.athletes.find(z=>z.id===id);return!(x&&x.houseId===hid)}):cur.slice();list.forEach(id=>{if(!keep.includes(id))keep.push(id)});sim[e.id]=keep});
+  const tmp={...s,entries:sim,athletes:[...s.athletes,...newMem],events:[...s.events,...evNew]};evUpd.forEach(({e,ch})=>{const i=tmp.events.indexOf(e);if(i>=0)tmp.events[i]={...e,...Object.fromEntries(Object.entries(ch).filter(([,v])=>v!==undefined))}});entryProblems(tmp).forEach(x=>probs.push(`${x.a.name} (${(Hs(x.a.houseId)||{}).name||''}): ${x.w.join('; ')}`))}
  return{kind:'prog',mode,read,ent,newDays,evUpd,evNew,newMem,add,rem,evTouched:evTouched.size,changes,probs,cellsRead}}
 function applyProg(p){const s=S();s.days=s.days||[];s.entries=s.entries||{};
  p.newDays.forEach(d=>s.days.push(d));
@@ -972,10 +978,11 @@ function pAthletes(){
  const s=S(),c=calc(),f=ui.af;const E=s.entries||{};const evCount={};Object.values(E).forEach(l=>l.forEach(id=>evCount[id]=(evCount[id]||0)+1));
  let list=s.athletes.filter(a=>(!f.cat||(f.cat==='_none'?!a.catId:a.catId===f.cat))&&(!f.h||(f.h==='_none'?!a.houseId:a.houseId===f.h))&&(!f.g||a.gender===f.g)&&(!f.cls||norm(a.cls)===norm(f.cls))&&(!f.q||norm([a.name,a.cls,a.sec,a.roll,a.chest,a.adm].join(' ')).includes(norm(f.q))));
  list.sort((a,b)=>((Hs(a.houseId)||{}).name||'~').localeCompare((Hs(b.houseId)||{}).name||'~')||(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.name).localeCompare(norm(b.name)));
- const shown=list.slice(0,300);const classes=[...new Set(s.athletes.map(a=>a.cls).filter(Boolean))].sort((a,b)=>(classNum(a)??99)-(classNum(b)??99)||a.localeCompare(b));
+ const shown=list.slice(0,300);ui.mShown=shown.map(a=>a.id);const classes=[...new Set(s.athletes.map(a=>a.cls).filter(Boolean))].sort((a,b)=>(classNum(a)??99)-(classNum(b)??99)||a.localeCompare(b));
  const cnt=h=>s.athletes.filter(a=>a.houseId===h).length;const noHouse=s.athletes.filter(a=>!a.houseId).length;
  const I=(f,a,w,ph)=>`<input data-col="athletes" data-id="${a.id}" data-f="${f}" value="${esc(a[f]||'')}"${w?` style="width:${w}px"`:''} aria-label="${ph}">`;
  return`<h2>Athletes / participants</h2><p class="lead">The house member list. Add students one by one, or upload the whole list from Excel. Gender and category decide which Best Boy / Best Girl race each student is in.</p>
+ <div style="margin-bottom:16px">${sjsCard()}</div>
  <div class="g2">${excelBar('members')}
  <div class="card"><h3>Add a member</h3><div class="row">
   <label style="flex-basis:100%">Name<input id="naName" placeholder="Full name"></label>
@@ -993,13 +1000,14 @@ function pAthletes(){
   <label>Gender<select data-af="g">${opt('','All',f.g)}${opt('B','Boys',f.g)}${opt('G','Girls',f.g)}</select></label></div>
   <div class="row" style="margin-top:8px;justify-content:space-between"><p class="tiny" style="margin:0">${list.length} members${list.length>300?' · showing first 300, use search or filters':''} · ${list.filter(a=>a.gender==='B').length} boys, ${list.filter(a=>a.gender==='G').length} girls</p>
   <div class="row"><button class="btn sm" data-act="autoCat">Fill missing categories from class</button><button class="btn sm" data-act="autoChest">Number chest nos by house</button></div></div>
- <div class="scroll" style="margin-top:8px"><table class="t stack"><thead><tr><th>Name</th><th>Class</th><th>Sec</th><th>Roll</th><th>Gender</th><th>House</th><th>Category</th><th>Chest</th><th>Adm No</th><th class="n">Events</th><th class="n">Points</th><th></th></tr></thead><tbody>
- ${shown.map(a=>{const p=c.all[a.id];return`<tr><td>${I('name',a,0,'Name')}</td><td>${I('cls',a,70,'Class')}</td><td>${I('sec',a,50,'Section')}</td><td>${I('roll',a,56,'Roll number')}</td>
+ ${ui.msel.size?`<div class="banner" style="margin-top:8px"><b>${ui.msel.size} selected</b><select id="mbHouse" style="width:auto">${houseOpts('','No house')}</select><button class="btn sm" data-act="mBulk" data-id="house">Set house</button><select id="mbCat" style="width:auto">${opt('','No category','')}${s.cats.map(c=>opt(c.id,c.name,'')).join('')}</select><button class="btn sm" data-act="mBulk" data-id="cat">Set category</button><button class="btn sm danger" data-act="mBulk" data-id="del">Delete</button><button class="btn sm" data-act="mBulk" data-id="clear">Clear selection</button></div>`:''}
+ <div class="scroll" style="margin-top:8px"><table class="t stack"><thead><tr><th><input type="checkbox" data-msel="all" aria-label="Select all shown" ${shown.length&&shown.every(a=>ui.msel.has(a.id))?'checked':''}></th><th>Name</th><th>Class</th><th>Sec</th><th>Roll</th><th>Gender</th><th>House</th><th>Category</th><th>Chest</th><th>Adm No</th><th class="n">Events</th><th class="n">Points</th><th></th></tr></thead><tbody>
+ ${shown.map(a=>{const p=c.all[a.id];return`<tr><td><input type="checkbox" data-msel="${a.id}" ${ui.msel.has(a.id)?'checked':''} aria-label="Select"></td><td>${I('name',a,0,'Name')}${a.sjs?' <span class="tiny" title="From SJS App">SJS</span>':''}</td><td>${I('cls',a,70,'Class')}</td><td>${I('sec',a,50,'Section')}</td><td>${I('roll',a,56,'Roll number')}</td>
  <td><select data-col="athletes" data-id="${a.id}" data-f="gender">${opt('','—',a.gender)}${opt('B','Boy',a.gender)}${opt('G','Girl',a.gender)}</select></td>
  <td><select data-col="athletes" data-id="${a.id}" data-f="houseId">${houseOpts(a.houseId,'—')}</select></td>
  <td><select data-col="athletes" data-id="${a.id}" data-f="catId">${opt('','—',a.catId)}${s.cats.map(x=>opt(x.id,x.name,a.catId)).join('')}</select></td>
  <td>${I('chest',a,64,'Chest number')}</td><td>${I('adm',a,84,'Admission number')}</td>
- <td class="n">${evCount[a.id]||0}</td><td class="n">${p?`<b>${p.pts}</b> <span class="tiny">${p.g}G ${p.s}S ${p.b}B</span>`:'0'}</td><td><button class="x" data-act="delAth" data-id="${a.id}" aria-label="Delete member">×</button></td></tr>`}).join('')||'<tr><td colspan="12"><div class="empty">No members yet — add one above or upload your Excel list.</div></td></tr>'}
+ <td class="n">${evCount[a.id]||0}</td><td class="n">${p?`<b>${p.pts}</b> <span class="tiny">${p.g}G ${p.s}S ${p.b}B</span>`:'0'}</td><td><button class="x" data-act="delAth" data-id="${a.id}" aria-label="Delete member">×</button></td></tr>`}).join('')||'<tr><td colspan="13"><div class="empty">No members yet — add one above or upload your Excel list.</div></td></tr>'}
  </tbody></table></div></div>`;
 }
 /* ---------- event entries ---------- */
@@ -1017,10 +1025,11 @@ function enEditorHTML(){const s=S(),e=s.events.find(x=>x.id===ui.ens);if(!e)retu
  ${sw?`<div class="banner" style="margin-top:10px"><b>Replace ${esc(sw.name)}</b> (${esc((Hs(sw.houseId)||{}).name||'')}) with<input id="swName" list="swList" autocomplete="off" placeholder="New participant — name or chest no" style="flex:1 1 220px;width:auto"><datalist id="swList">${el.filter(a=>a.houseId===sw.houseId).map(a=>`<option value="${esc(a.name)}">${esc(a.cls||'')}${a.chest?' · #'+esc(a.chest):''}</option>`).join('')}</datalist><button class="btn pri sm" data-act="enSwapGo">Replace</button><button class="btn sm" data-act="enSwapNo">Cancel</button></div>`:''}
  <p class="tiny">Only members of the right ${e.catId?'category and ':''}gender are suggested. A new name is added to the member list in the chosen house.</p>
  <div class="g2" style="margin-top:6px">${s.houses.map(h=>{const l=ids.map(ath).filter(a=>a&&a.houseId===h.id);const over=max&&l.length>max;return`<div class="enh" style="border-top:4px solid ${h.color}"><div class="row" style="justify-content:space-between"><b>${esc(h.name)}</b><span class="tag ${over?'rec':''}">${l.length}${max?' / '+max:''}</span></div>
-  ${l.length?`<ol>${l.map(a=>`<li><span>${esc(a.name)} <span class="tiny">${esc([a.cls&&('Class '+a.cls),a.chest&&('#'+a.chest)].filter(Boolean).join(' · '))}</span></span><span style="display:flex;gap:2px"><button class="x" data-act="enSwap" data-id="${a.id}" aria-label="Replace" title="Replace with another student">⇄</button><button class="x" data-act="enDel" data-id="${a.id}" aria-label="Remove">×</button></span></li>`).join('')}</ol>`:'<p class="tiny">No one yet.</p>'}</div>`}).join('')}</div></div>`}
+  ${l.length?`<ol>${l.map(a=>{const w=studentWarn(a.id);return`<li><span>${esc(a.name)} <span class="tiny">${esc([a.cls&&('Class '+a.cls),a.chest&&('#'+a.chest)].filter(Boolean).join(' · '))}</span>${w.map(x=>`<br><span class="tag rec" style="white-space:normal">${esc(x)}</span>`).join('')}</span><span style="display:flex;gap:2px"><button class="x" data-act="enSwap" data-id="${a.id}" aria-label="Replace" title="Replace with another student">⇄</button><button class="x" data-act="enDel" data-id="${a.id}" aria-label="Remove">×</button></span></li>`}).join('')}</ol>`:'<p class="tiny">No one yet.</p>'}</div>`}).join('')}</div></div>`}
 function pEntries(){const s=S(),f=ui.enf;
  return`<h2>Event entries</h2><p class="lead">Who takes part in each event or item, house by house. Used for start lists, result entry suggestions, and certificates for every team member.</p>
- <div class="g2">${progBar()}<div class="card"><h3>Places per house</h3><label>Default for individual events<input type="number" min="1" data-ses="maxEntry" value="${esc(s.maxEntry||3)}"></label><p class="tiny">Team events get a sensible number automatically (relay 4, volleyball 6, football 11 …). Change any single event in Schedule → “Per house”, or in the Programme sheet of the Excel file. Houses above the number are marked in red.</p></div></div>
+ <div class="g2">${progBar()}<div class="card"><h3>Places and limits</h3><div class="row"><label>Places per house (individual events)<input type="number" min="1" data-ses="maxEntry" value="${esc(s.maxEntry||3)}"></label><label>Most individual events one student may enter (0 = no limit)<input type="number" min="0" data-ses="maxPerStudent" value="${esc(s.maxPerStudent||0)}"></label></div>
+ ${(()=>{const pr=entryProblems();return pr.length?`<details open style="margin-top:8px"><summary style="cursor:pointer;font-weight:600;color:#b45309">${pr.length} student${pr.length>1?'s':''} to check</summary><ul class="tiny" style="max-height:160px;overflow:auto">${pr.slice(0,100).map(x=>`<li><b>${esc(x.a.name)}</b> (${esc((Hs(x.a.houseId)||{}).name||'')}): ${esc(x.w.join('; '))}</li>`).join('')}</ul></details>`:'<p class="tiny" style="color:#11804e;margin:6px 0 0">No students over the limit and no time clashes.</p>'})()}<p class="tiny">Team events get a sensible number automatically (relay 4, volleyball 6, football 11 …). Change any single event in Schedule → “Per house”, or in the Programme sheet of the Excel file. Houses above the number are marked in red.</p></div></div>
  <div class="rlayout" style="margin-top:16px"><div><div class="filters">
   <select data-ef="cat" aria-label="Category">${opt('','All categories',f.cat)}${s.cats.map(c=>opt(c.id,c.name,f.cat)).join('')}${opt('_open','Open',f.cat)}</select>
   <select data-ef="g" aria-label="Gender">${opt('','Boys & Girls',f.g)}${genOpts(f.g)}</select>
@@ -1111,7 +1120,7 @@ function pRecords(){
 }
 
 /* ---------- reports ---------- */
-const REPS={schedule:'Day-wise Programme',summary:'House Points Summary',matrix:'Event-wise House Points',results:'Results Sheet',champions:'Individual Champions',certs:'Merit Certificates',entries:'Entry Lists (start lists)',members:'House Member Lists'};
+const REPS={schedule:'Day-wise Programme',log:'Change Log',summary:'House Points Summary',matrix:'Event-wise House Points',results:'Results Sheet',champions:'Individual Champions',certs:'Merit Certificates',entries:'Entry Lists (start lists)',members:'House Member Lists'};
 function repHTML(kind,cat){
  const s=S(),c=calc(),a=DB.app;
  const head=`<div class="p-head">${a.logo?`<img src="${a.logo}" alt="" style="height:20mm;max-width:50mm;object-fit:contain;display:block;margin:0 auto 4px">`:''}<h1>${esc(a.school)}</h1>${a.motto?`<div class="m">Motto: ${esc(a.motto)}</div>`:''}<div class="a">${esc(a.address)}</div><h2>${esc(s.title)} ${esc(s.year)} — ${REPS[kind]}${ui.repDay?' · '+esc(dayLabel(ui.repDay)):''}${cat?' · '+esc(catName(cat)):''}</h2>${s.date||s.venue?`<div class="a">${[s.date&&fmtDate(s.date),s.venue].filter(Boolean).map(esc).join(' · ')}</div>`:''}</div>`;
@@ -1121,6 +1130,7 @@ function repHTML(kind,cat){
  const foot=`<div class="p-foot">Generated by SJS Sports App on ${new Date().toLocaleString('en-IN')} · ${c.done} of ${c.total} events completed</div>`;
  if(kind==='entries')return entriesReport(cat,head,sign,foot,sw);
  if(kind==='schedule')return scheduleReport(head,sign,foot,sw);
+ if(kind==='log')return logReport(head,sign,foot);
  if(kind==='members')return membersReport(cat,head,sign,foot,sw);
  if(kind==='summary'){const ks=catKeys(s);
   return`<div class="p-doc">${head}<table><thead><tr><th>Rank</th><th>House</th><th class="n">Gold</th><th class="n">Silver</th><th class="n">Bronze</th><th class="n">Event pts</th><th class="n">Special</th><th class="n">Total</th><th>Position</th></tr></thead><tbody>${c.st.map(x=>`<tr><td>${x.rank}</td><td>${sw(x.h)}</td><td class="n">${x.g}</td><td class="n">${x.si}</td><td class="n">${x.b}</td><td class="n">${x.total-x.bonus}</td><td class="n">${x.bonus}</td><td class="n"><b>${x.total}</b></td><td>${RANKL[x.rank-1]||ord(x.rank)}</td></tr>`).join('')}</tbody></table>
@@ -1128,7 +1138,7 @@ function repHTML(kind,cat){
   <h3>Best athletes</h3><table><thead><tr><th>Category</th><th>Best Boy</th><th>Best Girl</th></tr></thead><tbody>${[...s.cats.map(x=>[x.id,x.name]),['','Whole meet']].map(([k,n])=>{const l=Object.values(k?c.cats[k]||{}:c.all);const f=g=>best(l.filter(p=>p.gender===g)).map(p=>`${esc(p.name)} (${esc((Hs(p.houseId)||{}).name||'')}, ${p.pts} pts)`).join('; ')||'—';return`<tr><td>${esc(n)}</td><td>${f('B')}</td><td>${f('G')}</td></tr>`}).join('')}</tbody></table>
   ${s.bonus.length?`<h3>Special points</h3><table><tbody>${s.bonus.map(b=>`<tr><td>${sw(Hs(b.houseId))}</td><td>${esc(b.reason)}</td><td class="n">${esc(b.pts)}</td></tr>`).join('')}</tbody></table>`:''}${sign}${foot}</div>`}
  if(kind==='matrix'){const tot={};
-  return`<div class="p-doc">${head}<table><thead><tr><th>#</th><th>Event</th><th>Category</th><th>Gender</th>${s.houses.map(h=>`<th class="n">${sw(h)}</th>`).join('')}</tr></thead><tbody>${evs.map((e,i)=>{const t=Ts(e.typeId)||{pts:[]};const r=s.results[e.id];const ph={};(r?r.rows:[]).forEach(x=>{ph[x.houseId]=(ph[x.houseId]||0)+(+t.pts[x.pos-1]||0)});s.houses.forEach(h=>tot[h.id]=(tot[h.id]||0)+(ph[h.id]||0));return`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(catName(e.catId))}</td><td>${esc(e.gender)}</td>${s.houses.map(h=>`<td class="n">${r?ph[h.id]||0:''}</td>`).join('')}</tr>`}).join('')}
+  return`<div class="p-doc">${head}<table><thead><tr><th>#</th><th>Event</th><th>Category</th><th>Gender</th>${s.houses.map(h=>`<th class="n">${sw(h)}</th>`).join('')}</tr></thead><tbody>${evs.map((e,i)=>{const t=Ts(e.typeId)||{pts:[]};const r=s.results[e.id];const ph={};(r?r.rows:[]).forEach(x=>{ph[x.houseId]=(ph[x.houseId]||0)+(+t.pts[x.pos-1]||0)});s.houses.forEach(h=>tot[h.id]=(tot[h.id]||0)+(ph[h.id]||0));return`<tr><td>${i+1}</td><td>${esc(e.name)}</td><td>${esc(catName(e.catId))}</td><td>${esc(e.gender)}</td>${s.houses.map(h=>`<td class="n">${r&&r.rows.length?ph[h.id]||0:''}</td>`).join('')}</tr>`}).join('')}
   <tr><td></td><td colspan="3"><b>Total event points</b></td>${s.houses.map(h=>`<td class="n"><b>${tot[h.id]||0}</b></td>`).join('')}</tr></tbody></table>${sign}${foot}</div>`}
  if(kind==='results'){const ks=cat?[cat]:ui.repDay?['_day']:catKeys(s);
   return`<div class="p-doc">${head}${ks.map(k=>{const l=k==='_day'?evs:evs.filter(e=>(e.catId||'_open')===k);if(!l.length)return'';return`<h3>${k==='_day'?esc(dayLabel(ui.repDay)):esc(catName(k))}</h3><table><thead><tr><th>Event</th><th>Pos</th><th>Name</th><th>House</th><th>Performance</th><th class="n">Pts</th></tr></thead><tbody>${l.map(e=>{const t=Ts(e.typeId)||{pts:[]};const r=s.results[e.id];const rows=r?r.rows.slice().sort((a,b)=>a.pos-b.pos):[];const rb=c.recs.find(x=>x.e.id===e.id);
@@ -1601,7 +1611,7 @@ function resultsWorkbook(){
  /* 3 event-wise matrix */
  const mx=title('Event-wise House Points');mx.push([Hd('Event / item'),Hd('Category'),Hd('Gender'),...s.houses.map(h=>Hd(h.name))]);const tot={};
  evs.forEach(e=>{const t=Ts(e.typeId)||{pts:[]};const r=s.results[e.id];const ph={};(r?r.rows:[]).forEach(x=>{ph[x.houseId]=(ph[x.houseId]||0)+(+t.pts[x.pos-1]||0)});s.houses.forEach(h=>tot[h.id]=(tot[h.id]||0)+(ph[h.id]||0));
-  mx.push([T(e.name),T(catName(e.catId)),T(e.gender),...s.houses.map(h=>r?N(ph[h.id]||0):T(''))])});
+  mx.push([T(e.name),T(catName(e.catId)),T(e.gender),...s.houses.map(h=>r&&r.rows.length?N(ph[h.id]||0):T(''))])});
  mx.push([T('TOTAL'),T(''),T(''),...s.houses.map(h=>N(tot[h.id]||0))]);
  /* 4 champions */
  const ch=title('Individual Champions');ch.push(['Category','Award','Name','Class','House','Points','Gold','Silver','Bronze'].map(Hd));
@@ -1619,6 +1629,87 @@ function resultsWorkbook(){
   {name:'Champions',rows:ch,widths:[14,18,26,8,12,8,7,7,8,8,60],landscape:true},
   {name:'Special Points',rows:sp,widths:[16,10,40],freeze:true},
   {name:'Meet Records',rows:rc,widths:[24,13,9,14,22,12,10,30,12],freeze:true,landscape:true}])}
+
+/* ---------- accuracy: who saved, history, checks, lock, clashes ---------- */
+const ME_KEY='sjs_sports_me';
+const whoAmI=()=>{try{const n=localStorage.getItem(ME_KEY);if(n)return n}catch(e){}return SY.user?(SY.user.displayName||SY.user.email):'this device'};
+const fmtWhen=t=>t?new Date(t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
+function isLocked(){if(S().locked){toast('Results are locked as final. Unlock in Sessions & backup to change them.');return true}return false}
+function rowsSummary(rows,s=S()){return(rows||[]).slice().sort((a,b)=>a.pos-b.pos).map(x=>`${ord(x.pos)} ${x.name?x.name+' ':''}(${(Hs(x.houseId,s)||{}).name||'?'})${x.perf?' '+x.perf:''}`).join(' · ')||'cleared'}
+function checkResult(e,rows){const s=S(),t=Ts(e.typeId)||{},w=[];const E=(s.entries||{})[e.id]||[];
+ const ids=rows.map(r=>r.athId||norm(r.name)+'|'+r.houseId).filter(k=>k&&!k.startsWith('|'));if(new Set(ids).size<ids.length)w.push('The same student is in more than one place.');
+ if(t.team){const hs=rows.map(r=>r.houseId);if(new Set(hs).size<hs.length)w.push('The same house is in more than one place.')}
+ rows.forEach(r=>{const before=rows.filter(x=>x.pos<r.pos).length;if(r.pos!==before+1)w.push(`Position ${ord(r.pos)} does not follow on (expected ${ord(before+1)}). Ties are fine: 1st, 1st, 3rd.`)});
+ if(!t.team&&E.length)rows.forEach(r=>{if(r.athId&&!E.includes(r.athId))w.push(`${r.name} was not entered in this event.`)});
+ rows.forEach(r=>{const a=r.athId&&s.athletes.find(z=>z.id===r.athId);if(a&&(e.gender==='Boys'&&a.gender==='G'||e.gender==='Girls'&&a.gender==='B'))w.push(`${a.name} is a ${a.gender==='G'?'girl':'boy'} — this is a ${e.gender} event.`);if(a&&e.catId&&a.catId&&a.catId!==e.catId)w.push(`${a.name} is in ${catName(a.catId)} — this is a ${catName(e.catId)} event.`);if(a&&a.houseId&&a.houseId!==r.houseId)w.push(`${a.name} belongs to ${(Hs(a.houseId)||{}).name} House, not ${(Hs(r.houseId)||{}).name}.`)});
+ if(e.measure!=='none'){const bad=rows.filter(r=>r.perf&&isNaN(parsePerf(r.perf)));bad.forEach(r=>w.push(`“${r.perf}” is not a valid ${e.measure==='time'?'time':'mark'}.`));
+  const ok=rows.filter(r=>!isNaN(parsePerf(r.perf))).sort((a,b)=>a.pos-b.pos);for(let i=1;i<ok.length;i++){const a=parsePerf(ok[i-1].perf),b=parsePerf(ok[i].perf);if(ok[i].pos>ok[i-1].pos&&(e.measure==='time'?b<a:b>a)){w.push(`${ord(ok[i].pos)} place has a ${e.measure==='time'?'faster time':'better mark'} than ${ord(ok[i-1].pos)} — check the order.`);break}}}
+ return[...new Set(w)]}
+function maxPer(s=S()){return +s.maxPerStudent||0}
+function studentWarn(aid,s=S()){const E=s.entries||{};const evs=s.events.filter(e=>(E[e.id]||[]).includes(aid));const w=[];
+ const ind=evs.filter(e=>!(Ts(e.typeId,s)||{}).team).length;if(maxPer(s)&&ind>maxPer(s))w.push(`${ind} individual events (limit ${maxPer(s)})`);
+ for(let i=0;i<evs.length;i++)for(let j=i+1;j<evs.length;j++){const a=evs[i],b=evs[j];if(a.dayId&&a.dayId===b.dayId&&a.time&&a.time===b.time)w.push(`time clash: ${a.name} and ${b.name} at ${fmtTime(a.time)}`)}
+ return w}
+function entryProblems(s=S()){const E=s.entries||{};const seen=new Set(),out=[];Object.values(E).forEach(l=>l.forEach(id=>{if(seen.has(id))return;seen.add(id);const w=studentWarn(id,s);if(w.length){const a=s.athletes.find(z=>z.id===id);if(a)out.push({a,w})}}));return out}
+function logReport(head,sign,foot){const s=S();const items=[];
+ repEvents(ui.repCat).forEach(e=>{const r=s.results[e.id];if(!r)return;items.push({at:r.at,by:r.by,e,txt:rowsSummary(r.rows),cur:true});(r.hist||[]).forEach(h=>items.push({at:h.at,by:h.by,e,txt:rowsSummary(h.rows)}))});
+ items.sort((a,b)=>(b.at||0)-(a.at||0));
+ return`<div class="p-doc">${head}<table><thead><tr><th style="width:120px">When</th><th style="width:110px">By</th><th>Event</th><th>Result</th></tr></thead><tbody>${items.map(x=>`<tr><td>${esc(fmtWhen(x.at))}</td><td>${esc(x.by||'—')}</td><td>${esc(evLabel(x.e))}</td><td>${x.cur?'<b>':'<span style="color:#777">'}${esc(x.txt)}${x.cur?'</b>':' (replaced)</span>'}</td></tr>`).join('')||'<tr><td colspan="4">No results saved yet.</td></tr>'}</tbody></table><p class="p-foot">Bold = the result now in use. Grey = an earlier version that was corrected.</p>${foot}</div>`}
+
+/* ---------- import students from SJS App (same Firebase project) ---------- */
+async function fbUser(interactive){if(!await fbInit()){toast(SY.err||'Needs the internet');return null}const auth=firebase.auth();
+ let u=auth.currentUser||await new Promise(r=>{const un=auth.onAuthStateChanged(x=>{un();r(x)})});
+ if(!u&&interactive){const pv=new firebase.auth.GoogleAuthProvider();try{u=(await auth.signInWithPopup(pv)).user}catch(e){if(e&&/popup-blocked|operation-not-supported/.test(e.code||'')){try{await auth.signInWithRedirect(pv)}catch(e2){}}toast('Sign-in was cancelled');return null}}
+ SY.user=u;return u}
+async function sjsFetch(){ui.sjsBusy='Signing in…';rerender();
+ try{const u=await fbUser(true);if(!u){ui.sjsBusy='';rerender();return}
+  ui.sjsBusy='Reading classes…';rerender();const cq=await SY.fs.collection('classes').get();
+  const classes=cq.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||(a.order||0)-(b.order||0)||String(a.section||'').localeCompare(String(b.section||'')));
+  if(!classes.length){ui.sjsBusy='';rerender();toast('No classes found in SJS App');return}
+  let done=0;const lists=await Promise.all(classes.map(async k=>{const q=await SY.fs.collection('c/'+k.id+'/students').get();done++;ui.sjsBusy=`Reading students… ${done} of ${classes.length} classes`;const b=$('#sjsBusy');if(b)b.textContent=ui.sjsBusy;
+   return q.docs.map(d=>{const x=d.data();return{sjs:k.id+'/'+(x.roll??d.id),cid:k.id,cls:String(k.cls||'').trim(),sec:String(k.section||'').trim(),roll:x.roll!=null?String(x.roll):'',adm:String(x.adm||'').trim(),name:String(x.name||'').trim(),gender:x.gender==='M'?'B':x.gender==='F'?'G':''}}).filter(x=>x.name)}));
+  ui.sjsBusy='';ui.imp=planSjs(classes,lists);ui.impFile='SJS App';rerender()}
+ catch(e){ui.sjsBusy='';rerender();toast(e&&e.code==='permission-denied'?'This Gmail cannot read SJS App classes — sign in with the Admin or a confirmed staff Gmail':'Could not read SJS App: '+((e&&e.code)||e.message||e))}}
+function planSjs(classes,lists){const s=S();const all=lists.flat();
+ const bySjs={},byAdm={},byNC={},byN={};s.athletes.forEach(a=>{if(a.sjs)bySjs[a.sjs]=a;if(a.adm)(byAdm[norm(a.adm)]=byAdm[norm(a.adm)]||[]).push(a);(byNC[norm(a.name)+'|'+norm(a.cls)]=byNC[norm(a.name)+'|'+norm(a.cls)]||[]).push(a);(byN[norm(a.name)]=byN[norm(a.name)]||[]).push(a)});
+ const used=new Set(),rows=[];let add=0,upd=0,same=0;const perClass=classes.map((k,i)=>({k,n:lists[i].length,add:0,upd:0}));
+ all.forEach(st=>{const one=l=>{const f=(l||[]).filter(a=>!used.has(a.id));return f.length===1?f[0]:null};
+  let ex=bySjs[st.sjs]&&!used.has(bySjs[st.sjs].id)?bySjs[st.sjs]:null;if(!ex&&st.adm)ex=one(byAdm[norm(st.adm)]);if(!ex)ex=one(byNC[norm(st.name)+'|'+norm(st.cls)]);if(!ex&&!st.adm){const l=(byN[norm(st.name)]||[]).filter(a=>!a.sjs&&!used.has(a.id));if(l.length===1)ex=l[0]}
+  const pc=perClass.find(p=>p.k.id===st.cid);
+  if(ex){used.add(ex.id);const ch={};['name','cls','sec','roll','adm','sjs'].forEach(k=>{if(st[k]&&String(ex[k]||'')!==st[k])ch[k]=st[k]});if(st.gender&&ex.gender!==st.gender)ch.gender=st.gender;
+   if(ch.cls||!ex.catId){const c=catForClass(st.cls);if(c&&c!==ex.catId)ch.catId=c}
+   if(Object.keys(ch).length){upd++;pc.upd++}else same++;rows.push({ex,ch})}
+  else{add++;pc.add++;rows.push({ex:null,v:{id:uid(),name:st.name,cls:st.cls,sec:st.sec,roll:st.roll,gender:st.gender,houseId:'',catId:catForClass(st.cls),chest:'',adm:st.adm,remarks:'',sjs:st.sjs}})}});
+ const E=s.entries||{};const inUse=id=>Object.values(E).some(l=>l.includes(id))||Object.values(s.results).some(r=>r.rows.some(x=>x.athId===id));
+ const gone=s.athletes.filter(a=>a.sjs&&!used.has(a.id));
+ const noCat=rows.filter(r=>!(r.ex?(r.ch.catId||r.ex.catId):r.v.catId)).length;
+ return{kind:'sjs',rows,add,upd,same,total:all.length,classes:perClass,gone,goneFree:gone.filter(a=>!inUse(a.id)),noCat}}
+function applySjs(p,removeGone){const s=S();p.rows.forEach(r=>{if(r.ex)Object.assign(r.ex,r.ch);else s.athletes.push(r.v)});
+ if(removeGone){const rm=new Set(p.goneFree.map(a=>a.id));s.athletes=s.athletes.filter(a=>!rm.has(a.id))}save()}
+function sjsPlanHTML(){const p=ui.imp;
+ return`<div class="card imp" style="margin-top:12px"><h3>Check before importing from SJS App</h3>
+ <p style="margin-top:0"><b>${p.total}</b> students in <b>${p.classes.length}</b> classes: <b>${p.add}</b> new, <b>${p.upd}</b> to update (class, roll, gender …), <b>${p.same}</b> unchanged.</p>
+ <details><summary style="cursor:pointer;font-weight:600">Class by class</summary><div class="scroll"><table class="t"><thead><tr><th>Class</th><th class="n">Students</th><th class="n">New</th><th class="n">Updated</th><th>Category</th></tr></thead><tbody>${p.classes.map(c=>`<tr><td>${esc(c.k.cls)}${c.k.section?' – '+esc(c.k.section):''}</td><td class="n">${c.n}</td><td class="n">${c.add}</td><td class="n">${c.upd}</td><td>${esc(catName(catForClass(c.k.cls))||'')||'<span style="color:#b45309">not matched</span>'}</td></tr>`).join('')}</tbody></table></div></details>
+ ${p.noCat?`<p class="tiny" style="color:#b45309">${p.noCat} students' classes do not match any category. Write the classes in Categories (e.g. “Class VI – VIII”) and import again, or set them later.</p>`:''}
+ ${p.gone.length?`<label class="chk"><input type="checkbox" id="sjsGone"> Remove ${p.goneFree.length} members who are no longer in SJS App${p.gone.length>p.goneFree.length?` (${p.gone.length-p.goneFree.length} with entries or results are kept)`:''}</label>`:''}
+ <p class="tiny">Houses, chest numbers and entries already set in the sports app are kept. SJS App itself is not changed.</p>
+ <div class="row"><button class="btn pri" data-act="sjsGo">Import now</button><button class="btn" data-act="impCancel">Cancel</button></div></div>`}
+/* ---------- house assignment ---------- */
+function assignHouses(scope,mode){const s=S();const H=s.houses;if(!H.length)return 0;
+ const key=a=>norm(a.cls)+'|'+norm(a.sec)+(mode==='gender'?'|'+a.gender:'');const cnt={},tot={};H.forEach(h=>tot[h.id]=0);
+ s.athletes.forEach(a=>{if(a.houseId&&tot[a.houseId]!=null&&!(scope==='all')){tot[a.houseId]++;const k=key(a);cnt[k]=cnt[k]||{};cnt[k][a.houseId]=(cnt[k][a.houseId]||0)+1}});
+ const todo=s.athletes.filter(a=>scope==='all'||!a.houseId||tot[a.houseId]==null).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.sec).localeCompare(norm(b.sec))||(+a.roll||9999)-(+b.roll||9999)||norm(a.name).localeCompare(norm(b.name)));
+ todo.forEach(a=>{const k=key(a);const c=cnt[k]=cnt[k]||{};const h=H.slice().sort((x,y)=>(c[x.id]||0)-(c[y.id]||0)||tot[x.id]-tot[y.id])[0];a.houseId=h.id;c[h.id]=(c[h.id]||0)+1;tot[h.id]++});
+ save();return todo.length}
+function sjsCard(){const s=S();const noH=s.athletes.filter(a=>!a.houseId).length;const fromS=s.athletes.filter(a=>a.sjs).length;
+ return`<div class="card"><h3>Students from SJS App</h3>
+ <p class="tiny" style="margin-top:0">Copies every class and student (name, class, section, roll, gender, admission no) from your SJS App — no typing. Press again any time to add new admissions and update classes; houses, chest numbers and entries here are kept. Needs the internet and the Admin or a staff Gmail.</p>
+ <div class="row"><button class="btn pri" data-act="sjsImport" ${ui.sjsBusy?'disabled':''}>${fromS?'Refresh from SJS App':'Import students from SJS App'}</button>${ui.sjsBusy?`<span class="tiny" id="sjsBusy">${esc(ui.sjsBusy)}</span>`:fromS?`<span class="tiny">${fromS} members came from SJS App</span>`:''}</div>
+ ${ui.imp&&ui.imp.kind==='sjs'?sjsPlanHTML():''}
+ <div style="border-top:1px solid var(--line);margin-top:12px;padding-top:12px"><h3 style="font-size:19px">Assign houses ${noH?`<span class="tag rec">${noH} without a house</span>`:'<span class="tag ok">every member has a house</span>'}</h3>
+ <div class="row"><label style="flex:1 1 220px">How<select id="ahMode">${opt('gender','Balanced in each class, boys and girls separately','')}${opt('class','Balanced in each class','')}</select></label>
+ <label style="flex:1 1 200px">Who<select id="ahScope">${opt('none','Only members without a house','')}${opt('all','Everyone (start again)','')}</select></label><button class="btn" data-act="assignH">Assign houses</button></div>
+ <p class="tiny">Goes class by class in roll order and gives each student the house that has the fewest in that class, so every house gets a fair share. Or fill the House column in Excel (Download current list), or tick students below and use “Set house”.</p></div></div>`}
 
 function pReports(){
  const s=S();const k=ui.report,cat=ui.repCat;
@@ -1645,7 +1736,8 @@ function pSessions(){
   <div class="row"><button class="btn sm" data-act="copyRule">Copy rule</button></div>
   <ol start="3" style="margin:8px 0 0;padding-left:20px;line-height:1.7"><li>Press <b>Publish</b>.</li><li>Here, press <b>Sign in with Google and share live</b> with the Admin Gmail. The first time, it uploads this device's data for everyone.</li><li>Teachers confirmed in SJS App → Teachers can enter results. Anyone else who signs in can only watch.</li></ol>
   <p class="tiny">Live sharing works on the website (stjames1980.github.io/sjs-sports). The downloaded offline file always keeps its own data.</p></details></div>`;
- return`<h2>Sessions &amp; backup</h2>${liveCard}<p class="lead">Each academic year is its own session. Start a new one and keep the houses, categories, rules, events and meet records — results start empty.</p>
+ const lockCard=`<div class="card" style="margin-bottom:16px"><h3>Final results lock ${cur.locked?'<span class="tag rec">Locked</span>':'<span class="tag ok">Open</span>'}</h3><p style="margin-top:0">${cur.locked?'Results, entries and special points of '+esc(cur.year)+' cannot be changed on any device. Reports and certificates still work.':'Lock when the meet is over and the Principal has approved the results, so nobody changes them by mistake.'}</p><div class="row"><button class="btn ${cur.locked?'':'pri'}" data-act="toggleLock">${cur.locked?'Unlock results':'Lock results as final'}</button><label style="flex:1 1 240px">Your name on this device (shown in the Change Log)<input id="meName" value="${esc((()=>{try{return localStorage.getItem(ME_KEY)||''}catch(e){return''}})())}" placeholder="e.g. Sir Lalramenga"></label></div></div>`;
+ return`<h2>Sessions &amp; backup</h2>${liveCard}${lockCard}<p class="lead">Each academic year is its own session. Start a new one and keep the houses, categories, rules, events and meet records — results start empty.</p>
  <div class="g2"><div class="card"><h3>Start a new academic session</h3><div class="row"><label>Session<input id="nsYear" value="${esc(ny)}" placeholder="2027-28"></label><label>Meet title<input id="nsTitle" value="${esc(cur.title)}"></label><label>Date<input id="nsDate" type="date"></label></div>
  <label class="chk"><input type="checkbox" id="nsEv" checked> Copy events and meet records</label><label class="chk"><input type="checkbox" id="nsRec" checked> Update records with new records set in ${esc(cur.year)}</label><label class="chk"><input type="checkbox" id="nsAth"> Copy athletes list (update classes later)</label>
  <button class="btn pri" data-act="newSess">Create session</button></div>
@@ -1695,16 +1787,21 @@ const ACT={
  autopos:()=>{const e=S().events.find(x=>x.id===ui.sel);const r=ui.draft.rows;const withP=r.filter(x=>!isNaN(parsePerf(x.perf)));if(withP.length<2){toast('Enter at least two performances first');return}
   withP.sort((a,b)=>e.measure==='time'?parsePerf(a.perf)-parsePerf(b.perf):parsePerf(b.perf)-parsePerf(a.perf));let pos=0,prev=null;withP.forEach((x,i)=>{const v=parsePerf(x.perf);if(v!==prev)pos=i+1;x.pos=pos;prev=v});
   ui.draft.rows=[...withP,...r.filter(x=>isNaN(parsePerf(x.perf)))];$('#editor').innerHTML=editorHTML();toast('Positions set from performance')},
- saveRes:()=>{const s=S(),e=s.events.find(x=>x.id===ui.sel),t=Ts(e.typeId)||{};
+ saveRes:async()=>{if(isLocked())return;const s=S(),e=s.events.find(x=>x.id===ui.sel),t=Ts(e.typeId)||{};
   const rows=ui.draft.rows.filter(r=>r.houseId).map(r=>({...r,pos:Math.max(1,parseInt(r.pos)||1),name:String(r.name||'').trim()}));
   if(!rows.length){toast('Choose a house for at least one place');return}
+  rows.forEach(r=>{if(!t.team&&r.name&&!r.athId){const a=matchAth(r.name,e,r.houseId);if(a&&a.houseId===r.houseId)r.athId=a.id}});
+  rows.sort((a,b)=>a.pos-b.pos);const warn=checkResult(e,rows);if(warn.length&&!await ask('Please check this result',warn.join('  •  '),'Save anyway'))return;
   let added=0;if(!t.team)rows.forEach(r=>{if(!r.name){r.athId='';return}const a=(r.athId&&s.athletes.find(z=>z.id===r.athId&&norm(z.name)===norm(r.name)))||matchAth(r.name,e,r.houseId);
    if(a&&a.houseId===r.houseId)r.athId=a.id;else{const n={id:uid(),name:r.name,cls:'',gender:e.gender==='Boys'?'B':e.gender==='Girls'?'G':'',houseId:r.houseId,catId:e.catId||'',chest:''};s.athletes.push(n);r.athId=n.id;added++}});
-  rows.sort((a,b)=>a.pos-b.pos);s.results[e.id]={rows,at:Date.now()};save();ui.draft=null;
+  const prev=s.results[e.id];const hist=prev&&prev.rows&&prev.rows.length?[{rows:prev.rows,at:prev.at,by:prev.by||''},...(prev.hist||[])]:(prev&&prev.hist)||[];
+  s.results[e.id]={rows,at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;
   const rec=calc().recs.find(x=>x.e.id===e.id&&x.old&&x.old.val);
   toast(rec?'Saved — NEW MEET RECORD!':'Saved — house points updated'+(added?` · ${added} new athlete${added>1?'s':''} added`:''));
   $('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
- clearRes:async()=>{if(!await ask('Clear this result?','The places and points for this event will be removed.','Clear result'))return;delete S().results[ui.sel];save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
+ restoreVer:async el=>{if(isLocked())return;const s=S(),r=s.results[ui.sel];const i=+el.dataset.id;const h=r&&r.hist&&r.hist[i];if(!h)return;if(!await ask('Go back to this version?',rowsSummary(h.rows),'Restore'))return;
+  const hist=[...(r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''}]:[]),...r.hist.filter((x,k)=>k!==i)].slice(0,6);s.results[ui.sel]={rows:h.rows,at:Date.now(),by:whoAmI()+' (restored)',hist};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML();toast('Earlier version restored')},
+ clearRes:async()=>{if(isLocked())return;if(!await ask('Clear this result?','The places and points for this event will be removed. You can restore it from the earlier versions.','Clear result'))return;const s=S(),r=s.results[ui.sel];const hist=r&&r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''},...(r.hist||[])]:(r&&r.hist)||[];s.results[ui.sel]={rows:[],at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
  nextEv:()=>{const n=nextPending();if(!n){toast('All events have results');return}ui.sel=n.id;ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
  addEvent:()=>{const s=S();const name=val('neName');if(!name){toast('Type the event name');$('#neName').focus();return}
   const cats=chk('neAllCat')?s.cats.map(c=>c.id):[$('#neCat').value];const gens=chk('neBoth')?['Boys','Girls']:[$('#neGen').value];let n=0;
@@ -1724,8 +1821,8 @@ const ACT={
  catDown:el=>{const c=S().cats,i=c.findIndex(x=>x.id===el.dataset.id);if(i<c.length-1){[c[i+1],c[i]]=[c[i],c[i+1]];save();rerender()}},
  addType:()=>{const n=val('ntName');const pts=val('ntPts').split(/[,\s]+/).filter(Boolean).map(Number).filter(x=>!isNaN(x));if(!n||!pts.length){toast('Give the rule a name and points');return}S().types.push({id:uid(),name:n,pts,indiv:chk('ntInd'),team:chk('ntTeam')});save();rerender()},
  delType:el=>{const s=S();const n=s.events.filter(e=>e.typeId===el.dataset.id).length;if(n){toast(`${n} events use this rule — change them first`);return}if(s.types.length<2){toast('Keep at least one rule');return}s.types=s.types.filter(t=>t.id!==el.dataset.id);save();rerender()},
- addBonus:()=>{const p=parseFloat(val('nbP'));if(isNaN(p)){toast('Enter the points');return}S().bonus.push({id:uid(),houseId:$('#nbH').value,pts:p,reason:val('nbR')||'Special points'});save();rerender();toast('Points added')},
- delBonus:el=>{const s=S();s.bonus=s.bonus.filter(b=>b.id!==el.dataset.id);save();rerender()},
+ addBonus:()=>{if(isLocked())return;const p=parseFloat(val('nbP'));if(isNaN(p)){toast('Enter the points');return}S().bonus.push({id:uid(),houseId:$('#nbH').value,pts:p,reason:val('nbR')||'Special points'});save();rerender();toast('Points added')},
+ delBonus:el=>{if(isLocked())return;const s=S();s.bonus=s.bonus.filter(b=>b.id!==el.dataset.id);save();rerender()},
  champCat:el=>{ui.champCat=el.dataset.id;rerender()},
  setRec:el=>{const s=S(),e=s.events.find(x=>x.id===el.dataset.id);const w=s.results[e.id].rows.find(x=>x.pos==1);e.rec={val:w.perf,holder:w.name||((Hs(w.houseId)||{}).name+' House'),house:(Hs(w.houseId)||{}).name||'',year:s.year};save();rerender();toast('Meet record updated')},
  rep:el=>{ui.report=el.dataset.id;rerender()},
@@ -1760,7 +1857,7 @@ const ACT={
  xlsBlank:el=>{const k=el.dataset.id;saveFile(xlsName(k==='members'?'House_Members_Template':'Event_Entries_Template'),k==='members'?memberTemplate(false):entryTemplate(false))},
  xlsCurrent:el=>{const k=el.dataset.id;saveFile(xlsName(k==='members'?'House_Members_List':'Event_Entries_List'),k==='members'?memberTemplate(true):entryTemplate(true))},
  impCancel:()=>{ui.imp=null;rerender()},
- impGo:async()=>{const p=ui.imp;if(!p)return;if(p.kind==='members'&&p.mode==='replace'&&p.removed.length&&!await ask('Replace the member list?',`${p.removed.length} members who are not in the file will be removed.`,'Replace list'))return;
+ impGo:async()=>{const p=ui.imp;if(!p)return;if((p.kind==='prog'||p.kind==='entries')&&isLocked())return;if(p.kind==='members'&&p.mode==='replace'&&p.removed.length&&!await ask('Replace the member list?',`${p.removed.length} members who are not in the file will be removed.`,'Replace list'))return;
   if(p.kind==='prog'){applyProg(p);toast(`Imported: ${p.add} added${p.mode==='replace'?`, ${p.rem} removed`:''}${p.evUpd.length?` · ${p.evUpd.length} events updated`:''}${p.evNew.length?` · ${p.evNew.length} new items`:''}`);ui.imp=null;rerender();return}
   if(p.kind==='members'){applyMembers(p);toast(`Imported: ${p.add} added, ${p.upd} updated${p.mode==='replace'?`, ${p.removed.length} removed`:''}`)}else{applyEntries(p);toast(`Imported ${p.add.length} entries${p.newMem.length?` · ${p.newMem.length} new members`:''}`)}ui.imp=null;rerender()},
  afHouse:el=>{ui.af.h=el.dataset.id;rerender()},
@@ -1769,15 +1866,15 @@ const ACT={
   s.houses.forEach((h,i)=>{let n=(i+1)*100+1;s.athletes.filter(a=>a.houseId===h.id).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.name).localeCompare(norm(b.name))).forEach(a=>{a.chest=String(n++)})});save();rerender();toast('Chest numbers set')},
  viewHouse:el=>{ui.af.h=el.dataset.id;location.hash='#athletes'},
  enPick:el=>{ui.ens=el.dataset.id;$('#enList2').innerHTML=enListHTML();$('#enEditor').innerHTML=enEditorHTML();if(innerWidth<1000)$('#enEditor').scrollIntoView({behavior:'smooth'})},
- enAdd:()=>{const s=S(),e=s.events.find(x=>x.id===ui.ens);if(!e)return;const q=val('enName');const hid=$('#enHouse').value;ui.enHouse=hid;if(!q){toast('Type a participant name');return}
+ enAdd:()=>{if(isLocked())return;const s=S(),e=s.events.find(x=>x.id===ui.ens);if(!e)return;const q=val('enName');const hid=$('#enHouse').value;ui.enHouse=hid;if(!q){toast('Type a participant name');return}
   const E=s.entries||(s.entries={});const l=E[e.id]||(E[e.id]=[]);let a=s.athletes.find(x=>x.chest&&norm(x.chest)===norm(q))||null;
   if(!a){const c=s.athletes.filter(x=>norm(x.name)===norm(q));a=c.find(x=>x.houseId===hid)||(c.length===1?c[0]:null)}
   if(!a){a={id:uid(),name:q,cls:'',sec:'',roll:'',gender:e.gender==='Boys'?'B':e.gender==='Girls'?'G':'',houseId:hid,catId:e.catId||'',chest:'',adm:'',remarks:''};s.athletes.push(a);toast(q+' added to members and entered')}
   if(l.includes(a.id)){toast(a.name+' is already entered');return}const max=+s.maxEntry||0;const nh=l.filter(id=>{const x=s.athletes.find(z=>z.id===id);return x&&x.houseId===a.houseId}).length;
   const gBad=e.gender==='Boys'?a.gender==='G':e.gender==='Girls'?a.gender==='B':false;if(gBad){toast(`${a.name} is a ${a.gender==='G'?'girl':'boy'} — this is a ${e.gender} event`);return}
   if(e.catId&&a.catId&&a.catId!==e.catId)setTimeout(()=>toast(`Note: ${a.name} is in ${catName(a.catId)}, this event is ${catName(e.catId)}`),2700);
-  l.push(a.id);save();$('#enList2').innerHTML=enListHTML();$('#enEditor').innerHTML=enEditorHTML();if(max&&nh+1>max)toast(`${(Hs(a.houseId)||{}).name} now has ${nh+1} entries — the limit is ${max}`);const n=$('#enName');if(n)n.focus()},
- enDel:el=>{const s=S();const l=(s.entries||{})[ui.ens]||[];s.entries[ui.ens]=l.filter(id=>id!==el.dataset.id);save();$('#enList2').innerHTML=enListHTML();$('#enEditor').innerHTML=enEditorHTML()},
+  l.push(a.id);save();{const w=studentWarn(a.id);if(w.length)setTimeout(()=>toast(`Note: ${a.name} — ${w.join('; ')}`),300)}$('#enList2').innerHTML=enListHTML();$('#enEditor').innerHTML=enEditorHTML();if(max&&nh+1>max)toast(`${(Hs(a.houseId)||{}).name} now has ${nh+1} entries — the limit is ${max}`);const n=$('#enName');if(n)n.focus()},
+ enDel:el=>{if(isLocked())return;const s=S();const l=(s.entries||{})[ui.ens]||[];s.entries[ui.ens]=l.filter(id=>id!==el.dataset.id);save();$('#enList2').innerHTML=enListHTML();$('#enEditor').innerHTML=enEditorHTML()},
  enPrint:()=>{const e=S().events.find(x=>x.id===ui.ens);ui.report='entries';ui.repCat=e?(e.catId||'_open'):'';location.hash='#reports'},
  addDay:()=>{const s=S();s.days=s.days||[];s.days.push({id:uid(),name:'Day '+(s.days.length+1),date:''});save();rerender()},
  delDay:async el=>{const s=S();const n=s.events.filter(e=>e.dayId===el.dataset.id).length;if(n&&!await ask('Delete this day?',`${n} events on this day become “Not scheduled”. Their times are kept.`,'Delete day'))return;s.events.forEach(e=>{if(e.dayId===el.dataset.id)e.dayId=''});s.days=s.days.filter(d=>d.id!==el.dataset.id);if(ui.sday===el.dataset.id)ui.sday='';save();rerender()},
@@ -1794,11 +1891,21 @@ const ACT={
  xlsProg:()=>{const h=$('#pbHouse').value;ui.pbHouse=h;saveFile(xlsName('Programme_Participants'+(h?'_'+(Hs(h)||{}).name:'')),progWorkbook(h))},
  enSwap:el=>{ui.swap=el.dataset.id;$('#enEditor').innerHTML=enEditorHTML();const n=$('#swName');if(n)n.focus()},
  enSwapNo:()=>{ui.swap=null;$('#enEditor').innerHTML=enEditorHTML()},
- enSwapGo:()=>{const s=S(),e=s.events.find(x=>x.id===ui.ens);const old=s.athletes.find(a=>a.id===ui.swap);const q=val('swName');if(!e||!old)return;if(!q){toast('Type the new participant');return}
+ enSwapGo:()=>{if(isLocked())return;const s=S(),e=s.events.find(x=>x.id===ui.ens);const old=s.athletes.find(a=>a.id===ui.swap);const q=val('swName');if(!e||!old)return;if(!q){toast('Type the new participant');return}
   let a=s.athletes.find(x=>x.chest&&norm(x.chest)===norm(q)&&x.houseId===old.houseId)||s.athletes.find(x=>norm(x.name)===norm(q)&&x.houseId===old.houseId);
   if(!a){a={id:uid(),name:q,cls:'',sec:'',roll:'',gender:e.gender==='Boys'?'B':e.gender==='Girls'?'G':'',houseId:old.houseId,catId:e.catId||'',chest:'',adm:'',remarks:''};s.athletes.push(a)}
   const gBad=e.gender==='Boys'?a.gender==='G':e.gender==='Girls'?a.gender==='B':false;if(gBad){toast(`${a.name} is a ${a.gender==='G'?'girl':'boy'} — this is a ${e.gender} event`);return}
   const l=s.entries[e.id]||[];if(l.includes(a.id)){toast(a.name+' is already entered');return}const i=l.indexOf(old.id);l[i]=a.id;ui.swap=null;save();$('#enList2').innerHTML=enListHTML();$('#enEditor').innerHTML=enEditorHTML();toast(`${old.name} replaced by ${a.name}`)},
+ toggleLock:async()=>{const s=S();if(!await ask(s.locked?'Unlock the results?':'Lock the results as final?',s.locked?'Results can then be changed again on every device.':'Nobody will be able to change results, entries or special points until you unlock.',s.locked?'Unlock':'Lock'))return;s.locked=!s.locked;save();rerender();toast(s.locked?'Results locked':'Results unlocked')},
+ sjsImport:()=>sjsFetch(),
+ sjsGo:()=>{const p=ui.imp;if(!p)return;const rm=!!($('#sjsGone')&&$('#sjsGone').checked);applySjs(p,rm);ui.imp=null;rerender();toast(`Imported from SJS App: ${p.add} new, ${p.upd} updated${rm?`, ${p.goneFree.length} removed`:''}`)},
+ assignH:async()=>{const sc=$('#ahScope').value,md=$('#ahMode').value;if(sc==='all'&&!await ask('Give everyone a new house?','Every member gets a new house, including those already set. Results already saved keep the house they were saved with.','Reassign everyone'))return;const n=assignHouses(sc,md);rerender();toast(n?`${n} members given a house`:'Nobody needed a house')},
+ mBulk:async el=>{const s=S();const ids=[...ui.msel];if(!ids.length)return;const k=el.dataset.id;
+  if(k==='house'){const h=$('#mbHouse').value;ids.forEach(id=>{const a=s.athletes.find(z=>z.id===id);if(a)a.houseId=h});toast(`House set for ${ids.length}`)}
+  else if(k==='cat'){const c=$('#mbCat').value;ids.forEach(id=>{const a=s.athletes.find(z=>z.id===id);if(a)a.catId=c});toast(`Category set for ${ids.length}`)}
+  else if(k==='del'){if(!await ask(`Delete ${ids.length} members?`,'Their past results stay but are no longer linked.','Delete'))return;const rm=new Set(ids);s.athletes=s.athletes.filter(a=>!rm.has(a.id));const E=s.entries||{};Object.keys(E).forEach(x=>E[x]=E[x].filter(id=>!rm.has(id)));toast(`${ids.length} deleted`)}
+  else if(k==='clear'){}
+  ui.msel=new Set();save();rerender()},
  fs:()=>{const el=$('#sbx');try{if(document.fullscreenElement)document.exitFullscreen();else el.requestFullscreen().catch(()=>toast('Full screen is not allowed here — open the offline app'))}catch(e){toast('Full screen is not allowed here')}}
 };
 async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is not a valid backup');return}
@@ -1827,6 +1934,8 @@ main.addEventListener('change',e=>{const el=e.target,s=S();
  if(el.dataset.act2==='repCat'){ui.repCat=el.value;rerender();return}
  if(el.dataset.act2==='repDay'){ui.repDay=el.value;rerender();return}
  if(el.dataset.act2==='certSel'){ui.certSel=el.value;rerender();return}
+ if(el.dataset.msel){if(el.dataset.msel==='all'){(ui.mShown||[]).forEach(id=>el.checked?ui.msel.add(id):ui.msel.delete(id))}else{el.checked?ui.msel.add(el.dataset.msel):ui.msel.delete(el.dataset.msel)}rerender();return}
+ if(el.id==='meName'){try{localStorage.setItem(ME_KEY,el.value.trim())}catch(e){}toast('Name saved on this device');return}
  if(el.dataset.act2==='impMode'){ui.impMode[el.dataset.k]=el.value;if(ui.imp&&ui.imp.kind===el.dataset.k)ui.imp=null;rerender();return}
  if(el.id==='xlsIn'){const f=el.files[0];const k=el.dataset.k;el.value='';if(!f)return;ui.impFile=f.name;readAnyFile(f).then(sh=>{const p=k==='members'?planMembers(sh,ui.impMode.members):isProgBook(sh)?planProg(sh,ui.impMode.entries):planEntries(sh,ui.impMode.entries);if(!p.read&&p.kind!=='prog'||p.kind==='prog'&&!p.read){toast(k==='members'?'No sheet with a “Name” column was found. Use the template from this page.':'No sheet with “Event” and “Participant name” columns was found. Use the template from this page.');return}ui.imp=p;rerender()}).catch(err=>toast(err.message||'Could not read that file'));return}
  if(el.dataset.ef&&el.dataset.ef!=='q'){ui.enf[el.dataset.ef]=el.value;$('#enList2').innerHTML=enListHTML();return}
@@ -1835,7 +1944,7 @@ main.addEventListener('change',e=>{const el=e.target,s=S();
  if(el.id==='logoIn'){const f=el.files[0];if(f)loadLogo(f);return}
  if(el.dataset.cert){const cc=CC();cc[el.dataset.cert]=el.type==='checkbox'?el.checked:el.value;if(el.dataset.cert==='cf'||el.dataset.cert==='cg')cc.theme='custom';save();rerender();return}
  if(el.dataset.app){DB.app[el.dataset.app]=el.value;save();$('#schoolName').textContent=DB.app.school;if(ui.page==='certificate')rerender();return}
- if(el.dataset.ses){s[el.dataset.ses]=el.dataset.ses==='maxEntry'?Math.max(0,parseInt(el.value)||0):el.value;save();render();return}
+ if(el.dataset.ses){s[el.dataset.ses]=/^max/.test(el.dataset.ses)?Math.max(0,parseInt(el.value)||0):el.value;save();render();return}
  if(el.dataset.col){const it=s[el.dataset.col].find(x=>x.id===el.dataset.id);if(!it)return;let v=el.type==='checkbox'?el.checked:el.value;
   if(el.dataset.f==='pts'){v=String(v).split(/[,\s]+/).filter(x=>x!=='').map(Number).filter(x=>!isNaN(x));if(!v.length){toast('Enter points like 5, 3, 1');rerender();return}}
   if(el.dataset.f==='name'&&!String(v).trim()){toast('Name cannot be empty');rerender();return}
@@ -1851,6 +1960,8 @@ window.addEventListener('storage',e=>{if(e.key===KEY){const d=load();if(d){DB=d;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal').classList.contains('on'))$('#mNo').click()});
 go();
 try{if(localStorage.getItem(LIVE_KEY)==='1')liveStart(false)}catch(e){}
+/* offline app: only on the real website (GitHub Pages), never inside a preview frame */
+try{if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)&&window.top===window.self)navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 }
 </script>
 </body>
