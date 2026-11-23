@@ -75,7 +75,13 @@ a{color:inherit}
 .rolechip{display:inline-block;font-weight:700;font-size:13px;border-radius:99px;padding:4px 11px;background:var(--soft);border:1px solid var(--line)}.r-admin{background:#1f3a8a;color:#fff;border-color:#1f3a8a}.r-incharge{background:#0f7b4d;color:#fff;border-color:#0f7b4d}.r-scorer,.r-teacher{background:#fff4d6;color:#6b4a00;border-color:#f0d58a}
 .perm td.c{text-align:center}.perm .yes{color:#0f7b4d;font-weight:800;font-size:17px}.perm .no{color:var(--mut)}.perm th{font-size:13px}
 .rulepre{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;white-space:pre-wrap;overflow:auto;max-height:340px}
-.robar{margin:0 0 14px}.btn:disabled,.btn[disabled]{opacity:.42;cursor:not-allowed;filter:grayscale(.6)}main input:disabled,main select:disabled,main textarea:disabled{opacity:.6;cursor:not-allowed}
+.robar{margin:0 0 14px}
+body.vo main,body.vo .side,body.vo .top,body.vo .pal{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body.vo main input,body.vo main textarea,body.vo .pal input{-webkit-user-select:text;user-select:text}
+body.vo main img,body.vo main svg{-webkit-user-drag:none;pointer-events:auto}
+#voMark{position:fixed;inset:0;z-index:35;pointer-events:none;opacity:.075;background-repeat:repeat}
+body.vo.vo-hide main,body.vo.vo-hide .side{filter:blur(18px)}
+@media print{body.vo *{visibility:hidden!important}body.vo::before{visibility:visible!important;content:"Printing is turned off for view-only users — SJS Sports App";display:block;font:700 20px Arial,sans-serif;padding:40mm 10mm;text-align:center}}.btn:disabled,.btn[disabled]{opacity:.42;cursor:not-allowed;filter:grayscale(.6)}main input:disabled,main select:disabled,main textarea:disabled{opacity:.6;cursor:not-allowed}
 .palft{font-size:12px;color:var(--mut);padding:8px 14px;border-top:1px solid var(--line)}
 .top{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:10px max(3vw,16px);border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
 .top .sess{display:flex;align-items:center;gap:8px;font-weight:600}
@@ -406,6 +412,19 @@ function spRole(){if(!SY.user)return'viewer';if(SP_ADMINS.includes(myEmail()))re
 const isMgr=()=>['admin','incharge'].includes(spRole());
 const canManage=()=>!isLive()||isMgr();
 const canScore=()=>!isLive()||['admin','incharge','scorer','teacher'].includes(spRole());
+/* view-only teachers: look only — no download, print, copy; screenshots are discouraged with a name watermark */
+const VO_KEY='sjs_sports_vo';
+function isVO(){if(isLive())return spRole()==='viewer';try{return localStorage.getItem(VO_KEY)==='1'}catch(e){return false}}
+const NOSHARE_ACTS=new Set(['printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
+const NOPERM_V='View only: downloading, printing and copying are turned off for your Gmail.';
+function voPaint(){const on=isVO();document.body.classList.toggle('vo',on);
+ if(isLive()){try{on?localStorage.setItem(VO_KEY,'1'):localStorage.removeItem(VO_KEY)}catch(e){}}
+ let m=document.getElementById('voMark');if(!on){if(m)m.remove();return}
+ const who=(SY.user&&(SY.user.email||SY.user.displayName))||'View only';const d=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+ const txt=(who+' · '+d+' · SJS Sports').replace(/[<&>"]/g,'');
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="420" height="220"><text x="20" y="130" transform="rotate(-24 210 110)" font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#000">${txt}</text></svg>`;
+ if(!m){m=document.createElement('div');m.id='voMark';m.setAttribute('aria-hidden','true');document.body.appendChild(m)}
+ m.style.backgroundImage=`url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`}
 const NOPERM_M='Only the Admin or the Sports In-charge can change this.';
 const NOPERM_S='View only — ask the Admin or Sports In-charge to make you a Result recorder.';
 async function roleInit(u){SY.myRole=null;SY.isStaff=false;SY.roleList=null;SY.roleErr='';roleStop();if(!u)return;const em=String(u.email||'').toLowerCase();
@@ -530,7 +549,7 @@ function paintLive(){
  else if(SY.state==='error'){cls='lv-err';txt='Live sharing: problem'}
  else if(isLive()){const who=SY.user?(SY.user.displayName||SY.user.email||'').split(' ')[0]:'';
   if(off){cls='lv-wait';txt='Offline — saved, will share when online'}else if(SY.pending){cls='lv-wait';txt='Sharing…'}else{cls='lv-on';const rl=spRole();txt=(SY.readonly||rl==='viewer'?'View only · ':'Live · ')+who+(rl!=='viewer'?' · '+ROLE_L[rl]:'')}}
- b.className='livebox '+cls;b.textContent=txt;b.title=SY.err||'';
+ b.className='livebox '+cls;b.textContent=txt;b.title=SY.err||'';voPaint();
  $('#saveState').textContent=isLive()?'':(canStore?'Saved on this device · works offline':'This browser is not keeping data — download a backup often');
 }
 
@@ -660,7 +679,7 @@ function calc(s=S()){
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2600)}
 function ask(title,text,yes){return new Promise(res=>{$('#mTitle').textContent=title;$('#mText').textContent=text||'';$('#mYes').textContent=yes||'Yes, continue';const m=$('#modal');m.classList.add('on');const done=v=>{m.classList.remove('on');$('#mYes').onclick=$('#mNo').onclick=null;res(v)};$('#mYes').onclick=()=>done(true);$('#mNo').onclick=()=>done(false);$('#mYes').focus()})}
 let dl=null;(async()=>{try{if(window.claude&&window.claude.use)dl=await window.claude.use('downloads')}catch(e){dl=null}})();
-async function saveFile(name,data){
+async function saveFile(name,data){if(isVO()){toast(NOPERM_V);return}
  if(dl){try{await dl.save({filename:name,data});toast('Saved '+name);return}catch(e){if(e&&e.code==='declined')return}}
  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/octet-stream'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000);toast('Downloading '+name)}catch(e){toast('Download not available here — use Copy instead')}
 }
@@ -1949,17 +1968,17 @@ function pReports(){
  <div class="row" style="margin-top:12px"><label style="flex:0 1 220px">Day<select data-act2="repDay">${opt('','All days',ui.repDay)}${(s.days||[]).map(d=>opt(d.id,dayLabel(d.id),ui.repDay)).join('')}${opt('_none','Not scheduled',ui.repDay)}</select></label><label style="flex:0 1 260px">Category<select data-act2="repCat">${opt('','All categories',cat)}${s.cats.map(c=>opt(c.id,c.name,cat)).join('')}${opt('_open','Open',cat)}</select></label>
  ${k==='certs'?`<label style="flex:0 1 260px">Certificates for<select data-act2="certSel">${opt('all','All winners + Best Boy/Girl',ui.certSel)}${opt('first','1st place only',ui.certSel)}${opt('best','Best Boy & Best Girl only',ui.certSel)}${opt('blank','Blank certificate (fill by hand)',ui.certSel)}</select></label>${ui.certSel==='blank'?`<label style="flex:0 1 220px">Sport picture<select data-act2="blankSport">${SPORTS.filter(x=>x[0]!=='auto').map(x=>opt(x[0],x[1],ui.blankSport||'trophy')).join('')}</select></label>`:''}`:''}
  <button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
- <p class="tiny">${k==='certs'?'Click any text on a certificate below to correct it before printing. Change colours, wording and pictures in <a href="#certificate">Certificate design</a>. In the print window choose Paper: A4, Layout: Landscape, Margins: None, and tick Background graphics. ':''}If Print does nothing here, download the page and print it from your browser — or use the offline copy of the app, where printing works directly.</p></div>
+ ${isVO()?'':`<p class="tiny">${k==='certs'?'Click any text on a certificate below to correct it before printing. Change colours, wording and pictures in <a href="#certificate">Certificate design</a>. In the print window choose Paper: A4, Layout: Landscape, Margins: None, and tick Background graphics. ':''}If Print does nothing here, download the page and print it from your browser — or use the offline copy of the app, where printing works directly.</p>`}</div>
  <div class="paper ${k==='certs'?'certs':''}" id="paper">${repHTML(k,cat)}</div>`;
 }
 
 /* ---------- Users & roles ---------- */
 function pUsers(){const live=isLive();const r=spRole();const mgr=live&&isMgr();const adm=r==='admin';
  const Y='<span class="yes">✓</span>',N='<span class="no">—</span>';
- const rows=[['View dashboard, scoreboard, champions, records',Y,Y,Y,Y,Y],['Download Excel, print reports and certificates',Y,Y,Y,Y,Y],['Enter and correct results',Y,Y,Y,'<span class="tiny">only if allowed below</span>',N],
+ const rows=[['View dashboard, scoreboard, champions, records',Y,Y,Y,Y,Y],['Download Excel, print reports and certificates, copy text',Y,Y,Y,'<span class="tiny">only if allowed below</span>',N],['Enter and correct results',Y,Y,Y,'<span class="tiny">only if allowed below</span>',N],
   ['Event entries and replacements',Y,Y,N,N,N],['Import students from SJS App; add, edit, delete members',Y,Y,N,N,N],['Assign houses',Y,Y,N,N,N],['Houses, categories, events, schedule, points rules, special points',Y,Y,N,N,N],
   ['Lock results, sessions, backup restore, school details, certificate design',Y,Y,N,N,N],['Give or remove Result recorders',Y,Y,N,N,N],['Make someone Sports In-charge',Y,N,N,N,N]];
- const can=x=>x==='admin'||x==='incharge'?'do everything in the Sports app':x==='scorer'||x==='teacher'?'enter and correct results, and view everything':'view, download and print';
+ const can=x=>x==='admin'||x==='incharge'?'do everything in the Sports app':x==='scorer'||x==='teacher'?'enter and correct results, and view everything':'only view — downloading, printing and copying are turned off';
  const you=!live?`<p style="margin-top:0">Live sharing is <b>off</b> on this device, so you are working on this device's own copy. Roles apply to the <b>shared</b> data — turn on live sharing in <a href="#sessions">Sessions &amp; backup</a> to see your access.</p>`
   :`<p style="margin-top:0">Signed in as <b>${esc(SY.user&&SY.user.email||'')}</b></p><div class="row" style="align-items:center"><span class="rolechip r-${r}">${ROLE_L[r]}</span><span>You can ${can(r)}.</span></div>${r==='viewer'?`<p class="tiny" style="margin-bottom:0">To enter results, ask the Admin or the Sports In-charge to add <b>${esc(SY.user&&SY.user.email||'')}</b> as a Result recorder.</p>`:''}`;
  const list=(SY.roleList||[]).slice().sort((a,b)=>(a.role===b.role?0:a.role==='incharge'?-1:1)||String(a.name||a.email).localeCompare(String(b.name||b.email)));
@@ -1982,6 +2001,7 @@ function pUsers(){const live=isLive();const r=spRole();const mgr=live&&isMgr();c
  return`<h2>Users &amp; roles</h2><p class="lead">Who can change what in the Sports app. The Firebase rules check every change, so nobody can get around this from another phone or browser.</p>
  <div class="card"><h3>Your access</h3>${you}</div>${manage}
  <div class="card" style="margin-top:16px"><h3>Who can do what</h3><div class="scroll"><table class="t perm"><thead><tr><th></th><th>Admin</th><th>Sports In-charge</th><th>Result recorder</th><th>Other SJS teachers</th><th>Anyone else signed in</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${x[0]}</td>${x.slice(1).map(c=>`<td class="c">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+ <p class="tiny">View-only users cannot download, print, copy, right-click or save. Their Gmail and the date are shown faintly across every screen, and the page blurs when they switch away. No website can fully stop a phone screenshot, but the name on it shows who took it.</p>
  <p class="tiny" style="margin-bottom:0">When live sharing is off, a device works on its own copy only — nothing reaches other devices, and only the Admin or Sports In-charge can import students from SJS App.</p></div>${rules}`}
 function pSessions(){
  const ss=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0));
@@ -2070,7 +2090,7 @@ function openPal(){drawer(false);$('#pal').classList.add('on');$('#palQ').value=
 function closePal(){$('#pal').classList.remove('on')}
 function render(){
  const p=PAGES[ui.page]?ui.page:'home';
- paintNav(p);
+ paintNav(p);voPaint();
  $('#schoolName').textContent=DB.app.school;const bl=$('#brandLogo');if(DB.app.logo){bl.src=DB.app.logo;bl.hidden=false}else bl.hidden=true;
  paintSess();if(0)$('#sessSel').innerHTML=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0)).map(s=>opt(s.id,s.year+' · '+s.title,DB.active)).join('');
  const y=window.scrollY;main.innerHTML=PAGES[p]();roPaint(p);
@@ -2277,11 +2297,12 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
 const MANAGE_ACTS=new Set('mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
 const SCORE_ACTS=new Set(['saveRes','clearRes','restoreVer']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn';
-function blockAct(a){if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
+function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
 function blockField(el){if(!el.matches||!el.matches(WRITE_SEL)||canManage())return false;toast(NOPERM_M);rerender();return true}
 /* read-only look for people who may not change a page */
 let roMO=null;function roWatch(){if(roMO)return;roMO=new MutationObserver(()=>{clearTimeout(roWatch.t);roWatch.t=setTimeout(()=>roPaint(ui.page),30)});roMO.observe(main,{childList:true,subtree:true})}
-function roPaint(p){main.querySelectorAll('.robar').forEach(x=>{if(!isLive()||isMgr()&&canScore())x.remove()});if(!isLive())return;roWatch();const mgr=isMgr(),sc=canScore();
+function roPaint(p){if(isVO()){roWatch();main.querySelectorAll('button[data-act]').forEach(b=>{if(NOSHARE_ACTS.has(b.dataset.act))b.style.display='none'})}
+ main.querySelectorAll('.robar').forEach(x=>{if(!isLive()||isMgr()&&canScore())x.remove()});if(!isLive())return;roWatch();const mgr=isMgr(),sc=canScore();
  if(!mgr){main.querySelectorAll(WRITE_SEL).forEach(x=>{x.disabled=true});main.querySelectorAll('label.btn').forEach(l=>{if(l.querySelector('input:disabled')){l.setAttribute('aria-disabled','true');l.style.opacity='.42';l.style.pointerEvents='none'}});main.querySelectorAll('button[data-act]').forEach(b=>{if(MANAGE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_M}})}
  if(!sc)main.querySelectorAll('button[data-act]').forEach(b=>{if(SCORE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_S}});
  const editPages=['houses','categories','athletes','housing','events','schedule','entries','points','bonus','certificate','setup'];
@@ -2342,6 +2363,16 @@ $('#fileIn').addEventListener('change',e=>{const f=e.target.files[0];if(!f)retur
 window.addEventListener('hashchange',go);
 window.addEventListener('storage',e=>{if(e.key===KEY){const d=load();if(d){DB=d;if(ui.page==='scoreboard'||ui.page==='home'||ui.page==='champions')rerender()}}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal').classList.contains('on'))$('#mNo').click()});
+/* view-only protection */
+{const field=el=>el&&el.closest&&el.closest('input,textarea,select,[contenteditable=true]');
+ ['copy','cut','contextmenu','dragstart','selectstart'].forEach(ev=>document.addEventListener(ev,e=>{if(!isVO()||field(e.target))return;e.preventDefault();if(ev==='copy'||ev==='cut'||ev==='contextmenu')toast(NOPERM_V)},true));
+ document.addEventListener('keydown',e=>{if(!isVO())return;const k=(e.key||'').toLowerCase();
+  if(k==='printscreen'||(e.ctrlKey||e.metaKey)&&['p','s','c','x','u'].includes(k)&&!(['c','x'].includes(k)&&field(e.target))||(e.metaKey&&e.shiftKey&&['3','4','5','s'].includes(k))){e.preventDefault();toast(k==='printscreen'||e.shiftKey?'Screenshots are not allowed for view-only users — your Gmail is printed on every screen.':NOPERM_V)}},true);
+ document.addEventListener('keyup',e=>{if(isVO()&&(e.key||'').toLowerCase()==='printscreen'){try{navigator.clipboard.writeText('Screenshots of the SJS Sports App are not allowed.')}catch(x){}}},true);
+ const hide=on=>document.body.classList.toggle('vo-hide',on&&isVO());
+ document.addEventListener('visibilitychange',()=>hide(document.hidden));window.addEventListener('blur',()=>hide(true));window.addEventListener('focus',()=>hide(false));
+ window.addEventListener('beforeprint',()=>{if(isVO())toast('Printing is turned off for view-only users')});
+ const P=window.print.bind(window);window.print=()=>{if(isVO()){toast(NOPERM_V);return}P()}}
 /* navigation events */
 $('#nav').addEventListener('click',e=>{const g=e.target.closest('[data-navg]');if(g){const id=g.dataset.navg;const open=g.getAttribute('aria-expanded')!=='true';NAVS[id]=open;navSave();g.setAttribute('aria-expanded',open);g.nextElementSibling.hidden=!open;return}if(e.target.closest('a'))drawer(false)});
 $('#railBtn').addEventListener('click',()=>{NAVS.rail=!NAVS.rail;navSave();$('.app').classList.toggle('rail',NAVS.rail);paintNav(PAGES[ui.page]?ui.page:'home')});
