@@ -1391,7 +1391,7 @@ function repHTML(kind,cat){
  return'';
 }
 /* ---------- certificates (A4 landscape) ---------- */
-const MEDAL={1:['#e2c25a','#a37b16','#fff6d2','FIRST'],2:['#cfd5dc','#7f8892','#ffffff','SECOND'],3:['#d79a62','#8a5426','#fbe3cc','THIRD'],best:['#e2c25a','#a37b16','#fff6d2','BEST']};
+const MEDAL={4:['#9fb3c8','#4a5d73','#eef3f8','MERIT'],1:['#e2c25a','#a37b16','#fff6d2','FIRST'],2:['#cfd5dc','#7f8892','#ffffff','SECOND'],3:['#d79a62','#8a5426','#fbe3cc','THIRD'],best:['#e2c25a','#a37b16','#fff6d2','BEST']};
 function shade(c,f){c=(c||'#777777').replace('#','');if(c.length===3)c=c.split('').map(x=>x+x).join('');const n=[0,2,4].map(i=>Math.max(0,Math.min(255,Math.round(parseInt(c.slice(i,i+2),16)*f))));return'#'+n.map(x=>x.toString(16).padStart(2,'0')).join('')}
 const CTHEMES={royal:['Royal blue & gold','#173f8a','#b48a2c'],emerald:['Emerald & gold','#0f5a3a','#b48a2c'],navy:['Navy & silver','#1d2a44','#8e99a8'],black:['Black & gold','#1e1e1e','#b48a2c'],purple:['Purple & gold','#4a2a78','#b48a2c'],teal:['Teal & gold','#0d5560','#b48a2c'],maroon:['Maroon & gold','#7d2414','#b08a3e']};
 const CDEF={layout:'champion',teamEach:true,theme:'royal',cf:'#173f8a',cg:'#b48a2c',paper:'ivory',title:'Certificate',subMerit:'of Merit',subExcel:'of Excellence',pre:'This certificate is proudly presented to',prefix:'SJS/SPORTS',sign3:'',art:true,ribbon:true,num:true,logo:true,
@@ -1721,12 +1721,12 @@ function certsHTML(cat,edit){
  else{
   const evs=repEvents(cat);
   if(which!=='best')evs.forEach(e=>{const t=Ts(e.typeId)||{};const r=s.results[e.id];if(!r)return;
-   r.rows.filter(x=>which==='first'?x.pos==1:x.pos<=3).sort((x,y)=>x.pos-y.pos).forEach(x=>{const h=Hs(x.houseId);const ath=x.athId&&s.athletes.find(z=>z.id===x.athId);
+   const maxP=Math.max(3,(t.pts||[]).filter(v=>+v>0).length);r.rows.filter(x=>which==='first'?x.pos==1:x.pos<=maxP).sort((x,y)=>x.pos-y.pos).forEach(x=>{const h=Hs(x.houseId);const ath=x.athId&&s.athletes.find(z=>z.id===x.athId);
     const team=t.team||!x.name;
     const mates=team&&cc.teamEach?((s.entries||{})[e.id]||[]).map(id=>s.athletes.find(a=>a.id===id)).filter(a=>a&&a.houseId===x.houseId):[];
     const v={...base,ofclass:ath&&ath.cls?`of Class ${esc(ath.cls)} and `:'',class:esc(ath&&ath.cls||''),house:esc(h?h.name:''),position:posW(x.pos),event:esc(e.name),category:esc(catName(e.catId)),gender:esc(e.gender),performance:x.perf?` with ${e.measure==='time'?'a time':'a mark'} of ${esc(x.perf)} ${unitOf(e.measure)}`:''};
-    if(mates.length){mates.forEach(m=>{const vm={...v,ofclass:m.cls?`of Class ${esc(m.cls)} and `:'',class:esc(m.cls||'')};out.push(certSheet({edit,sport:sportOf(e),house:h,name:m.name,no:no(),sub:cc.subMerit,medal:MEDAL[Math.min(x.pos,3)]||MEDAL[3],big:ord(x.pos),small:'PLACE',body:fillT(cc.tWin,vm)}))});return}
-    out.push(certSheet({edit,sport:sportOf(e),house:h,name:team?(h?h.name+' House':'—'):x.name,no:no(),sub:cc.subMerit,medal:MEDAL[Math.min(x.pos,3)]||MEDAL[3],big:ord(x.pos),small:'PLACE',body:fillT(team?cc.tTeam:cc.tWin,v)}))})});
+    if(mates.length){mates.forEach(m=>{const vm={...v,ofclass:m.cls?`of Class ${esc(m.cls)} and `:'',class:esc(m.cls||'')};out.push(certSheet({edit,sport:sportOf(e),house:h,name:m.name,no:no(),sub:cc.subMerit,medal:MEDAL[Math.min(x.pos,4)]||MEDAL[3],big:ord(x.pos),small:'PLACE',body:fillT(cc.tWin,vm)}))});return}
+    out.push(certSheet({edit,sport:sportOf(e),house:h,name:team?(h?h.name+' House':'—'):x.name,no:no(),sub:cc.subMerit,medal:MEDAL[Math.min(x.pos,4)]||MEDAL[3],big:ord(x.pos),small:'PLACE',body:fillT(team?cc.tTeam:cc.tWin,v)}))})});
   if(which==='all'||which==='best')(cat?[cat]:s.cats.map(x=>x.id)).forEach(k=>{const l=Object.values(c.cats[k]||{});[['B','Best Athlete (Boy)'],['G','Best Athlete (Girl)']].forEach(([g,lab])=>best(l.filter(p=>p.gender===g)).forEach(p=>{const h=Hs(p.houseId);
    const v={...base,ofclass:p.cls?`of Class ${esc(p.cls)} and `:'',class:esc(p.cls||''),house:esc(h?h.name:''),award:lab,category:esc(catName(k)),points:p.pts,medals:`${p.g} gold, ${p.s} silver, ${p.b} bronze`};
    out.push(certSheet({edit,sport:'trophy',house:h,name:p.name,no:no(),sub:cc.subExcel,medal:MEDAL.best,big:'★',small:'ATHLETE',body:fillT(cc.tBest,v)}))}))});
@@ -2014,7 +2014,13 @@ function planHouses(scope,mode,onlyKey){const s=S();const H=s.houses;const out={
  s.athletes.filter(a=>redo(a)&&(!onlyKey||gk(a)===onlyKey)).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.cls).localeCompare(norm(b.cls))||norm(a.sec).localeCompare(norm(b.sec))||(+a.roll||9999)-(+b.roll||9999)||norm(a.name).localeCompare(norm(b.name)))
   .forEach(a=>{const k=key(a);const c=cnt[k]=cnt[k]||{};const h=H.slice().sort((x,y)=>(c[x.id]||0)-(c[y.id]||0)||tot[x.id]-tot[y.id])[0];out[a.id]=h.id;c[h.id]=(c[h.id]||0)+1;tot[h.id]++});
  return out}
-function applyHousePlan(plan,label){const s=S();const undo={};Object.entries(plan).forEach(([id,hid])=>{const a=s.athletes.find(z=>z.id===id);if(a){undo[id]=a.houseId||'';a.houseId=hid}});if(Object.keys(undo).length)ui.undoH={map:undo,label,at:Date.now()};save();return Object.keys(undo).length}
+/* house changes: undo / redo history (last 15 changes, kept on this device) */
+const HU_KEY='sjs_sports_hundo';
+function huGet(){try{const d=JSON.parse(localStorage.getItem(HU_KEY)||'{}');return d[DB.active]||{u:[],r:[]}}catch(e){return{u:[],r:[]}}}
+function huSet(h){try{const d=JSON.parse(localStorage.getItem(HU_KEY)||'{}');d[DB.active]={u:h.u.slice(-15),r:h.r.slice(-15)};localStorage.setItem(HU_KEY,JSON.stringify(d))}catch(e){}}
+function huPush(map,label){if(!Object.keys(map).length)return;const h=huGet();h.u.push({map,label,at:Date.now()});h.r=[];huSet(h);ui.undoH=h.u[h.u.length-1]}
+function huApply(step){const s=S();const back={};let n=0;Object.entries(step.map).forEach(([id,hid])=>{const a=s.athletes.find(z=>z.id===id);if(a){back[id]=a.houseId||'';a.houseId=hid;n++}});return{back,n}}
+function applyHousePlan(plan,label){const s=S();const undo={};Object.entries(plan).forEach(([id,hid])=>{const a=s.athletes.find(z=>z.id===id);if(a){undo[id]=a.houseId||'';a.houseId=hid}});huPush(undo,label);save();return Object.keys(undo).length}
 function houseCounts(list,s=S()){const r={};s.houses.forEach(h=>r[h.id]={B:0,G:0,T:0});r._none={B:0,G:0,T:0};list.forEach(a=>{const k=a.houseId&&r[a.houseId]?a.houseId:'_none';r[k].T++;if(a.gender==='B')r[k].B++;else if(a.gender==='G')r[k].G++});return r}
 function countsTable(list,title){const s=S();const c=houseCounts(list);const max=Math.max(1,...s.houses.map(h=>c[h.id].T));
  return`<table class="t"><thead><tr><th>${esc(title||'House')}</th><th class="n">Boys</th><th class="n">Girls</th><th class="n">Total</th><th style="width:40%"></th></tr></thead><tbody>
@@ -2025,7 +2031,9 @@ function classList(s=S()){const m={};s.athletes.forEach(a=>{const k=classKey(a);
  return Object.values(m).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.cls).localeCompare(norm(b.cls))||norm(a.sec).localeCompare(norm(b.sec)))}
 const classTitle=c=>c?(c.cls?'Class '+c.cls:'No class')+(c.sec?' – '+c.sec:''):'';
 function pHousing(){const s=S();const mode=ui.hmode||'auto';const all=s.athletes;const noH=all.filter(a=>!a.houseId||!Hs(a.houseId)).length;
- const undo=ui.undoH?`<div class="banner"><b>${Object.keys(ui.undoH.map).length} students changed</b><span class="mut">${esc(ui.undoH.label)}</span><button class="btn sm" data-act="hUndo">Undo</button></div>`:'';
+ const hh=huGet(),lu=hh.u[hh.u.length-1],lr=hh.r[hh.r.length-1];
+ const undo=lu||lr?`<div class="banner" style="align-items:center"><b>House changes</b><span class="mut" style="flex:1 1 260px">${lu?`Last: ${esc(lu.label)} · ${Object.keys(lu.map).length} student${Object.keys(lu.map).length===1?'':'s'} · ${esc(fmtWhen(lu.at))}${hh.u.length>1?` · ${hh.u.length} changes can be undone, one after another`:''}`:'Nothing left to undo.'}</span>
+  ${lu?`<button class="btn sm" data-act="hUndo">↶ Undo</button>`:''}${lr?`<button class="btn sm" data-act="hRedo" title="${esc(lr.label)}">↷ Redo</button>`:''}</div>`:'';
  if(!all.length)return`<h2>Assign houses</h2><div class="empty">No members yet. Import them from SJS App or upload the Excel list on <a href="#athletes">Athletes / participants</a>.</div>`;
  const head=`<h2>Assign houses</h2><p class="lead">Give every student a house — automatically in one click, or by hand class by class. You can mix both: do most automatically, then change any student by hand.</p>
  <div class="chips"><button class="chip ${mode==='auto'?'on':''}" data-act="hMode" data-id="auto">Automatic</button><button class="chip ${mode==='manual'?'on':''}" data-act="hMode" data-id="manual">Manual — class by class</button>${noH?`<span class="tag rec" style="margin-left:8px">${noH} without a house</span>`:'<span class="tag ok" style="margin-left:8px">every student has a house</span>'}</div>${undo}`;
@@ -2391,12 +2399,13 @@ const ACT={
  hPreview:()=>{ui.hPrev=true;rerender()},hPrevOff:()=>{ui.hPrev=false;rerender()},
  hAuto:async()=>{const sc=ui.hScope,md=ui.hHow;if(sc==='all'&&!await ask('Give every student a new house?','All houses are worked out again. Results already saved keep the house they were saved with. You can Undo straight after.','Reassign everyone'))return;
   const n=applyHousePlan(planHouses(sc,md),sc==='all'?'All students reassigned automatically':'Students without a house assigned automatically');ui.hPrev=false;rerender();toast(n?`${n} students given a house`:'Everyone already has a house')},
- hUndo:()=>{const u=ui.undoH;if(!u)return;const s=S();Object.entries(u.map).forEach(([id,h])=>{const a=s.athletes.find(z=>z.id===id);if(a)a.houseId=h});ui.undoH=null;save();rerender();toast('Undone')},
+ hUndo:()=>{const h=huGet();const st=h.u.pop();if(!st){toast('Nothing to undo');return}const{back,n}=huApply(st);h.r.push({map:back,label:st.label,at:Date.now()});huSet(h);ui.undoH=null;save();rerender();toast(`Undone: ${st.label} (${n} student${n===1?'':'s'})`)},
+ hRedo:()=>{const h=huGet();const st=h.r.pop();if(!st){toast('Nothing to redo');return}const{back,n}=huApply(st);h.u.push({map:back,label:st.label,at:Date.now()});huSet(h);save();rerender();toast(`Redone: ${st.label} (${n} student${n===1?'':'s'})`)},
  afSecClr:()=>{ui.af.sec='';ui.aPage=0;rerender()},
  hToList:()=>{const c=classList().find(x=>x.k===ui.hClass);ui.af={q:'',cat:'',h:'',g:'',cls:c&&c.cls?c.cls:'_none',sec:c&&c.sec||''};ui.aPage=0;ui.msel=new Set();location.hash='#athletes'},
  hOpenClass:el=>{ui.hmode='manual';ui.hClass=el.dataset.id;rerender();window.scrollTo(0,0)},
  hStep:el=>{const c=classList();const i=c.findIndex(x=>x.k===ui.hClass)+(+el.dataset.id);if(c[i]){ui.hClass=c[i].k;rerender();window.scrollTo(0,0)}},
- hSet:el=>{const s=S();const a=s.athletes.find(z=>z.id===el.dataset.id);if(!a)return;const old=a.houseId||'';a.houseId=el.dataset.h;ui.undoH={map:{[a.id]:old},label:`${a.name} → ${(Hs(a.houseId)||{}).name}`,at:Date.now()};save();rerender()},
+ hSet:el=>{const s=S();const a=s.athletes.find(z=>z.id===el.dataset.id);if(!a)return;const old=a.houseId||'';a.houseId=el.dataset.h;huPush({[a.id]:old},`${a.name} → ${(Hs(a.houseId)||{}).name}`);save();rerender()},
  hAutoClass:()=>{const n=applyHousePlan(planHouses('none',ui.hHow||'gender',ui.hClass),'Rest of '+classTitle(classList().find(c=>c.k===ui.hClass))+' assigned automatically');rerender();toast(n?`${n} students given a house`:'Everyone in this class already has a house')},
  recatAll:async()=>{const p=planRecat();if(!p.ch){toast(p.miss?`Nothing to change · ${p.miss} members' classes match no category`:'Every member is already in the right category');return}
   if(!await ask(`Change ${p.ch} members' category?`,Object.entries(p.by).map(([k,n])=>`${k}: ${n}`).join('  •  ')+(p.miss?`  •  ${p.miss} members match no category and stay as they are`:''),'Update categories'))return;
@@ -2411,7 +2420,7 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  if(isLive()){SY.last={};SY.ready={};SY.subSid=null;SY.remoteActive=DB.active;try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}subscribe()}
  save();location.hash='#home';render();toast('Backup restored')}
 
-const MANAGE_ACTS=new Set('arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
+const MANAGE_ACTS=new Set('hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
 const SCORE_ACTS=new Set(['saveRes','clearRes','restoreVer']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn';
 function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
