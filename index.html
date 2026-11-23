@@ -76,6 +76,25 @@ a{color:inherit}
 .perm td.c{text-align:center}.perm .yes{color:#0f7b4d;font-weight:800;font-size:17px}.perm .no{color:var(--mut)}.perm th{font-size:13px}
 .rulepre{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;white-space:pre-wrap;overflow:auto;max-height:340px}
 .robar{margin:0 0 14px}
+.jmt td{padding:4px 6px}.jmt select{min-width:120px}.jmt input[data-k=name]{min-width:160px}.jmm{width:64px;text-align:center;font-weight:700}.jmt tr.jtop td{background:color-mix(in srgb,#f5b301 12%,transparent)}
+.repg{display:grid;gap:8px;margin-bottom:6px}.repgl{display:block;font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.attl{grid-column:1/-1;display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:-2px 0 6px}.attl input{width:74px;padding:6px 8px;min-height:36px}
+.bibs{display:grid;grid-template-columns:1fr;gap:6mm;background:#fff;padding:6mm;border-radius:8px}.bib{height:132mm;border:1.2mm solid var(--hc);border-radius:6mm;display:flex;flex-direction:column;align-items:center;justify-content:space-between;overflow:hidden;break-inside:avoid;page-break-inside:avoid;background:#fff;color:#111}
+.bibtop{width:100%;background:var(--hc);color:var(--ht);display:flex;justify-content:space-between;align-items:center;padding:4mm 7mm;font:700 5mm/1.1 Barlow,Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}.bibtop b{font-size:8mm}
+.bibno{font:900 62mm/1 Anton,Impact,'Arial Black',sans-serif;letter-spacing:.02em;color:#111}.bibnm{font:800 10mm/1.1 Barlow,Arial,sans-serif;text-align:center;padding:0 6mm;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bibft{width:100%;text-align:center;font:600 4.2mm/1.2 Barlow,Arial,sans-serif;color:#444;padding:0 6mm 5mm}
+@media print{.bibs{padding:0;gap:6mm}.bib{height:136mm}}
+.anncard{margin-bottom:10px}.anncard.now{border:2px solid var(--pri);box-shadow:0 6px 20px color-mix(in srgb,var(--pri) 18%,transparent)}.annt{font:800 12px/1 var(--disp);letter-spacing:.1em;color:var(--pri)}.annh{display:flex;gap:8px;align-items:flex-start;margin-top:6px}.annh .fxteam{flex:0 0 90px;padding:3px 8px;font-size:12.5px}.annw{margin-top:6px;font-size:16px}.annst{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.tvstage{background:rgba(255,255,255,.06);border-radius:18px;padding:18px 22px;margin:0 0 14px;min-height:56vh}.tvh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.tvh h3{color:#fff;font:800 30px/1.1 var(--disp);margin:0}
+.tvdots{display:flex;gap:6px}.tvdots i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.3)}.tvdots i.on{background:#fff}
+.tvgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.tvtile{background:rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;color:#fff;font-size:18px;display:flex;flex-direction:column;gap:6px}.tvtile b{font-size:22px}.tvtile>span{opacity:.75;font-size:15px}.tvorg{opacity:.7;font-size:14px}
+.tvqr{display:flex;gap:30px;align-items:center;flex-wrap:wrap;color:#fff}.qrbox{background:#fff;padding:14px;border-radius:16px;line-height:0}
+.pubctl{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:rgba(255,255,255,.07);border-radius:14px;padding:12px 14px;margin:12px 0}.qrmini{background:#fff;padding:6px;border-radius:10px;line-height:0}
+body.pubmode .side,body.pubmode .top,body.pubmode .tabbar{display:none!important}body.pubmode .app{grid-template-columns:minmax(0,1fr)}body.pubmode main{padding:0!important}
+.pub{min-height:100vh;background:linear-gradient(160deg,#0f2e4a,#123d2e);color:#fff;padding:22px 18px 40px}.pub h2{color:#fff;font:800 22px/1.2 var(--disp);margin:24px 0 10px}.pubhead .kick{opacity:.8;letter-spacing:.08em;text-transform:uppercase;font-size:13px}.pubhead h1{color:#fff;font:800 32px/1.1 var(--disp);margin:4px 0}.pubhead p{opacity:.8;margin:6px 0 0}
+.publanes{display:grid;gap:10px;margin-top:18px}.publane{display:grid;grid-template-columns:28px 120px minmax(0,1fr) 60px;gap:10px;align-items:center}.pubrank{font:800 22px/1 var(--disp);opacity:.85}.pubname{background:var(--hc);color:var(--ht);border-radius:99px;padding:8px 12px;font-weight:800;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pubbar{height:16px;background:rgba(255,255,255,.12);border-radius:99px;overflow:hidden}.pubbar i{display:block;height:100%;border-radius:99px}.pubpts{font:800 24px/1 var(--disp);text-align:right}
+.pubgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.pubcard{background:rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}.pubcard .mut{color:rgba(255,255,255,.7)}.pubw{display:flex;align-items:center;gap:6px}.pubpos{font-weight:800;min-width:34px}.pubdot{width:12px;height:12px;border-radius:50%;display:inline-block}.pubfoot{opacity:.6;font-size:12px;margin-top:24px;text-align:center}
+@media(max-width:600px){.publane{grid-template-columns:24px 92px minmax(0,1fr) 46px}.pubhead h1{font-size:26px}}
+.pracbar{background:#fde8e8;border-color:#f3b4b4;color:#7a1414;margin-bottom:12px;align-items:center}.pracbar b{background:#c0392b;color:#fff;border-radius:6px;padding:2px 8px;letter-spacing:.08em}.bkbar{margin-bottom:12px;align-items:center}
 .linkc{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px}
 .fxfmt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.fxopt{all:unset;box-sizing:border-box;cursor:pointer;border:2px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px;background:var(--card)}.fxopt span{font-size:12.5px;color:var(--mut)}.fxopt.on{border-color:var(--pri);background:var(--soft);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 18%,transparent)}.fxopt:focus-visible{outline:2px solid var(--pri)}
 .fxprog{height:6px;border-radius:9px;background:var(--soft);margin:10px 0 4px;overflow:hidden}.fxprog i{display:block;height:100%;background:var(--pri);border-radius:9px;transition:width .3s}
@@ -411,6 +430,7 @@ const RULES_TXT=`    // ===== SJS Sports App (Annual Sports Meet) — user contr
       allow create, update: if spGiveRole();
       allow delete: if isAdmin() || (spRole() == 'incharge' && resource.data.role == 'scorer');
     }
+    match /sports_public/{doc} { allow read: if true; allow write: if spManager() || spRecorder(); }
     match /sports/main { allow read: if signedIn(); allow write: if spManager(); }
     match /sports/main/s/{sid} { allow read: if signedIn(); allow write: if spManager(); }
     match /sports/main/s/{sid}/{coll}/{doc} {
@@ -418,7 +438,7 @@ const RULES_TXT=`    // ===== SJS Sports App (Annual Sports Meet) — user contr
       allow write: if spManager() || (coll == 'r' && spRecorder() && spOpen(sid));
     }`;
 const SY={myRole:null,isStaff:false,roleList:null,roleErr:'',roleUnsub:[],state:'off',user:null,fs:null,unsub:[],sesUnsub:[],subSid:null,last:{},ready:{},applying:false,timer:null,readonly:false,err:'',pending:0,remoteActive:null,pendingRender:false};
-const CFG_FIELDS=['id','year','title','date','venue','created','demo','houses','cats','types','events','maxEntry','days','locked','maxPerStudent','restGap'];
+const CFG_FIELDS=['id','year','title','date','venue','created','demo','houses','cats','types','events','maxEntry','days','locked','maxPerStudent','restGap','practice','from'];
 const SJ=o=>{const f=x=>Array.isArray(x)?x.map(f):x&&typeof x==='object'?Object.keys(x).sort().reduce((a,k)=>(x[k]!==undefined&&(a[k]=f(x[k])),a),{}):x;return JSON.stringify(f(o===undefined?null:o))};
 const clean=o=>JSON.parse(JSON.stringify(o));
 const pickCfg=s=>{const o={};CFG_FIELDS.forEach(k=>{if(s[k]!==undefined)o[k]=s[k]});return clean(o)};
@@ -441,7 +461,7 @@ const canScore=()=>!isLive()||['admin','incharge','scorer','teacher'].includes(s
 /* view-only teachers: look only — no download, print, copy; screenshots are discouraged with a name watermark */
 const VO_KEY='sjs_sports_vo';
 function isVO(){if(isLive())return spRole()==='viewer';try{return localStorage.getItem(VO_KEY)==='1'}catch(e){return false}}
-const NOSHARE_ACTS=new Set(['copyDuty','printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
+const NOSHARE_ACTS=new Set(['copyDay','copyDuty','printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
 const NOPERM_V='View only: downloading, printing and copying are turned off for your login.';
 function voPaint(){const on=isVO();document.body.classList.toggle('vo',on);
  if(isLive()){try{on?localStorage.setItem(VO_KEY,'1'):localStorage.removeItem(VO_KEY)}catch(e){}}
@@ -577,7 +597,7 @@ async function commit(ops,wait){
  if(wait)await Promise.all(all);
 }
 function pushDiff(){
- if(!isLive()||SY.readonly)return;const ops=[];
+ if(!isLive()||SY.readonly)return;schedulePub();const ops=[];
  if(!isMgr()){const sid=DB.active,s=DB.sessions[sid];if(!SY.ready[sid]||!s)return;
   const scorer=canScore()&&!s.locked;const back=revertLocal(sid,!scorer);
   if(scorer)diffColl(ops,sid,'r',Object.entries(s.results||{}));
@@ -770,6 +790,7 @@ function pHome(){
   <div class="meta"><span>${c.done} of ${c.total} events completed</span><div class="prog"><span style="width:${pct}%"></span></div>${s.date?`<span>${esc(fmtDate(s.date))}</span>`:''}${s.venue?`<span>${esc(s.venue)}</span>`:''}</div>
   <div class="lanes">${lanesHTML(c)}</div></section>
  <div class="g3" style="margin-top:16px">${pod}</div>
+ ${!isVO()&&(c.done||0)>0?`<div class="card noprint" style="margin-top:16px"><div class="row" style="justify-content:space-between;align-items:center"><div><h3 style="margin:0">Share the results on WhatsApp</h3><span class="tiny">Results, house points and what comes next — ready to paste in the staff or parents group.</span></div><button class="btn pri" data-act="copyDay">Copy summary</button></div>${(s.days||[]).length?`<div class="chips" style="margin-top:8px"><button class="chip ${!ui.sumDay?'on':''}" data-act="sumDay" data-id="">Whole meet</button>${s.days.map(d=>`<button class="chip ${ui.sumDay===d.id?'on':''}" data-act="sumDay" data-id="${d.id}">${esc(d.name)}</button>`).join('')}</div>`:''}</div>`:''}
  <div class="g2" style="margin-top:16px">
   <div class="card pod"><span class="medal m1">B</span><div><div class="lbl">Best Athlete – Boy (whole meet)</div>${personLine(bb)}</div></div>
   <div class="card pod"><span class="medal m1">G</span><div><div class="lbl">Best Athlete – Girl (whole meet)</div>${personLine(bg)}</div></div>
@@ -788,13 +809,108 @@ function pHome(){
  <div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Latest results</h3><button class="btn sm" data-act="xlsRes">Download all results (Excel)</button></div><div style="height:8px"></div>${feed?`<ul class="feed">${feed}</ul>`:'<div class="empty">Results appear here as you save them.</div>'}</div>`;
 }
 
-function pScoreboard(){
+/* tiny QR encoder: byte mode, error level M, versions 1-10, mask chosen by penalty */
+const QR=(()=>{const ECC=[0,10,16,26,18,24,16,18,22,22,26],BLK=[0,1,1,1,2,2,4,4,4,5,5];
+ const EXP=new Array(512),LOG=new Array(256);let x=1;for(let i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11d}for(let i=255;i<512;i++)EXP[i]=EXP[i-255];
+ const mul=(a,b)=>a&&b?EXP[LOG[a]+LOG[b]]:0;
+ const rsDiv=d=>{const r=new Array(d).fill(0);r[d-1]=1;let root=1;for(let i=0;i<d;i++){for(let j=0;j<d;j++){r[j]=mul(r[j],root);if(j+1<d)r[j]^=r[j+1]}root=mul(root,2)}return r};
+ const rsRem=(data,div)=>{const r=new Array(div.length).fill(0);for(const b of data){const f=b^r.shift();r.push(0);div.forEach((c,i)=>r[i]^=mul(c,f))}return r};
+ const raw=v=>{let r=(16*v+128)*v+64;if(v>=2){const n=Math.floor(v/7)+2;r-=(25*n-10)*n-55;if(v>=7)r-=36}return r};
+ const dataCw=v=>Math.floor(raw(v)/8)-ECC[v]*BLK[v];
+ const alignPos=v=>{if(v===1)return[];const n=Math.floor(v/7)+2,size=v*4+17;const step=Math.ceil((v*4+4)/(n*2-2))*2;const r=[6];for(let p=size-7;r.length<n;p-=step)r.splice(1,0,p);return r};
+ function encode(text){const bytes=[...new TextEncoder().encode(text)];let v=1;for(;v<=10;v++)if(bytes.length+2+(v>=10?1:0)<=dataCw(v))break;if(v>10)throw new Error('too long');
+  const bits=[];const put=(val,n)=>{for(let i=n-1;i>=0;i--)bits.push((val>>>i)&1)};put(4,4);put(bytes.length,v<10?8:16);bytes.forEach(b=>put(b,8));
+  const cap=dataCw(v)*8;put(0,Math.min(4,cap-bits.length));while(bits.length%8)bits.push(0);for(let p=0xec;bits.length<cap;p^=0xec^0x11)put(p,8);
+  const data=[];for(let i=0;i<bits.length;i+=8)data.push(parseInt(bits.slice(i,i+8).join(''),2));
+  const nb=BLK[v],ec=ECC[v],rawCw=Math.floor(raw(v)/8),nShort=nb-rawCw%nb,shortLen=Math.floor(rawCw/nb);const div=rsDiv(ec);const blocks=[];
+  for(let i=0,k=0;i<nb;i++){const d=data.slice(k,k+shortLen-ec+(i<nShort?0:1));k+=d.length;const e=rsRem(d,div);if(i<nShort)d.push(0);blocks.push(d.concat(e))}
+  const all=[];for(let i=0;i<blocks[0].length;i++)blocks.forEach((b,j)=>{if(i!==shortLen-ec||j>=nShort)all.push(b[i])});
+  const size=v*4+17;const M=[...Array(size)].map(()=>new Array(size).fill(false)),F=[...Array(size)].map(()=>new Array(size).fill(false));
+  const set=(c,r,d)=>{M[r][c]=d;F[r][c]=true};
+  for(let i=0;i<size;i++){set(6,i,i%2===0);set(i,6,i%2===0)}
+  const finder=(cx,cy)=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const d=Math.max(Math.abs(dx),Math.abs(dy)),xx=cx+dx,yy=cy+dy;if(xx>=0&&xx<size&&yy>=0&&yy<size)set(xx,yy,d!==2&&d!==4)}};
+  finder(3,3);finder(size-4,3);finder(3,size-4);
+  const ap=alignPos(v);ap.forEach((a,i)=>ap.forEach((b,j)=>{if((i===0&&j===0)||(i===0&&j===ap.length-1)||(i===ap.length-1&&j===0))return;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)set(a+dx,b+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)}));
+  const fmt=mask=>{const d=(0<<3)|mask;let r=d;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);const b=((d<<10)|r)^0x5412;const g=i=>((b>>>i)&1)!==0;
+   for(let i=0;i<=5;i++)set(8,i,g(i));set(8,7,g(6));set(8,8,g(7));set(7,8,g(8));for(let i=9;i<15;i++)set(14-i,8,g(i));
+   for(let i=0;i<8;i++)set(size-1-i,8,g(i));for(let i=8;i<15;i++)set(8,size-15+i,g(i));set(8,size-8,true)};
+  if(v>=7){let r=v;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1f25);const b=(v<<12)|r;for(let i=0;i<18;i++){const bt=((b>>>i)&1)!==0,a=size-11+i%3,c=Math.floor(i/3);set(a,c,bt);set(c,a,bt)}}
+  fmt(0);
+  let i=0;for(let right=size-1;right>=1;right-=2){if(right===6)right=5;for(let vert=0;vert<size;vert++)for(let j=0;j<2;j++){const xx=right-j,up=((right+1)&2)===0,yy=up?size-1-vert:vert;if(!F[yy][xx]&&i<all.length*8){M[yy][xx]=((all[i>>>3]>>>(7-(i&7)))&1)!==0;i++}}}
+  const mk=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,(x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+  const apply=m=>{for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(!F[y][x]&&mk[m](x,y))M[y][x]=!M[y][x]};
+  const pen=()=>{let p=0;const line=get=>{let run=1,prev=get(0);for(let k=1;k<size;k++){const c=get(k);if(c===prev){run++;if(run===5)p+=3;else if(run>5)p++}else{run=1;prev=c}}};
+   for(let y=0;y<size;y++)line(k=>M[y][k]);for(let x=0;x<size;x++)line(k=>M[k][x]);
+   for(let y=0;y<size-1;y++)for(let x=0;x<size-1;x++){const c=M[y][x];if(c===M[y][x+1]&&c===M[y+1][x]&&c===M[y+1][x+1])p+=3}
+   let dark=0;M.forEach(r=>r.forEach(c=>{if(c)dark++}));p+=Math.floor(Math.abs(dark*20-size*size*10)/(size*size))*10;return p};
+  let best=0,bp=1e9;for(let m=0;m<8;m++){apply(m);fmt(m);const q=pen();if(q<bp){bp=q;best=m}apply(m)}apply(best);fmt(best);return M}
+ function svg(text,px){const M=encode(text),n=M.length,q=4,s=n+q*2;let d='';M.forEach((r,y)=>r.forEach((c,x)=>{if(c)d+=`M${x+q} ${y+q}h1v1h-1z`}));return`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${s} ${s}" width="${px||200}" height="${px||200}" shape-rendering="crispEdges" role="img" aria-label="QR code"><rect width="${s}" height="${s}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`}
+ return{encode,svg}})();
+
+/* ---------- public live view for parents (no sign-in): a small summary document ---------- */
+const PUB_URL=()=>/github\.io$/.test(location.hostname)?location.origin+location.pathname+'#live':'https://stjames1980.github.io/sjs-sports/#live';
+function pubBoard(){const s=S(),c=calc();return{on:true,school:DB.app.school,title:s.title,year:s.year,at:Date.now(),done:c.done,total:c.total,
+ st:c.st.map(x=>({n:x.h.name,c:x.h.color,t:x.total,g:x.g,s:x.si,b:x.b,r:x.rank})),
+ latest:c.feed.slice(0,8).map(({e,r})=>({e:e.name,g:e.gender,cat:catName(e.catId),w:r.rows.slice().sort((a,b)=>a.pos-b.pos).slice(0,3).map(x=>({p:x.pos,h:(Hs(x.houseId)||{}).name||'',c:(Hs(x.houseId)||{}).color||'#888',n:x.name||''}))})),
+ next:nextEvents(6).map(e=>({e:e.name,g:e.gender,cat:catName(e.catId),t:e.time?fmtTime(e.time):'',d:e.dayId&&dayById(e.dayId)?dayById(e.dayId).name:'',v:e.venue||''}))}}
+function schedulePub(){clearTimeout(SY.pubT);SY.pubT=setTimeout(pushPub,4000)}
+function pushPub(){if(!isLive()||!SY.fs||!(isMgr()||canScore()))return;const on=!!DB.app.pubOn;const b=on?pubBoard():{on:false,at:Date.now()};const j=JSON.stringify({...b,at:0});if(j===SY.lastPub)return;SY.lastPub=j;
+ SY.fs.collection('sports_public').doc('board').set(b).catch(e=>{SY.lastPub='';if(e&&e.code==='permission-denied'&&isMgr()&&on)toast('Public view not updated — the Admin must add the new public line to the Firebase rules (Users & roles)')})}
+function nextEvents(n){const s=S();const today=new Date().toISOString().slice(0,10);let l=s.events.filter(e=>!hasRes(e)).sort(schedCmp(s));
+ const td=(s.days||[]).find(d=>d.date===today);if(td){const l2=l.filter(e=>e.dayId===td.id);if(l2.length)l=l2}return l.slice(0,n)}
+/* public page (#live) */
+function pubStart(){document.body.classList.add('pubmode');if(SY.pubUnsub)return;fbInit().then(ok=>{if(!ok){SY.pub={err:SY.err};pubPaint();return}
+ SY.pubUnsub=SY.fs.collection('sports_public').doc('board').onSnapshot(d=>{SY.pub=d.exists?d.data():{on:false};pubPaint()},e=>{SY.pub={err:'The live view is not open yet.'};pubPaint()})})}
+function pubPaint(){if(ui.page==='live')rerender()}
+function pLive(){pubStart();const b=SY.pub;
+ if(!b)return`<div class="pub"><div class="pubhead"><h1>Loading live scores…</h1></div></div>`;
+ if(b.err||!b.on)return`<div class="pub"><div class="pubhead"><h1>${esc(DB.app.school)}</h1><p>${esc(b.err||'The live view is closed right now. Please check again during the sports meet.')}</p></div></div>`;
+ const max=Math.max(1,...b.st.map(x=>x.t));
+ return`<div class="pub"><div class="pubhead"><div class="kick">${esc(b.school)}</div><h1>${esc(b.title)} ${esc(b.year)}</h1><p>${b.done} of ${b.total} events completed · updated ${esc(new Date(b.at).toLocaleTimeString('en-IN',{hour:'numeric',minute:'2-digit'}))}</p></div>
+ <div class="publanes">${b.st.map(x=>`<div class="publane"><span class="pubrank">${x.r}</span><span class="pubname" style="--hc:${x.c};--ht:${txtOn(x.c)}">${esc(x.n)}</span><div class="pubbar"><i style="width:${Math.round(x.t/max*100)}%;background:${x.c}"></i></div><b class="pubpts">${x.t}</b></div>`).join('')}</div>
+ ${b.latest.length?`<h2>Latest results</h2><div class="pubgrid">${b.latest.map(r=>`<div class="pubcard"><b>${esc(r.e)}</b><span class="mut">${esc(r.g)} · ${esc(r.cat)}</span>${r.w.map(w=>`<div class="pubw"><span class="pubpos">${ord(w.p)}</span><span class="pubdot" style="background:${w.c}"></span>${esc(w.h)}${w.n?' · '+esc(w.n):''}</div>`).join('')}</div>`).join('')}</div>`:''}
+ ${b.next.length?`<h2>Coming up</h2><div class="pubgrid">${b.next.map(e=>`<div class="pubcard"><b>${esc(e.e)}</b><span class="mut">${esc(e.g)} · ${esc(e.cat)}</span><span>${[e.d,e.t,e.v].filter(Boolean).map(esc).join(' · ')}</span></div>`).join('')}</div>`:''}
+ <p class="pubfoot">SJS Sports App · scores update by themselves</p></div>`}
+/* ---------- Announcer: Now & Next ---------- */
+const ANN_KEY='sjs_sports_ann';
+function annGet(){try{const d=JSON.parse(localStorage.getItem(ANN_KEY)||'{}');return d[DB.active]||{called:[],told:[]}}catch(e){return{called:[],told:[]}}}
+function annSet(a){try{const d=JSON.parse(localStorage.getItem(ANN_KEY)||'{}');d[DB.active]=a;localStorage.setItem(ANN_KEY,JSON.stringify(d))}catch(e){}}
+function partsByHouse(e){const s=S();const ids=(s.entries||{})[e.id]||[];const by={};ids.forEach(id=>{const a=s.athletes.find(z=>z.id===id);if(a)(by[a.houseId||'_']=by[a.houseId||'_']||[]).push(a)});return by}
+function callText(e){const s=S();const by=partsByHouse(e);const hs=s.houses.filter(h=>by[h.id]);return`Calling all participants of ${e.name}, ${e.gender}, ${catName(e.catId)}${e.venue?'. Please report to '+e.venue:''}. `+hs.map(h=>`${h.name} House: ${by[h.id].map(a=>a.name).join(', ')}.`).join(' ')}
+function winText(e,r){const w=r.rows.slice().sort((a,b)=>a.pos-b.pos).slice(0,3);return`Result of ${e.name}, ${e.gender}, ${catName(e.catId)}. `+w.map(x=>`${POSW[x.pos]||ord(x.pos)}: ${x.name?x.name+' of ':''}${(Hs(x.houseId)||{}).name||''} House.`).join(' ')}
+function pAnnounce(){const s=S(),c=calc();const A=annGet();const days=s.days||[];const today=new Date().toISOString().slice(0,10);
+ if(ui.annDay==null){const has=d=>s.events.some(e=>e.dayId===d.id&&!hasRes(e));const td=days.find(d=>d.date===today&&has(d));ui.annDay=(td||days.find(has)||{}).id||''}
+ const pend=s.events.filter(e=>!hasRes(e)&&(!ui.annDay||e.dayId===ui.annDay)).sort(schedCmp(s));const next=pend.filter(e=>!A.called.includes(e.id)).slice(0,3);const called=pend.filter(e=>A.called.includes(e.id)).slice(-3).reverse();
+ const toTell=c.feed.filter(({e})=>!A.told.includes(e.id)).slice(0,4);
+ const parts=e=>{const by=partsByHouse(e);const hs=s.houses.filter(h=>by[h.id]);return hs.length?hs.map(h=>`<div class="annh"><span class="fxteam" style="--hc:${h.color};--ht:${txtOn(h.color)}">${esc(h.name)}</span><span>${by[h.id].map(a=>`${a.chest?`<b>#${esc(a.chest)}</b> `:''}${esc(a.name)}`).join(' · ')}</span></div>`).join(''):'<span class="tiny">No participants entered yet</span>'};
+ return`<h2>Announcer — Now &amp; Next</h2><p class="lead">For the person on the microphone: who to call next, and which winners to announce. Tap 🔊 to let the phone read it aloud.</p>
+ ${days.length?`<div class="chips">${days.map(d=>`<button class="chip ${ui.annDay===d.id?'on':''}" data-act="annDay" data-id="${d.id}">${esc(d.name)}</button>`).join('')}<button class="chip ${!ui.annDay?'on':''}" data-act="annDay" data-id="">All days</button></div>`:''}
+ <div class="g2" style="margin-top:12px;align-items:start"><div><h3 style="margin:0 0 8px">Call next</h3>${next.length?next.map((e,i)=>`<div class="card anncard ${i===0?'now':''}"><div class="row" style="justify-content:space-between;align-items:start"><div><div class="annt">${i===0?'NOW':'NEXT'}${e.time?' · '+fmtTime(e.time):''}${e.venue?' · '+esc(e.venue):''}</div><h3 style="margin:2px 0">${esc(e.name)}</h3><div class="mut">${esc(e.gender)} · ${esc(catName(e.catId))}${e.org?' · In-charge: '+esc(e.org):''}</div></div><div class="row"><button class="btn sm" data-act="annSay" data-k="call" data-id="${e.id}" title="Read aloud">🔊</button><button class="btn sm pri" data-act="annCalled" data-id="${e.id}">Called ✓</button></div></div><div style="margin-top:8px">${parts(e)}</div></div>`).join(''):'<div class="empty">Nothing left to call on this day.</div>'}
+  ${called.length?`<details style="margin-top:8px"><summary class="tiny" style="cursor:pointer">Already called (${called.length}) — undo</summary>${called.map(e=>`<div class="row" style="justify-content:space-between;margin-top:6px"><span>${esc(e.name)} · ${esc(e.gender)} · ${esc(catName(e.catId))}</span><button class="btn sm" data-act="annUncall" data-id="${e.id}">Call again</button></div>`).join('')}</details>`:''}</div>
+ <div><h3 style="margin:0 0 8px">Announce winners</h3>${toTell.length?toTell.map(({e,r})=>`<div class="card anncard"><div class="row" style="justify-content:space-between;align-items:start"><div><h3 style="margin:0">${esc(e.name)}</h3><div class="mut">${esc(e.gender)} · ${esc(catName(e.catId))}</div></div><div class="row"><button class="btn sm" data-act="annSay" data-k="win" data-id="${e.id}" title="Read aloud">🔊</button><button class="btn sm pri" data-act="annTold" data-id="${e.id}">Announced ✓</button></div></div>${r.rows.slice().sort((a,b)=>a.pos-b.pos).slice(0,3).map(x=>`<div class="annw"><b>${ord(x.pos)}</b> ${chip(Hs(x.houseId))} ${esc(x.name||'')} ${x.perf?`<span class="tiny">${esc(x.perf)} ${unitOf(e.measure)}</span>`:''}</div>`).join('')}</div>`).join(''):'<div class="empty">No new results to announce.</div>'}
+  <div class="card" style="margin-top:10px"><b>House points now</b><div class="annst">${c.st.map(x=>`<span>${x.rank}. ${chip(x.h)} <b>${x.total}</b></span>`).join('')}</div><button class="btn sm" style="margin-top:8px" data-act="annSay" data-k="st">🔊 Read the standings</button></div></div></div>`}
+/* ---------- TV mode slides ---------- */
+function tvSlides(){const s=S(),c=calc();const sl=[];
+ sl.push(['House standings',`<div class="lanes">${lanesHTML(c)}</div>`]);
+ const tiles=c.feed.slice(0,6).map(({e,r})=>{const w=r.rows.slice().sort((a,b)=>a.pos-b.pos).slice(0,3);return`<div class="tvtile"><b>${esc(e.name)}</b><span>${esc(e.gender)} · ${esc(catName(e.catId))}</span>${w.map(x=>`<div>${ord(x.pos)} ${chip(Hs(x.houseId))} ${esc(x.name||'')}</div>`).join('')}</div>`}).join('');
+ if(tiles)sl.push(['Latest results',`<div class="tvgrid">${tiles}</div>`]);
+ const nx=nextEvents(6);if(nx.length)sl.push(['Coming up next',`<div class="tvgrid">${nx.map(e=>`<div class="tvtile"><b>${esc(e.name)}</b><span>${esc(e.gender)} · ${esc(catName(e.catId))}</span><div>${[e.dayId&&dayById(e.dayId)?dayById(e.dayId).name:'',e.time?fmtTime(e.time):'',e.venue].filter(Boolean).map(esc).join(' · ')||'&nbsp;'}</div>${e.org?`<div class="tvorg">In-charge: ${esc(e.org)}</div>`:''}</div>`).join('')}</div>`]);
+ const champ=s.cats.map(ct=>{const l=Object.values(c.cats[ct.id]||{});const b=best(l.filter(a=>a.gender==='B'))[0],g=best(l.filter(a=>a.gender==='G'))[0];if(!b&&!g)return'';return`<div class="tvtile"><b>${esc(ct.name)}</b>${b?`<div>Boy: ${esc(b.name)} ${dot(Hs(b.houseId))} <span>${b.pts} pts</span></div>`:''}${g?`<div>Girl: ${esc(g.name)} ${dot(Hs(g.houseId))} <span>${g.pts} pts</span></div>`:''}</div>`}).join('');
+ if(champ)sl.push(['Best athletes so far',`<div class="tvgrid">${champ}</div>`]);
+ if(DB.app.pubOn&&isLive())sl.push(['Follow live on your phone',`<div class="tvqr"><div class="qrbox">${QR.svg(PUB_URL(),300)}</div><div><h3 style="color:#fff;font-size:34px;margin:0 0 10px">Scan for live scores</h3><p style="font-size:20px;opacity:.85">Parents and students can follow the meet on their phone — no login needed.</p><p style="font-size:18px;opacity:.7">${esc(PUB_URL())}</p></div></div>`]);
+ return sl}
+function tvPaint(){const st=$('#tvStage');if(!st)return;const sl=tvSlides();ui.tvI=(ui.tvI||0)%sl.length;const [h,b]=sl[ui.tvI];st.innerHTML=`<div class="tvh"><h3>${esc(h)}</h3><div class="tvdots">${sl.map((x,i)=>`<i class="${i===ui.tvI?'on':''}"></i>`).join('')}</div></div><div class="tvbody">${b}</div>`}
+function tvTick(){clearInterval(SY.tvT);if(!ui.tv)return;SY.tvT=setInterval(()=>{if(ui.page!=='scoreboard'||!ui.tv){clearInterval(SY.tvT);return}ui.tvI=(ui.tvI||0)+1;tvPaint()},12000)}
+function pScoreboard(){if(ui.tv){setTimeout(()=>{tvPaint();if(!SY.tvT)tvTick()},0)}
  const s=S(),c=calc();
  const tick=c.feed.slice(0,6).map(({e,r})=>{const w=r.rows.slice().sort((a,b)=>a.pos-b.pos).slice(0,3);return`<div><b>${esc(e.name)}</b> <span style="opacity:.7">${esc(e.gender)} · ${esc(catName(e.catId))}</span><br>${w.map(x=>`${ord(x.pos)} ${chip(Hs(x.houseId))} ${esc(x.name||'')}`).join('<br>')}</div>`}).join('');
  return `<div class="sb" id="sbx"><div class="row noprint" style="justify-content:space-between;margin-bottom:12px"><div><div style="opacity:.8">${esc(DB.app.school)}</div><h2 style="color:#fff">${esc(s.title)} ${esc(s.year)} — Live</h2></div>
- <div class="row"><button class="btn sm" data-act="fs">Full screen</button><a class="btn sm" href="#scoreboard" target="_blank" rel="noopener">Open in new window</a></div></div>
- <section class="hero"><div class="meta"><span>${c.done} of ${c.total} events completed</span>${c.st[0]&&c.st[0].total?`<span>Leading: <b>${esc(c.st[0].h.name)}</b></span>`:''}</div><div class="lanes">${lanesHTML(c)}</div></section>
- ${tick?`<div class="tick">${tick}</div>`:''}<p style="opacity:.6;font-size:13px">Updates automatically when results are saved in another tab or window of this app on the same device.</p></div>`;
+ <div class="row"><button class="btn sm ${ui.tv?'pri':''}" data-act="tvToggle">${ui.tv?'■ Stop TV mode':'▶ TV mode (auto-rotate)'}</button><button class="btn sm" data-act="fs">Full screen</button><a class="btn sm" href="#scoreboard" target="_blank" rel="noopener">Open in new window</a></div></div>
+ ${ui.tv?'<div id="tvStage" class="tvstage"></div>':''}
+ ${ui.tv?'':`<section class="hero"><div class="meta"><span>${c.done} of ${c.total} events completed</span>${c.st[0]&&c.st[0].total?`<span>Leading: <b>${esc(c.st[0].h.name)}</b></span>`:''}</div><div class="lanes">${lanesHTML(c)}</div></section>`}
+ ${!ui.tv&&tick?`<div class="tick">${tick}</div>`:''}
+ <div class="pubctl noprint">${isLive()?`<div><b style="color:#fff">Public live view for parents</b><br><span style="opacity:.75;font-size:13px">${DB.app.pubOn?'Open — anyone with the link or QR code can see house points, latest winners and the next events (no login).':'Closed. Open it to show a QR code that parents can scan.'}</span></div>${isMgr()?`<button class="btn sm ${DB.app.pubOn?'':'pri'}" data-act="pubToggle">${DB.app.pubOn?'Close public view':'Open public view'}</button>`:''}${DB.app.pubOn?`<div class="qrmini">${QR.svg(PUB_URL(),120)}</div><button class="btn sm" data-act="pubCopy">Copy link</button>`:''}`:'<span style="opacity:.75;font-size:13px">Turn on live sharing to open a public live view (QR code) for parents.</span>'}</div>
+ <p style="opacity:.6;font-size:13px">Updates by itself when results are saved on any device sharing live. TV mode rotates: standings → latest results → coming up → best athletes${DB.app.pubOn?' → QR code':''}, every 12 seconds.</p></div>`;
 }
 
 function evListHTML(){
@@ -909,16 +1025,43 @@ function fixturesReport(cat,head,sign,foot,sw){const s=S();const evs=repEvents(c
   ${fx.matches.some(m=>m.stage==='league')?`<h4 style="margin:8px 0 4px">League table</h4><table><thead><tr><th>#</th><th>House</th><th class="n">P</th><th class="n">W</th><th class="n">D</th><th class="n">L</th><th class="n">F</th><th class="n">A</th><th class="n">+/−</th><th class="n">Pts</th></tr></thead><tbody>${fxTable(fx).map((x,i)=>`<tr><td>${i+1}</td><td>${sw(Hs(x.h))}</td><td class="n">${x.P}</td><td class="n">${x.W}</td><td class="n">${x.D}</td><td class="n">${x.L}</td><td class="n">${x.F}</td><td class="n">${x.A}</td><td class="n">${x.F-x.A}</td><td class="n"><b>${x.Pts}</b></td></tr>`).join('')}</tbody></table>`:''}
   ${pl?`<p><b>Final placings:</b> ${pl.map(x=>ord(x.pos)+' '+esc((Hs(x.houseId)||{}).name||'')).join(' · ')}</p>`:''}</div>`}).join('')}${sign}${foot}</div>`}
 function edLinks(e){const s=S();const t=Ts(e.typeId)||{};
+ if(e.measure==='none'&&isJudged(e)){const J=jmOf(e.id);return`<div class="card linkc" style="margin-top:12px"><span>${J&&J.rows.length?`<b>Judges' marks</b> · ${J.rows.length} participants`:'Judged item — let the judges give marks and the app ranks the places.'}</span><a class="btn" href="#judges" data-act="goJm" data-id="${e.id}">Open Judges' marks ›</a></div>`}
  if(t.team&&e.measure==='none'){const fx=fxOf(e.id);if(!fx)return`<div class="card linkc" style="margin-top:12px"><span>Team game — plan the matches (knock-out or league) first?</span><a class="btn" href="#fixtures" data-act="goFx" data-id="${e.id}">Open Match fixtures ›</a></div>`;
   const all=fx.matches.filter(m=>!m.bye),d=all.filter(fxDone).length;return`<div class="card linkc" style="margin-top:12px"><span><b>Match fixtures</b> · ${esc(FXF[fx.format])} · ${d} of ${all.length} matches played</span><a class="btn" href="#fixtures" data-act="goFx" data-id="${e.id}">Open Match fixtures ›</a></div>`}
  if(t.team)return'';const H=heatsOf(e.id);
  if(!H)return e.measure==='none'?'':`<div class="card linkc" style="margin-top:12px"><span>Too many runners for one race? Run heats first.</span><a class="btn" href="#heats" data-act="goHt" data-id="${e.id}">Open Heats ›</a></div>`;
  const fin=heatFinalists(e,H);return`<div class="card linkc" style="margin-top:12px;flex-direction:column;align-items:stretch"><div class="row" style="justify-content:space-between;align-items:center"><span><b>Heats</b> · ${H.list.length} heat${H.list.length===1?'':'s'} · ${fin.length} finalist${fin.length===1?'':'s'}</span><a class="btn sm" href="#heats" data-act="goHt" data-id="${e.id}">Open Heats ›</a></div>
   ${fin.length?`<div><span class="tiny">Tap a finalist to put them in the next empty row above.</span><div class="chips" style="margin-top:6px">${fin.map((f,i)=>{const hc=Hs(f.houseId);return`<button class="chip" data-act="finPick" data-i="${i}" style="${hc?`border-color:${hc.color}`:''}">${hc?`<span class="p-sw" style="background:${hc.color}"></span>`:''}${esc(f.name||'—')}${f.perf?` <span class="mut">${esc(f.perf)}</span>`:''}</button>`}).join('')}</div></div>`:''}</div>`}
+/* ---------- Judges' marks (cultural / literary items) ---------- */
+const isJudged=e=>/cultur|literar|judg|elocution|debate|song|dance|recitation|quiz|drawing|essay|speech/i.test(((Ts(e.typeId)||{}).name||'')+' '+e.name);
+function jmOf(eid,make){const s=S();let r=s.results[eid];if(!r){if(!make)return null;r=s.results[eid]={rows:[],at:Date.now(),by:whoAmI()}}if(!r.jm&&make)r.jm={n:3,max:10,judges:['Judge 1','Judge 2','Judge 3'],rows:[]};return r.jm||null}
+const jmTotal=r=>(r.m||[]).reduce((t,v)=>t+(isNaN(parseFloat(v))?0:parseFloat(v)),0);
+function jmRanked(J){const l=J.rows.filter(r=>r.houseId||r.name).map(r=>({r,t:jmTotal(r),full:(r.m||[]).slice(0,J.n).every(v=>!isNaN(parseFloat(v)))}));l.sort((a,b)=>b.t-a.t);let rank=0,prev=null;l.forEach((x,i)=>{if(x.t!==prev){rank=i+1;prev=x.t}x.rank=rank});return l}
+function pJudges(){const s=S();const all=ui.jmAll;const evs=s.events.filter(e=>e.measure==='none'&&!((Ts(e.typeId)||{}).team&&!isJudged(e))&&(all||isJudged(e))).filter(e=>!ui.jmCat||(e.catId||'_open')===ui.jmCat);
+ if(!ui.jmSel||!evs.some(e=>e.id===ui.jmSel))ui.jmSel=(evs.find(e=>jmOf(e.id))||evs[0]||{}).id;const e=evs.find(x=>x.id===ui.jmSel);
+ const st=e=>{const J=jmOf(e.id);if(hasRes(e))return'<span class="tag ok">Done</span>';if(!J||!J.rows.length)return'';return`<span class="tag">${J.rows.length} entered</span>`};
+ return`<h2>Judges' marks</h2><p class="lead">For elocution, debate, singing, dance, quiz, drawing and other judged items. Each judge gives marks, the app adds them up, ranks the places and saves the result.</p>
+ ${catChips('jmCat')}<label class="chk" style="margin-top:6px"><input type="checkbox" data-act="jmAllT" ${all?'checked':''}> Show every “position only” event (not only cultural items)</label>
+ <div class="rlayout" style="margin-top:10px"><div><div class="evlist">${sideList(evs,ui.jmSel,'jmSelEv',st)}</div>${evs.length?'':'<p class="tiny">No cultural items found. Add them with the Standard event list (Events / items), or tick the box above.</p>'}<button class="btn sm" style="margin-top:10px" data-act="jmPrint">Print judges' mark sheets</button></div>
+ <div>${e?jmHTML(e):'<div class="empty">Choose an item on the left.</div>'}</div></div>`}
+function jmHTML(e){const s=S();const J=jmOf(e.id);const t=Ts(e.typeId)||{};const team=!!t.team;const edit=canScore()&&!s.locked;
+ const head=`<div class="card"><div class="row" style="justify-content:space-between;align-items:center"><div><h3 style="margin:0">${esc(e.name)}</h3><div class="mut">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc(t.name||'')} · points ${(t.pts||[]).join(' / ')}${e.org?' · In-charge: '+esc(e.org):''}</div></div>${hasRes(e)?`<span class="tag ok">Result saved</span>`:''}</div></div>`;
+ if(!J)return head+`<div class="card" style="margin-top:12px"><p style="margin-top:0">Judges give marks to each participant. Set how many judges and the marks out of, then type the marks.</p><button class="btn pri" data-act="jmOn">Start judges' marks</button></div>`;
+ const R=jmRanked(J);const rk={};R.forEach(x=>rk[x.r.id]=x);const allFull=R.length&&R.every(x=>x.full);
+ return head+`<div class="card" style="margin-top:12px"><div class="row" style="align-items:end"><label style="flex:0 1 140px">Judges<input type="number" min="1" max="7" data-jm="n" value="${J.n}"></label><label style="flex:0 1 160px">Marks out of (each)<input type="number" min="1" data-jm="max" value="${J.max}"></label>
+  ${J.judges.slice(0,J.n).map((n,i)=>`<label style="flex:1 1 120px">Judge ${i+1} name<input data-jm="jname" data-i="${i}" value="${esc(n)}"></label>`).join('')}</div>
+  <div class="scroll" style="margin-top:12px"><table class="t jmt"><thead><tr><th>House</th><th>${team?'Team / group':'Participant'}</th>${J.judges.slice(0,J.n).map(n=>`<th class="n">${esc(n)}<br><span class="tiny">/ ${J.max}</span></th>`).join('')}<th class="n">Total<br><span class="tiny">/ ${J.max*J.n}</span></th><th class="n">Place</th><th></th></tr></thead><tbody>
+  ${J.rows.map((r,i)=>{const hc=Hs(r.houseId);const x=rk[r.id];return`<tr class="${x&&x.rank<=3&&x.t>0?'jtop':''}"><td><select data-jm="row" data-i="${i}" data-k="houseId" style="${hc?`background:${hc.color};color:${txtOn(hc.color)};font-weight:700`:''}" aria-label="House">${houseOpts(r.houseId,'House…')}</select></td><td><input data-jm="row" data-i="${i}" data-k="name" list="athList" value="${esc(r.name||'')}" placeholder="${team?'(optional)':'Name'}" aria-label="Name"></td>
+   ${Array.from({length:J.n},(_,k)=>`<td><input class="jmm" data-jm="mark" data-i="${i}" data-k="${k}" inputmode="decimal" value="${esc((r.m||[])[k]??'')}" aria-label="Mark from ${esc(J.judges[k]||'judge')}"></td>`).join('')}
+   <td class="n"><b>${x?x.t:0}</b></td><td class="n">${x&&x.t>0?`<b>${ord(x.rank)}</b>`:'—'}</td><td><button class="x" data-act="jmDel" data-i="${i}" aria-label="Remove">×</button></td></tr>`}).join('')||`<tr><td colspan="${J.n+5}"><div class="empty">No participants yet — add them below.</div></td></tr>`}
+  </tbody></table></div>
+  <div class="row" style="margin-top:10px"><button class="btn" data-act="jmAdd">+ Add participant</button>${((s.entries||{})[e.id]||[]).length?`<button class="btn" data-act="jmFill">Fill from Event entries (${(s.entries[e.id]||[]).length})</button>`:''}${team?`<button class="btn" data-act="jmHouses">One row per house</button>`:''}</div>
+  ${R.length?`<div class="fxpl"><div><b>Places</b><div class="chips" style="margin-top:6px">${R.filter(x=>x.t>0).slice(0,6).map(x=>`<span class="chip"><b>${ord(x.rank)}</b>&nbsp;${hChip(x.r.houseId)}&nbsp;${esc(x.r.name||'')} · ${x.t}</span>`).join('')}</div>${allFull?'':'<span class="tiny">Some marks are still empty.</span>'}</div>${edit?`<button class="btn pri" data-act="jmSave">Save these places as the result</button>`:''}</div>`:''}
+  <datalist id="athList">${athDatalist(e)}</datalist></div>`}
 /* ---------- Heats page and Match fixtures page ---------- */
 function sideList(list,selId,act,status){return list.length?list.map(e=>`<button class="evi ${selId===e.id?'on':''}" data-act="${act}" data-id="${e.id}"><span><span class="e1">${esc(e.name)}</span><br><span class="e2">${esc(e.gender)} · ${esc(catName(e.catId))}${e.dayId&&dayById(e.dayId)?' · '+esc(dayById(e.dayId).name):''}${e.time?' · '+fmtTime(e.time):''}</span></span>${status(e)}</button>`).join(''):'<div class="empty">No events here.</div>'}
 function catChips(key){const s=S();const v=ui[key]||'';return`<div class="chips">${[['','All'],...s.cats.map(c=>[c.id,c.name]),['_open','Open']].map(([id,n])=>`<button class="chip ${v===id?'on':''}" data-act="sideCat" data-k="${key}" data-id="${id}">${esc(n)}</button>`).join('')}</div>`}
-function pFixtures(){const s=S();const games=s.events.filter(e=>{const t=Ts(e.typeId)||{};return t.team&&e.measure==='none'}).filter(e=>!ui.fxCat||(e.catId||'_open')===ui.fxCat);
+function pFixtures(){const s=S();const games=s.events.filter(e=>{const t=Ts(e.typeId)||{};return t.team&&e.measure==='none'&&!isJudged(e)}).filter(e=>!ui.fxCat||(e.catId||'_open')===ui.fxCat);
  if(!ui.fxSel||!games.some(e=>e.id===ui.fxSel))ui.fxSel=(games.find(e=>fxOf(e.id))||games[0]||{}).id;const e=games.find(x=>x.id===ui.fxSel);
  const st=e=>{const fx=fxOf(e.id);if(hasRes(e))return'<span class="tag ok">Done</span>';if(!fx)return'<span class="tag">No fixtures</span>';const a=fx.matches.filter(m=>!m.bye),d=a.filter(fxDone).length;return`<span class="tag">${d}/${a.length} played</span>`};
  return`<h2>Match fixtures</h2><p class="lead">Team games — football, volleyball, kabaddi, kho-kho, tug of war. Make knock-out or league matches, enter the scores, and the final placings become the event's result.</p>
@@ -930,6 +1073,21 @@ function pHeats(){const s=S();const evs=s.events.filter(e=>!(Ts(e.typeId)||{}).t
  return`<h2>Heats &amp; finals</h2><p class="lead">For races (and jumps / throws) with too many athletes for one final. Record each heat — no points — mark the qualifiers, then enter the final in Enter results.</p>
  ${catChips('htCat')}<div class="rlayout" style="margin-top:10px"><div><div class="evlist">${sideList(evs,ui.htSel,'htSelEv',st)}</div><button class="btn sm" style="margin-top:10px" data-act="htPrintAll">Print all heat sheets</button></div>
  <div>${e?`<div class="card"><div class="row" style="justify-content:space-between;align-items:center"><div><h3 style="margin:0">${esc(e.name)}</h3><div class="mut">${esc(e.gender)} · ${esc(catName(e.catId))}${e.org?' · In-charge: '+esc(e.org):''} · ${((s.entries||{})[e.id]||[]).length} entered</div></div><a class="btn" href="#results" data-act="pick" data-id="${e.id}">Enter the final ›</a></div></div>${heatsHTML(e)}<datalist id="athList">${athDatalist(e)}</datalist>`:'<div class="empty">Choose an event on the left.</div>'}</div></div>`}
+function judgesReport(cat,head,sign,foot,sw){const s=S(),E=s.entries||{};const evs=repEvents(cat).filter(e=>e.measure==='none'&&isJudged(e));
+ if(!evs.length)return`<div class="p-doc">${head}<p>No cultural or judged items in this selection.</p>${foot}</div>`;
+ return`<div class="p-doc">${head}${evs.map(e=>{const J=jmOf(e.id)||{n:3,max:10,judges:['Judge 1','Judge 2','Judge 3'],rows:[]};const names=J.rows.length?J.rows:((E[e.id]||[]).map(id=>s.athletes.find(a=>a.id===id)).filter(Boolean).map(a=>({houseId:a.houseId,name:a.name,m:[]})));const rows=names.length?names:s.houses.map(h=>({houseId:h.id,name:'',m:[]}));
+  return`<div style="break-inside:avoid;page-break-inside:avoid"><h3>${esc(e.name)} — ${esc(e.gender)} · ${esc(catName(e.catId))}${e.dayId&&dayById(e.dayId)?' · '+esc(dayById(e.dayId).name):''}${e.time?' · '+fmtTime(e.time):''}</h3><table><thead><tr><th style="width:26px">Sl</th><th>Participant</th><th style="width:90px">House</th>${J.judges.slice(0,J.n).map(n=>`<th style="width:70px">${esc(n)} /${J.max}</th>`).join('')}<th style="width:60px">Total</th><th style="width:50px">Place</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td>${esc(r.name||'')}</td><td>${sw(Hs(r.houseId))}</td>${Array.from({length:J.n},(_,k)=>`<td>${esc((r.m||[])[k]??'')}</td>`).join('')}<td>${J.rows.length?jmTotal(r)||'':''}</td><td></td></tr>`).join('')}</tbody></table>
+  <div class="p-sign">${J.judges.slice(0,J.n).map(n=>`<div>${esc(n)}</div>`).join('')}</div></div>`}).join('')}${foot}</div>`}
+function fieldReport(cat,head,sign,foot,sw){const s=S(),E=s.entries||{};const evs=repEvents(cat).filter(e=>e.measure==='dist'&&!(Ts(e.typeId)||{}).team);
+ if(!evs.length)return`<div class="p-doc">${head}<p>No jumps or throws (events with “Result by: distance / height”).</p>${foot}</div>`;
+ return`<div class="p-doc">${head}${evs.map(e=>{const l=(E[e.id]||[]).map(id=>s.athletes.find(a=>a.id===id)).filter(Boolean).sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||''));const rows=l.length?l:Array.from({length:8},()=>null);
+  return`<div style="break-inside:avoid;page-break-inside:avoid"><h3>${e.dayId&&dayById(e.dayId)?esc(dayById(e.dayId).name)+(e.time?' · '+fmtTime(e.time):'')+' · ':''}${esc(e.name)} — ${esc(e.gender)} · ${esc(catName(e.catId))}${e.org?` <span style="font-weight:400;font-size:12px">· In-charge: ${esc(e.org)}</span>`:''}</h3><table><thead><tr><th style="width:26px">Sl</th><th style="width:48px">Chest</th><th>Name</th><th style="width:80px">House</th><th style="width:58px">1st try</th><th style="width:58px">2nd try</th><th style="width:58px">3rd try</th><th style="width:60px">Best</th><th style="width:50px">Place</th></tr></thead><tbody>${rows.map((a,i)=>`<tr><td>${i+1}</td><td>${a?esc(a.chest||''):''}</td><td>${a?esc(a.name):''}</td><td>${a?sw(Hs(a.houseId)):''}</td><td></td><td></td><td></td><td></td><td></td></tr>`).join('')}</tbody></table><p style="font-size:11px;margin:2px 0 10px">Write the mark in metres for each try (X = foul, — = pass). Best of the three tries counts.</p></div>`}).join('')}<div class="p-sign"><div>Judge / Official</div><div>${esc(DB.app.sign2||'')}</div></div>${foot}</div>`}
+function bibsReport(cat){const s=S();const E=s.entries||{};const ent=new Set(Object.values(E).flat());
+ let l=s.athletes.filter(a=>(!cat||a.catId===cat)&&(!ui.bibHouse||a.houseId===ui.bibHouse)&&(ui.bibAll||!ent.size||ent.has(a.id)));
+ l.sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||'')||(parseInt(a.chest)||1e9)-(parseInt(b.chest)||1e9)||norm(a.name).localeCompare(norm(b.name)));
+ const noChest=l.filter(a=>!a.chest).length;
+ if(!l.length)return`<div class="p-doc"><p>No students to print. ${ui.bibAll?'':'Only students entered in events are printed — tick “All members” above, or add entries first.'}</p></div>`;
+ return`<div class="bibs">${noChest?`<p class="noprint tiny" style="color:#b45309">${noChest} student${noChest>1?'s have':' has'} no chest number yet — use “Number chest nos” on Athletes / participants, or print and write by hand.</p>`:''}${l.map(a=>{const h=Hs(a.houseId)||{name:'',color:'#888'};return`<div class="bib" style="--hc:${h.color};--ht:${txtOn(h.color)}"><div class="bibtop"><span>${esc(DB.app.school)}</span><b>${esc(h.name)}</b></div><div class="bibno">${esc(a.chest||'')}</div><div class="bibnm">${esc(a.name)}</div><div class="bibft">${[a.cls?'Class '+a.cls+(a.sec?' '+a.sec:''):'',(Cs(a.catId)||{}).name,esc(S().title)+' '+esc(S().year)].filter(Boolean).map(esc).join(' · ')}</div></div>`}).join('')}</div>`}
 function heatsReport(cat,head,sign,foot,sw){const s=S();const evs=repEvents(cat).filter(e=>{const r=s.results[e.id];return r&&r.heats&&r.heats.list&&r.heats.list.length}).filter(e=>!ui.heatEv||e.id===ui.heatEv);
  if(!evs.length)return`<div class="p-doc">${head}<p>No heats yet. Open an event in Enter results and use “Heats”.</p>${foot}</div>`;
  return`<div class="p-doc">${head}${evs.map(e=>{const H=s.results[e.id].heats;const lab=e.measure==='time'?'Time':e.measure==='dist'?'Mark':'Place';return`<h3>${e.dayId&&dayById(e.dayId)?esc(dayById(e.dayId).name)+(e.time?' · '+fmtTime(e.time):'')+' · ':''}${esc(e.name)} — ${esc(e.gender)} · ${esc(catName(e.catId))}${e.org?` <span style="font-weight:400;font-size:12px">· In-charge: ${esc(e.org)}</span>`:''}</h3>
@@ -947,12 +1105,12 @@ function editorHTML(){
   <select data-r="${i}" data-k="houseId" aria-label="House" style="${h?`background:${h.color};color:${txtOn(h.color)};font-weight:700`:''}">${houseOpts(r.houseId,'House…')}</select>
   <input data-r="${i}" data-k="name" list="athList" autocomplete="off" aria-label="Name" placeholder="${team?'Team / captain (optional)':'Athlete name'}" value="${esc(r.name)}">
   ${hasP?`<input data-r="${i}" data-k="perf" inputmode="decimal" aria-label="Performance" placeholder="${e.measure==='time'?'e.g. 12.45':'e.g. 4.35'}" value="${esc(r.perf)}">`:''}
-  <span class="ptag">${p} pts</span><button class="x" data-act="rowdel" data-r="${i}" aria-label="Remove row">×</button></div>`}).join('');
+  <span class="ptag">${p} pts</span><button class="x" data-act="rowdel" data-r="${i}" aria-label="Remove row">×</button>${e.measure==='dist'&&!team&&ui.att?`<div class="attl"><span class="tiny">Attempts</span>${[0,1,2].map(k=>`<input data-r="${i}" data-k="att${k}" inputmode="decimal" placeholder="${k+1}" value="${esc(r['att'+k]||'')}" aria-label="Attempt ${k+1}">`).join('')}<span class="tiny">best goes in the mark box · write X for a foul</span></div>`:''}</div>`}).join('');
  const rec=e.rec&&e.rec.val?`Meet record: <b>${esc(e.rec.val)} ${unitOf(e.measure)}</b> — ${esc(e.rec.holder)}${e.rec.house?' ('+esc(e.rec.house)+')':''}${e.rec.year?', '+esc(e.rec.year):''}`:(hasP?'No meet record yet — the winner will set the first one.':'');
  return`<div class="card"><div class="row" style="justify-content:space-between;align-items:start"><div><h3 style="margin:0">${esc(e.name)}</h3><div class="mut">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc(t.name)} · points ${t.pts.join(' / ')||'none'}</div>${e.org?`<div class="tiny" style="margin-top:2px">In-charge: <b>${esc(e.org)}</b></div>`:''}${rec?`<div class="tiny" style="margin-top:4px">${rec}</div>`:''}</div>${hasRes(e)?'<span class="tag ok">Saved</span>':''}</div>
  <div style="margin-top:14px" class="tiny">Position · House · ${team?'Team':'Athlete'}${hasP?' · '+(e.measure==='time'?'Time':'Distance'):''}</div>
  <div style="margin-top:6px">${rows}</div><datalist id="athList">${athDatalist(e)}</datalist>
- <div class="row" style="margin-top:10px"><button class="btn pri" data-act="saveRes">Save result</button><button class="btn" data-act="rowadd">Add row (tie / extra place)</button>${hasP?'<button class="btn" data-act="autopos">Rank by performance</button>':''}<button class="btn" data-act="nextEv">Next pending event</button>${hasRes(e)?'<button class="btn danger" data-act="clearRes">Clear result</button>':''}</div>
+ <div class="row" style="margin-top:10px"><button class="btn pri" data-act="saveRes">Save result</button><button class="btn" data-act="rowadd">Add row (tie / extra place)</button>${hasP?'<button class="btn" data-act="autopos">Rank by performance</button>':''}${e.measure==='dist'&&!team?`<button class="btn ${ui.att?'pri':''}" data-act="attToggle">${ui.att?'Hide attempts':'3 attempts'}</button>`:''}<button class="btn" data-act="nextEv">Next pending event</button>${hasRes(e)?'<button class="btn danger" data-act="clearRes">Clear result</button>':''}</div>
  ${(()=>{const r=s.results[e.id];if(!r)return'';const h=r.hist||[];return`<div class="tiny" style="margin-top:10px">${r.rows&&r.rows.length?`Saved by <b>${esc(r.by||'—')}</b> · ${esc(fmtWhen(r.at))}`:`Cleared by ${esc(r.by||'—')} · ${esc(fmtWhen(r.at))}`}${h.length?` <details style="display:inline-block;margin-left:6px"><summary style="cursor:pointer">${h.length} earlier version${h.length>1?'s':''}</summary><ul style="margin:6px 0;padding-left:18px">${h.map((x,i)=>`<li>${esc(fmtWhen(x.at))} · ${esc(x.by||'—')}: ${esc(rowsSummary(x.rows))} <button class="btn sm" data-act="restoreVer" data-id="${i}">Restore</button></li>`).join('')}</ul></details>`:''}</div>`})()}
  ${s.locked?'<div class="banner" style="margin-top:10px"><b>Locked</b><span class="mut">Results are final. Unlock in Sessions &amp; backup to change.</span></div>':''}
  <p class="tiny">Typing a registered athlete's name fills their house. New names are added to Athletes automatically when you save. Two rows with the same position are treated as a tie and both get the points.</p></div>${edLinks(e)}`;
@@ -1508,7 +1666,8 @@ function pRecords(){
 }
 
 /* ---------- reports ---------- */
-const REPS={schedule:'Day-wise Programme',duties:'Teacher Duty List',heats:'Heat Sheets',fixtures:'Match Fixtures',log:'Change Log',summary:'House Points Summary',matrix:'Event-wise House Points',results:'Results Sheet',champions:'Individual Champions',certs:'Merit Certificates',entries:'Entry Lists (start lists)',members:'House Member Lists'};
+const REPS={schedule:'Day-wise Programme',duties:'Teacher Duty List',members:'House Member Lists',bibs:'Chest Numbers (bibs)',entries:'Entry Lists (start lists)',heats:'Heat Sheets',field:'Field Event Sheets',judges:"Judges' Mark Sheets",fixtures:'Match Fixtures',results:'Results Sheet',summary:'House Points Summary',matrix:'Event-wise House Points',champions:'Individual Champions',certs:'Certificates',log:'Change Log'};
+const REPG=[['Before the meet',['schedule','duties','members','bibs']],['On meet day — sheets for officials',['entries','heats','field','judges','fixtures']],['Results & certificates',['results','summary','matrix','champions','certs','log']]];
 function repHTML(kind,cat){
  const s=S(),c=calc(),a=DB.app;
  const head=`<div class="p-head">${a.logo?`<img src="${a.logo}" alt="" style="height:20mm;max-width:50mm;object-fit:contain;display:block;margin:0 auto 4px">`:''}<h1>${esc(a.school)}</h1>${a.motto?`<div class="m">Motto: ${esc(a.motto)}</div>`:''}<div class="a">${esc(a.address)}</div><h2>${esc(s.title)} ${esc(s.year)} — ${REPS[kind]}${ui.repDay?' · '+esc(dayLabel(ui.repDay)):''}${cat?' · '+esc(catName(cat)):''}</h2>${s.date||s.venue?`<div class="a">${[s.date&&fmtDate(s.date),s.venue].filter(Boolean).map(esc).join(' · ')}</div>`:''}</div>`;
@@ -1521,6 +1680,9 @@ function repHTML(kind,cat){
  if(kind==='duties')return dutyReport(cat,head,sign,foot);
  if(kind==='heats')return heatsReport(cat,head,sign,foot,sw);
  if(kind==='fixtures')return fixturesReport(cat,head,sign,foot,sw);
+ if(kind==='bibs')return bibsReport(cat);
+ if(kind==='judges')return judgesReport(cat,head,sign,foot,sw);
+ if(kind==='field')return fieldReport(cat,head,sign,foot,sw);
  if(kind==='log')return logReport(head,sign,foot);
  if(kind==='members')return membersReport(cat,head,sign,foot,sw);
  if(kind==='summary'){const ks=catKeys(s);
@@ -1541,7 +1703,7 @@ function repHTML(kind,cat){
  return'';
 }
 /* ---------- certificates (A4 landscape) ---------- */
-const MEDAL={4:['#9fb3c8','#4a5d73','#eef3f8','MERIT'],1:['#e2c25a','#a37b16','#fff6d2','FIRST'],2:['#cfd5dc','#7f8892','#ffffff','SECOND'],3:['#d79a62','#8a5426','#fbe3cc','THIRD'],best:['#e2c25a','#a37b16','#fff6d2','BEST']};
+const MEDAL={part:['#8fd3b0','#2b6e50','#ecfaf2','PARTICIPANT'],4:['#9fb3c8','#4a5d73','#eef3f8','MERIT'],1:['#e2c25a','#a37b16','#fff6d2','FIRST'],2:['#cfd5dc','#7f8892','#ffffff','SECOND'],3:['#d79a62','#8a5426','#fbe3cc','THIRD'],best:['#e2c25a','#a37b16','#fff6d2','BEST']};
 function shade(c,f){c=(c||'#777777').replace('#','');if(c.length===3)c=c.split('').map(x=>x+x).join('');const n=[0,2,4].map(i=>Math.max(0,Math.min(255,Math.round(parseInt(c.slice(i,i+2),16)*f))));return'#'+n.map(x=>x.toString(16).padStart(2,'0')).join('')}
 const CTHEMES={royal:['Royal blue & gold','#173f8a','#b48a2c'],emerald:['Emerald & gold','#0f5a3a','#b48a2c'],navy:['Navy & silver','#1d2a44','#8e99a8'],black:['Black & gold','#1e1e1e','#b48a2c'],purple:['Purple & gold','#4a2a78','#b48a2c'],teal:['Teal & gold','#0d5560','#b48a2c'],maroon:['Maroon & gold','#7d2414','#b08a3e']};
 const CDEF={layout:'champion',teamEach:true,theme:'royal',cf:'#173f8a',cg:'#b48a2c',paper:'ivory',title:'Certificate',subMerit:'of Merit',subExcel:'of Excellence',pre:'This certificate is proudly presented to',prefix:'SJS/SPORTS',sign3:'',art:true,ribbon:true,num:true,logo:true,
@@ -1867,7 +2029,12 @@ function certsHTML(cat,edit){
  const no=()=>`${cc.prefix}/${s.year}/${String(++n).padStart(3,'0')}`;
  const base={meet:esc(`${s.title} ${s.year}`),heldon:`${s.date?`, held on ${esc(fmtDate(s.date))}`:''}${s.venue?` at ${esc(s.venue)}`:''}`};
  const posW=p=>(POSW[p]||ord(p))+' Place';
- if(which==='blank'){out.push(certSheet({blank:true,edit,sport:ui.blankSport||'trophy',no:cc.prefix+'/'+s.year+'/____',sub:cc.subMerit,medal:['#e2c25a','#a37b16','#fff6d2','MERIT'],big:'★',small:'AWARD',body:`of Class ____________ and ______________ House, for securing the ____________ Place in ____________________________ at the <b>${base.meet}</b>${base.heldon}.`}))}
+ if(which==='part'){const E=s.entries||{};const evOf={};Object.entries(E).forEach(([eid,l])=>l.forEach(id=>(evOf[id]=evOf[id]||new Set()).add(eid)));Object.entries(s.results||{}).forEach(([eid,r])=>(r.rows||[]).forEach(x=>{if(x.athId)(evOf[x.athId]=evOf[x.athId]||new Set()).add(eid)}));
+  s.athletes.filter(a=>evOf[a.id]&&(!cat||a.catId===cat)&&(!ui.certHouse||a.houseId===ui.certHouse)).sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||'')||(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.name).localeCompare(norm(b.name))).forEach(a=>{const h=Hs(a.houseId);const evs=[...evOf[a.id]].map(id=>s.events.find(e=>e.id===id)).filter(Boolean);const names=[...new Set(evs.map(e=>e.name))];
+   const list=names.length>3?names.slice(0,3).join(', ')+' and other events':names.length>1?names.slice(0,-1).join(', ')+' and '+names[names.length-1]:names[0]||'the events';
+   out.push(certSheet({edit,sport:evs[0]?sportOf(evs[0]):'trophy',house:h,name:a.name,no:no(),sub:'Certificate of Participation',medal:MEDAL.part,big:'★',small:'TAKING PART',body:`${a.cls?`of Class ${esc(a.cls)}${a.sec?' '+esc(a.sec):''} and `:''}${esc(h?h.name:'')} House, for taking part in <b>${esc(list)}</b> at the <b>${base.meet}</b>${base.heldon}, with true sporting spirit.`}))});
+  if(!out.length)return`<div class="cs-wrap"><p style="padding:20px;font-family:sans-serif">No participants yet — participation certificates are made for students entered in events (Event entries) or named in results.</p></div>`}
+ else if(which==='blank'){out.push(certSheet({blank:true,edit,sport:ui.blankSport||'trophy',no:cc.prefix+'/'+s.year+'/____',sub:cc.subMerit,medal:['#e2c25a','#a37b16','#fff6d2','MERIT'],big:'★',small:'AWARD',body:`of Class ____________ and ______________ House, for securing the ____________ Place in ____________________________ at the <b>${base.meet}</b>${base.heldon}.`}))}
  else{
   const evs=repEvents(cat);
   if(which!=='best')evs.forEach(e=>{const t=Ts(e.typeId)||{};const r=s.results[e.id];if(!r)return;
@@ -2216,10 +2383,10 @@ function pHousing(){const s=S();const mode=ui.hmode||'auto';const all=s.athletes
 function pReports(){
  const s=S();const k=ui.report,cat=ui.repCat;
  return`<div class="noprint"><h2>Reports &amp; certificates</h2><p class="lead">A4 sheets with the school header, ready to print or keep. Certificates are made for every 1st, 2nd and 3rd place and for each category's Best Boy and Best Girl.</p>
- <div class="row">${Object.entries(REPS).map(([v,l])=>`<button class="btn sm ${k===v?'pri':''}" data-act="rep" data-id="${v}">${l}</button>`).join('')}</div>
+ <div class="repg">${REPG.map(([g,ks])=>`<div><span class="tiny repgl">${esc(g)}</span><div class="row">${ks.map(v=>`<button class="btn sm ${k===v?'pri':''}" data-act="rep" data-id="${v}">${REPS[v]}</button>`).join('')}</div></div>`).join('')}</div>
  <div class="row" style="margin-top:12px"><label style="flex:0 1 220px">Day<select data-act2="repDay">${opt('','All days',ui.repDay)}${(s.days||[]).map(d=>opt(d.id,dayLabel(d.id),ui.repDay)).join('')}${opt('_none','Not scheduled',ui.repDay)}</select></label><label style="flex:0 1 260px">Category<select data-act2="repCat">${opt('','All categories',cat)}${s.cats.map(c=>opt(c.id,c.name,cat)).join('')}${opt('_open','Open',cat)}</select></label>
- ${k==='certs'?`<label style="flex:0 1 260px">Certificates for<select data-act2="certSel">${opt('all','All winners + Best Boy/Girl',ui.certSel)}${opt('first','1st place only',ui.certSel)}${opt('best','Best Boy & Best Girl only',ui.certSel)}${opt('blank','Blank certificate (fill by hand)',ui.certSel)}</select></label>${ui.certSel==='blank'?`<label style="flex:0 1 220px">Sport picture<select data-act2="blankSport">${SPORTS.filter(x=>x[0]!=='auto').map(x=>opt(x[0],x[1],ui.blankSport||'trophy')).join('')}</select></label>`:''}`:''}
- ${k==='duties'?'<button class="btn pri" data-act="copyDuty">Copy for WhatsApp</button>':''}<button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
+ ${k==='certs'?`<label style="flex:0 1 260px">Certificates for<select data-act2="certSel">${opt('all','All winners + Best Boy/Girl',ui.certSel)}${opt('first','1st place only',ui.certSel)}${opt('best','Best Boy & Best Girl only',ui.certSel)}${opt('part','Participation — every student who took part',ui.certSel)}${opt('blank','Blank certificate (fill by hand)',ui.certSel)}</select></label>${ui.certSel==='part'?`<label style="flex:0 1 180px">House<select data-act2="certHouse">${opt('','All houses',ui.certHouse||'')}${S().houses.map(h=>opt(h.id,h.name,ui.certHouse||'')).join('')}</select></label>`:''}${ui.certSel==='blank'?`<label style="flex:0 1 220px">Sport picture<select data-act2="blankSport">${SPORTS.filter(x=>x[0]!=='auto').map(x=>opt(x[0],x[1],ui.blankSport||'trophy')).join('')}</select></label>`:''}`:''}
+ ${k==='bibs'?`<label style="flex:0 1 180px">House<select data-act2="bibHouse">${opt('','All houses',ui.bibHouse||'')}${S().houses.map(h=>opt(h.id,h.name,ui.bibHouse||'')).join('')}</select></label><label class="chk"><input type="checkbox" data-act="bibAll" ${ui.bibAll?'checked':''}> All members (not only students in events)</label>`:''}${k==='duties'?'<button class="btn pri" data-act="copyDuty">Copy for WhatsApp</button>':''}<button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
  ${isVO()?'':`<p class="tiny">${k==='certs'?'Click any text on a certificate below to correct it before printing. Change colours, wording and pictures in <a href="#certificate">Certificate design</a>. In the print window choose Paper: A4, Layout: Landscape, Margins: None, and tick Background graphics. ':''}If Print does nothing here, download the page and print it from your browser — or use the offline copy of the app, where printing works directly.</p>`}</div>
  <div class="paper ${k==='certs'?'certs':''}" id="paper">${repHTML(k,cat)}</div>`;
 }
@@ -2278,7 +2445,8 @@ function pSessions(){
   <li>Signed in with the wrong login? Tap <b>Sign out</b> above and sign in again.</li>
   <li>Still stuck? Update Chrome, or try on another phone or laptop. The message shown at the top tells the Admin what went wrong.</li></ol></details></div>`;
  const lockCard=`<div class="card" style="margin-bottom:16px"><h3>Final results lock ${cur.locked?'<span class="tag rec">Locked</span>':'<span class="tag ok">Open</span>'}</h3><p style="margin-top:0">${cur.locked?'Results, entries and special points of '+esc(cur.year)+' cannot be changed on any device. Reports and certificates still work.':'Lock when the meet is over and the Principal has approved the results, so nobody changes them by mistake.'}</p><div class="row"><button class="btn ${cur.locked?'':'pri'}" data-act="toggleLock">${cur.locked?'Unlock results':'Lock results as final'}</button><label style="flex:1 1 240px">Your name on this device (shown in the Change Log)<input id="meName" value="${esc((()=>{try{return localStorage.getItem(ME_KEY)||''}catch(e){return''}})())}" placeholder="e.g. Sir Lalramenga"></label></div></div>`;
- return`<h2>Sessions &amp; backup</h2>${liveCard}${lockCard}<p class="lead">Each academic year is its own session. Start a new one and keep the houses, categories, rules, events and meet records — results start empty.</p>
+ const pracCard=`<div class="card" style="margin-bottom:16px"><h3>Practice run (training)</h3><p style="margin-top:0">Before the meet, let teachers try the app on a copy of this session — same houses, events, schedule and students, but separate results. Delete it with one tap when you finish.</p>${cur.practice?'<button class="btn" data-act="practiceEnd">End practice and delete the copy</button>':'<button class="btn" data-act="practiceStart">Start a practice run</button>'}</div>`;
+ return`<h2>Sessions &amp; backup</h2>${liveCard}${pracCard}${lockCard}<p class="lead">Each academic year is its own session. Start a new one and keep the houses, categories, rules, events and meet records — results start empty.</p>
  <div class="g2"><div class="card"><h3>Start a new academic session</h3><div class="row"><label>Session<input id="nsYear" value="${esc(ny)}" placeholder="2027-28"></label><label>Meet title<input id="nsTitle" value="${esc(cur.title)}"></label><label>Date<input id="nsDate" type="date"></label></div>
  <label class="chk"><input type="checkbox" id="nsEv" checked> Copy events and meet records</label><label class="chk"><input type="checkbox" id="nsRec" checked> Update records with new records set in ${esc(cur.year)}</label><label class="chk"><input type="checkbox" id="nsAth"> Copy athletes list (update classes later)</label>
  <button class="btn pri" data-act="newSess">Create session</button></div>
@@ -2297,15 +2465,15 @@ function pSetup(){
  <div class="card" style="margin-top:16px"><h3>Clean up</h3><div class="row">${s.demo?'<button class="btn" data-act="clearDemo">Clear demo data</button>':''}<button class="btn danger" data-act="clearResults">Clear all results of ${esc(s.year)}</button><button class="btn danger" data-act="resetAll">Erase everything and start fresh</button></div></div>`;
 }
 
-const PAGES={fixtures:()=>pFixtures(),heats:()=>pHeats(),users:()=>pUsers(),home:pHome,scoreboard:pScoreboard,results:pResults,events:pEvents,athletes:pAthletes,houses:pHouses,categories:pCategories,points:pPoints,bonus:pBonus,champions:pChampions,records:pRecords,reports:pReports,housing:pHousing,schedule:pSchedule,entries:pEntries,certificate:pCertDesign,sessions:pSessions,setup:pSetup};
+const PAGES={judges:()=>pJudges(),announce:()=>pAnnounce(),live:()=>pLive(),fixtures:()=>pFixtures(),heats:()=>pHeats(),users:()=>pUsers(),home:pHome,scoreboard:pScoreboard,results:pResults,events:pEvents,athletes:pAthletes,houses:pHouses,categories:pCategories,points:pPoints,bonus:pBonus,champions:pChampions,records:pRecords,reports:pReports,housing:pHousing,schedule:pSchedule,entries:pEntries,certificate:pCertDesign,sessions:pSessions,setup:pSetup};
 function paintSess(){$('#sessSel').innerHTML=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0)).map(s=>opt(s.id,s.year+' · '+s.title,DB.active)).join('')}
 /* ---------- navigation: sidebar, phone menu, quick search ---------- */
-const ICO={home:'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10',results:'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',heats:'M3 5h18M3 10h18M3 15h18M3 20h18M8 3v19',fixtures:'M3 4h6v5H3zM3 15h6v5H3zM9 6.5h3v11H9M12 12h3M15 9.5h6v5h-6z',scoreboard:'M5 20V11M12 20V5M19 20v-6M3 20h18',champions:'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4v4h-4z',records:'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',
+const ICO={home:'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10',results:'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',heats:'M3 5h18M3 10h18M3 15h18M3 20h18M8 3v19',fixtures:'M3 4h6v5H3zM3 15h6v5H3zM9 6.5h3v11H9M12 12h3M15 9.5h6v5h-6z',announce:'M3 10v4h4l5 4V6L7 10zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12',judges:'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9',scoreboard:'M5 20V11M12 20V5M19 20v-6M3 20h18',champions:'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4v4h-4z',records:'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',
  houses:'M5 21V4M5 4h11l-2 4 2 4H5',categories:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',athletes:'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 20c0-3.5 3-6 7-6s7 2.5 7 6M16 4.5a3.5 3.5 0 0 1 0 6.5M18 14c2.4.6 4 2.8 4 6',housing:'M3 7h4l10 10h4M3 17h4l3-3M14 10l3-3h4M18 4l3 3-3 3M18 14l3 3-3 3',events:'M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01',schedule:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h3',entries:'M4 5h10M4 10h10M4 15h6M14 17l3 3 5-6',points:'M5 9h14M5 15h14M10 4L8 20M16 4l-2 16',bonus:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v8M8 12h8',
  reports:'M7 8V3h10v5M7 17H4v-7h16v7h-3M7 14h10v7H7z',certificate:'M12 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM8.5 13 7 21l5-3 5 3-1.5-8',sessions:'M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6',users:'M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6zM9 12l2 2 4-4',setup:'M3 21h18M5 21V9l7-5 7 5v12M10 21v-5h4v5',back:'M15 18l-6-6 6-6',menu:'M4 7h16M4 12h16M4 17h16',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.5-4.5',student:'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7',chev:'M6 9l6 6 6-6'};
 const svgI=k=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICO[k]||ICO.events}"/></svg>`;
 const NAV=[
- {id:'meet',g:'Meet day',items:[['home','Dashboard','dashboard home overview'],['results','Enter results','points marks winner position first second third result'],['heats','Heats & finals','heat heats lane qualify qualifier final race sprint'],['fixtures','Match fixtures','fixture fixtures match knock-out knockout league semi final table football volleyball kabaddi kho tug'],['scoreboard','Live scoreboard','score board tv projector standings'],['champions','Champions','champion house runner up best boy best girl individual winner'],['records','Meet records','record best ever']]},
+ {id:'meet',g:'Meet day',items:[['home','Dashboard','dashboard home overview'],['results','Enter results','points marks winner position first second third result'],['heats','Heats & finals','heat heats lane qualify qualifier final race sprint'],['judges',"Judges' marks",'judge judges marks cultural elocution debate singing dance quiz drawing essay'],['fixtures','Match fixtures','fixture fixtures match knock-out knockout league semi final table football volleyball kabaddi kho tug'],['scoreboard','Live scoreboard','score board tv projector standings qr public parents'],['announce','Announcer','announcer mic microphone call next now winners read aloud'],['champions','Champions','champion house runner up best boy best girl individual winner'],['records','Meet records','record best ever']]},
  {id:'ready',g:'Get ready',steps:true,items:[['houses','Houses','house colour color name david moses joseph daniel'],['categories','Categories','category sub minor junior senior age group class'],['athletes','Athletes / participants','students members list upload excel import sjs app delete'],['housing','Assign houses','house assign automatic manual'],['events','Events / items','event item race game cultural add copy standard list'],['schedule','Schedule (day-wise)','day 1 day 2 time programme timetable in-charge incharge organiser teacher duty'],['entries','Event entries','participants entries names replace'],['points','Points rules','points rule 5 3 1 relay team'],['bonus','Special points','march past discipline bonus penalty']]},
  {id:'print',g:'Print & share',items:[['reports','Reports & certificates','print report certificate excel download results sheet'],['certificate','Certificate design','certificate design layout signature logo']]},
  {id:'manage',g:'Manage',items:[['sessions','Sessions & backup','session year backup restore live sharing clear new'],['users','Users & roles','user users role roles access permission in-charge incharge recorder teacher admin who can'],['setup','School details','school name logo motto address signature']]}];
@@ -2350,12 +2518,24 @@ function palPaint(){const q=$('#palQ').value;PAL.items=palSearch(q);PAL.i=Math.m
  const on=$('#palRes .on');if(on)on.scrollIntoView({block:'nearest'})}
 function openPal(){drawer(false);$('#pal').classList.add('on');$('#palQ').value='';PAL.i=0;palPaint();setTimeout(()=>$('#palQ').focus(),20)}
 function closePal(){$('#pal').classList.remove('on')}
+function lastResultAt(s=S()){return Object.values(s.results||{}).reduce((m,r)=>Math.max(m,r&&r.rows&&r.rows.length?(+r.at||0):0),0)}
+function dayText(day){const s=S(),c=calc();const dn=day?(dayById(day)||{}).name:'';const L=[`*${DB.app.school}*`,`*${s.title} ${s.year}${dn?' — '+dn:''} — Results*`,''];
+ const evs=s.events.filter(e=>hasRes(e)&&(!day||e.dayId===day)).sort(schedCmp(s));
+ if(evs.length){evs.forEach(e=>{const w=s.results[e.id].rows.slice().sort((a,b)=>a.pos-b.pos).slice(0,3);L.push(`🏅 *${e.name}* (${e.gender}, ${catName(e.catId)})`);w.forEach(x=>L.push(`   ${ord(x.pos)} ${(Hs(x.houseId)||{}).name||''}${x.name?' — '+x.name:''}${x.perf&&e.measure!=='none'?' ('+x.perf+' '+unitOf(e.measure)+')':''}`))});L.push('')}else L.push('(No results yet)','');
+ L.push('*House points'+(c.done===c.total&&c.total?' — FINAL':' so far')+'*');c.st.forEach(x=>L.push(`${x.rank}. ${x.h.name} — ${x.total} pts (${x.g}G ${x.si}S ${x.b}B)`));L.push('',`${c.done} of ${c.total} events completed.`);
+ const nx=nextEvents(5);if(nx.length&&!(c.done===c.total)){L.push('','*Coming up*');nx.forEach(e=>L.push(`• ${e.dayId&&dayById(e.dayId)?dayById(e.dayId).name+' ':''}${e.time?fmtTime(e.time)+' ':''}${e.name} (${e.gender}, ${catName(e.catId)})`))}
+ return L.join('\n')}
+function topBars(p){const s=S();let h='';
+ if(s.practice)h+=`<div class="banner pracbar"><b>PRACTICE</b><span>Results here do not count — this is a practice copy for training staff.</span>${isMgr()||!isLive()?'<button class="btn sm" data-act="practiceEnd">End practice</button>':''}</div>`;
+ if(!s.practice&&(p==='home'||p==='sessions')&&canManage()&&!isVO()){let lb=0;try{lb=+localStorage.getItem('sjs_sports_lastbk')||0}catch(e){}const lr=lastResultAt(s);
+  if(lr&&lr>lb&&Date.now()-lb>4*3600e3)h+=`<div class="banner bkbar"><b>Keep a safe copy</b><span class="mut">${lb?'Last backup on this device: '+esc(fmtWhen(lb))+'.':'No backup downloaded on this device yet.'} New results were saved since then.</span><button class="btn sm pri" data-act="backup">Download backup</button></div>`}
+ if(h)main.insertAdjacentHTML('afterbegin',h)}
 function render(){
  const p=PAGES[ui.page]?ui.page:'home';
- paintNav(p);voPaint();
+ document.body.classList.toggle('pubmode',p==='live');paintNav(p);voPaint();
  $('#schoolName').textContent=DB.app.school;const bl=$('#brandLogo');if(DB.app.logo){bl.src=DB.app.logo;bl.hidden=false}else bl.hidden=true;
  paintSess();if(0)$('#sessSel').innerHTML=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0)).map(s=>opt(s.id,s.year+' · '+s.title,DB.active)).join('');
- const y=window.scrollY;main.innerHTML=PAGES[p]();roPaint(p);
+ const y=window.scrollY;main.innerHTML=PAGES[p]();topBars(p);roPaint(p);
  if(ui.keepScroll){window.scrollTo(0,y);ui.keepScroll=false}
  stamp();
 }
@@ -2387,13 +2567,13 @@ const ACT={
   let added=0;if(!t.team)rows.forEach(r=>{if(!r.name){r.athId='';return}const a=(r.athId&&s.athletes.find(z=>z.id===r.athId&&norm(z.name)===norm(r.name)))||matchAth(r.name,e,r.houseId);
    if(a&&a.houseId===r.houseId)r.athId=a.id;else if(!canManage()){r.athId=''}else{const n={id:uid(),name:r.name,cls:'',gender:e.gender==='Boys'?'B':e.gender==='Girls'?'G':'',houseId:r.houseId,catId:e.catId||'',chest:''};s.athletes.push(n);r.athId=n.id;added++}});
   const prev=s.results[e.id];const hist=prev&&prev.rows&&prev.rows.length?[{rows:prev.rows,at:prev.at,by:prev.by||''},...(prev.hist||[])]:(prev&&prev.hist)||[];
-  s.results[e.id]={...(prev&&prev.heats?{heats:prev.heats}:{}),...(prev&&prev.fx?{fx:prev.fx}:{}),rows,at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;
+  s.results[e.id]={...(prev&&prev.heats?{heats:prev.heats}:{}),...(prev&&prev.fx?{fx:prev.fx}:{}),...(prev&&prev.jm?{jm:prev.jm}:{}),rows,at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;
   const rec=calc().recs.find(x=>x.e.id===e.id&&x.old&&x.old.val);
   toast(rec?'Saved — NEW MEET RECORD!':'Saved — house points updated'+(added?` · ${added} new athlete${added>1?'s':''} added`:''));
   $('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
  restoreVer:async el=>{if(isLocked())return;const s=S(),r=s.results[ui.sel];const i=+el.dataset.id;const h=r&&r.hist&&r.hist[i];if(!h)return;if(!await ask('Go back to this version?',rowsSummary(h.rows),'Restore'))return;
-  const hist=[...(r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''}]:[]),...r.hist.filter((x,k)=>k!==i)].slice(0,6);s.results[ui.sel]={...(r.heats?{heats:r.heats}:{}),...(r.fx?{fx:r.fx}:{}),rows:h.rows,at:Date.now(),by:whoAmI()+' (restored)',hist};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML();toast('Earlier version restored')},
- clearRes:async()=>{if(isLocked())return;if(!await ask('Clear this result?','The places and points for this event will be removed. You can restore it from the earlier versions.','Clear result'))return;const s=S(),r=s.results[ui.sel];const hist=r&&r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''},...(r.hist||[])]:(r&&r.hist)||[];s.results[ui.sel]={...(r&&r.heats?{heats:r.heats}:{}),...(r&&r.fx?{fx:r.fx}:{}),rows:[],at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
+  const hist=[...(r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''}]:[]),...r.hist.filter((x,k)=>k!==i)].slice(0,6);s.results[ui.sel]={...(r.heats?{heats:r.heats}:{}),...(r.fx?{fx:r.fx}:{}),...(r.jm?{jm:r.jm}:{}),rows:h.rows,at:Date.now(),by:whoAmI()+' (restored)',hist};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML();toast('Earlier version restored')},
+ clearRes:async()=>{if(isLocked())return;if(!await ask('Clear this result?','The places and points for this event will be removed. You can restore it from the earlier versions.','Clear result'))return;const s=S(),r=s.results[ui.sel];const hist=r&&r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''},...(r.hist||[])]:(r&&r.hist)||[];s.results[ui.sel]={...(r&&r.heats?{heats:r.heats}:{}),...(r&&r.fx?{fx:r.fx}:{}),...(r&&r.jm?{jm:r.jm}:{}),rows:[],at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
  nextEv:()=>{const n=nextPending();if(!n){toast('All events have results');return}ui.sel=n.id;ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
  addEvent:()=>{const s=S();const name=val('neName');if(!name){toast('Type the event name');$('#neName').focus();return}
   const cats=chk('neAllCat')?s.cats.map(c=>c.id):[$('#neCat').value];const gens=chk('neBoth')?['Boys','Girls']:[$('#neGen').value];let n=0;
@@ -2504,18 +2684,51 @@ const ACT={
  champCat:el=>{ui.champCat=el.dataset.id;rerender()},
  setRec:el=>{const s=S(),e=s.events.find(x=>x.id===el.dataset.id);const w=s.results[e.id].rows.find(x=>x.pos==1);e.rec={val:w.perf,holder:w.name||((Hs(w.houseId)||{}).name+' House'),house:(Hs(w.houseId)||{}).name||'',year:s.year};save();rerender();toast('Meet record updated')},
  rep:el=>{ui.report=el.dataset.id;ui.heatEv=null;ui.fxEv=null;rerender()},
- printRep:()=>{const st=document.createElement('style');st.textContent=ui.report==='certs'?'@page{size:A4 landscape;margin:0}':'@page{size:A4;margin:12mm}';document.head.appendChild(st);try{window.print()}catch(e){toast('Printing is blocked here — use Download')}setTimeout(()=>st.remove(),1500)},
+ printRep:()=>{const st=document.createElement('style');st.textContent=ui.report==='certs'?'@page{size:A4 landscape;margin:0}':ui.report==='bibs'?'@page{size:A4;margin:8mm}':'@page{size:A4;margin:12mm}';document.head.appendChild(st);try{window.print()}catch(e){toast('Printing is blocked here — use Download')}setTimeout(()=>st.remove(),1500)},
  dlRep:()=>{const s=S();const land=ui.report==='certs';const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(REPS[ui.report])} ${esc(s.year)}</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;700&display=swap" rel="stylesheet"><style>${PCSS}body{margin:16px;background:#fff}@page{size:A4 ${land?'landscape':'portrait'};margin:${land?0:12}mm}${land?'body{margin:0;background:#ddd8cc}.cs{margin:0 auto 12px}@media print{body{background:#fff}.cs{margin:0}}':''}.np{font:600 15px sans-serif;padding:10px 18px;margin:12px;cursor:pointer}@media print{.np{display:none}body{margin:0}}</style></head><body><button class="np" onclick="print()">Print</button>${land&&$('#paper')?$('#paper').innerHTML.replace(/ contenteditable="true" spellcheck="false"/g,''):repHTML(ui.report,ui.repCat)}</body></html>`;saveFile(`SJS_${REPS[ui.report].replace(/\W+/g,'_')}_${s.year}.html`,html)},
  csv:()=>{const s=S();const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;const L=[['Session','Event','Category','Gender','Rule','Position','House','Name','Class','Performance','Points'].join(',')];
   s.events.forEach(e=>{const t=Ts(e.typeId)||{pts:[]};(s.results[e.id]?.rows||[]).forEach(r=>{const a=r.athId&&s.athletes.find(z=>z.id===r.athId);L.push([s.year,e.name,catName(e.catId),e.gender,t.name,r.pos,(Hs(r.houseId)||{}).name,r.name,a?a.cls:'',r.perf,+t.pts[r.pos-1]||0].map(q).join(','))})});
   saveFile(`SJS_Sports_Results_${s.year}.csv`,'﻿'+L.join('\r\n'))},
+ goJm:el=>{ui.jmSel=el.dataset.id;location.hash='#judges'},
+ copyDay:async()=>{const txt=dayText(ui.sumDay||'');try{await navigator.clipboard.writeText(txt);toast('Summary copied — paste it in the WhatsApp group')}catch(e){toast('Copy is not allowed in this browser')}},
+ sumDay:el=>{ui.sumDay=el.dataset.id;rerender()},
+ jmSelEv:el=>{ui.jmSel=el.dataset.id;rerender()},jmAllT:()=>{ui.jmAll=!ui.jmAll;rerender()},
+ jmOn:()=>{if(isLocked())return;jmOf(ui.jmSel,true);save();rerender()},
+ jmAdd:()=>{if(isLocked())return;const J=jmOf(ui.jmSel,true);J.rows.push({id:uid(),houseId:'',name:'',athId:'',m:[]});save();rerender();const l=document.querySelectorAll('main input[data-k=name]');if(l.length)l[l.length-1].focus()},
+ jmDel:el=>{if(isLocked())return;const J=jmOf(ui.jmSel);if(!J)return;J.rows.splice(+el.dataset.i,1);save();rerender()},
+ jmFill:()=>{if(isLocked())return;const s=S(),J=jmOf(ui.jmSel,true);const ids=(s.entries||{})[ui.jmSel]||[];let n=0;ids.forEach(id=>{const a=s.athletes.find(z=>z.id===id);if(!a||J.rows.some(r=>r.athId===a.id))return;J.rows.push({id:uid(),houseId:a.houseId||'',name:a.name,athId:a.id,m:[]});n++});save();rerender();toast(n?`${n} participants added`:'Everyone is already in the list')},
+ jmHouses:()=>{if(isLocked())return;const s=S(),J=jmOf(ui.jmSel,true);let n=0;s.houses.forEach(h=>{if(!J.rows.some(r=>r.houseId===h.id)){J.rows.push({id:uid(),houseId:h.id,name:'',athId:'',m:[]});n++}});save();rerender();toast(n?`${n} houses added`:'Every house is already listed')},
+ jmSave:async()=>{if(isLocked())return;const s=S(),eid=ui.jmSel,e=s.events.find(x=>x.id===eid),J=jmOf(eid);if(!e||!J)return;const R=jmRanked(J).filter(x=>x.t>0&&x.r.houseId);if(!R.length){toast('Enter marks and houses first');return}
+  const t=Ts(e.typeId)||{pts:[]};const keep=R.filter(x=>x.rank<=Math.max(3,(t.pts||[]).length));
+  if(!await ask(`Save the result of ${e.name}?`,keep.map(x=>`${ord(x.rank)} ${(Hs(x.r.houseId)||{}).name||''}${x.r.name?' — '+x.r.name:''} (${x.t})`).join(' · ')+(R.some(x=>!x.full)?' · Note: some marks are empty.':''),'Save result'))return;
+  const prev=s.results[eid];const hist=prev&&prev.rows&&prev.rows.length?[{rows:prev.rows,at:prev.at,by:prev.by||''},...(prev.hist||[])]:(prev&&prev.hist)||[];
+  s.results[eid]={...(prev&&prev.heats?{heats:prev.heats}:{}),...(prev&&prev.fx?{fx:prev.fx}:{}),jm:J,rows:keep.map(x=>({pos:x.rank,houseId:x.r.houseId,name:x.r.name||'',athId:x.r.athId||'',perf:String(x.t)})),at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();rerender();toast('Saved — house points updated')},
+ jmPrint:()=>{ui.report='judges';ui.jmEv=null;ui.repDay='';ui.repCat=ui.jmCat||'';location.hash='#reports'},
+ attToggle:()=>{ui.att=!ui.att;$('#editor').innerHTML=editorHTML()},
+ bibAll:()=>{ui.bibAll=!ui.bibAll;rerender()},
+ annDay:el=>{ui.annDay=el.dataset.id;rerender()},
+ annCalled:el=>{const a=annGet();if(!a.called.includes(el.dataset.id))a.called.push(el.dataset.id);annSet(a);rerender()},
+ annUncall:el=>{const a=annGet();a.called=a.called.filter(x=>x!==el.dataset.id);annSet(a);rerender()},
+ annTold:el=>{const a=annGet();if(!a.told.includes(el.dataset.id))a.told.push(el.dataset.id);annSet(a);rerender()},
+ annSay:el=>{const s=S(),c=calc();let txt='';if(el.dataset.k==='st')txt='House points now. '+c.st.map(x=>`${ord(x.rank)}, ${x.h.name} House, ${x.total} points.`).join(' ');else{const e=s.events.find(x=>x.id===el.dataset.id);if(!e)return;txt=el.dataset.k==='win'?winText(e,s.results[e.id]):callText(e)}
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='en-IN';u.rate=.95;speechSynthesis.speak(u)}catch(x){toast('This phone cannot read aloud — please read the text')}},
+ tvToggle:()=>{ui.tv=!ui.tv;ui.tvI=0;clearInterval(SY.tvT);SY.tvT=null;rerender();if(ui.tv)tvTick()},
+ pubToggle:async()=>{if(!DB.app.pubOn&&!await ask('Open the public live view?','Anyone with the link or QR code can see house points, the latest winners (names and houses) and the next events — no login. Student lists, entries and other data stay private.','Open public view'))return;DB.app.pubOn=!DB.app.pubOn;save();SY.lastPub='';pushPub();rerender();toast(DB.app.pubOn?'Public view is open — show the QR code on the big screen':'Public view closed')},
+ pubCopy:async()=>{try{await navigator.clipboard.writeText(PUB_URL());toast('Link copied — share it with parents')}catch(e){toast(PUB_URL())}},
+ practiceStart:async()=>{const cur=S();if(cur.practice){toast('This is already a practice session');return}
+  if(!await ask('Start a practice run?','A copy of this session is made with the same houses, events, schedule, students and entries — but no results. Staff can try entering results there. When you finish, press “End practice” and the copy is deleted. Your real session is not touched.','Start practice'))return;
+  const n={id:uid(),year:cur.year,title:'PRACTICE — '+cur.title,date:cur.date,venue:cur.venue,created:Date.now(),practice:true,from:cur.id,houses:clone(cur.houses),cats:clone(cur.cats),types:clone(cur.types),events:clone(cur.events),athletes:clone(cur.athletes),results:{},bonus:[],entries:clone(cur.entries||{}),days:clone(cur.days||[]),maxEntry:cur.maxEntry,maxPerStudent:cur.maxPerStudent,restGap:cur.restGap};
+  DB.sessions[n.id]=n;DB.active=n.id;ui.sel=null;ui.draft=null;if(isLive()){SY.ready[n.id]=true;SY.remoteActive=n.id;SY.subSid=null}save();if(isLive())setTimeout(()=>subSession(n.id),600);location.hash='#results';render();toast('Practice session started — try entering some results')},
+ practiceEnd:async()=>{const cur=S();if(!cur.practice)return;if(!await ask('End the practice run?','The practice copy and its results are deleted. You go back to the real session.','End practice'))return;
+  const back=cur.from&&DB.sessions[cur.from]?cur.from:Object.keys(DB.sessions).find(id=>id!==cur.id);if(isLive()){try{await liveDeleteSession(cur.id)}catch(e){liveFail(e);return}SY.remoteActive=back}
+  delete DB.sessions[cur.id];DB.active=back;ui.sel=null;ui.draft=null;save();if(isLive())subSession(back);location.hash='#home';render();toast('Practice ended — back to the real session')},
  newSess:()=>{const cur=S();const year=val('nsYear');if(!year){toast('Type the session, e.g. 2027-28');return}
   const n={id:uid(),year,title:val('nsTitle')||cur.title,date:val('nsDate'),venue:cur.venue,created:Date.now(),houses:clone(cur.houses),cats:clone(cur.cats),types:clone(cur.types),events:[],athletes:chk('nsAth')?clone(cur.athletes):[],results:{},bonus:[],entries:{},days:(cur.days||[]).map(d=>({id:d.id,name:d.name,date:''}))};
   if(chk('nsEv')){n.events=clone(cur.events);if(chk('nsRec')){const c=calc(cur);c.recs.forEach(r=>{const e=n.events.find(x=>x.id===r.e.id);if(e)e.rec={val:r.row.perf,holder:r.row.name||((Hs(r.row.houseId,cur)||{}).name+' House'),house:(Hs(r.row.houseId,cur)||{}).name||'',year:cur.year}})}}
   DB.sessions[n.id]=n;DB.active=n.id;ui.sel=null;ui.draft=null;if(isLive()){SY.ready[n.id]=true;SY.remoteActive=n.id;SY.subSid=null}save();if(isLive())setTimeout(()=>subSession(n.id),600);location.hash='#home';render();toast(`Session ${year} started`)},
  openSess:el=>{DB.active=el.dataset.id;ui.sel=null;ui.draft=null;save();if(isLive())subSession(DB.active);rerender();toast('Opened '+S().year)},
  delSess:async el=>{const id=el.dataset.id;if(Object.keys(DB.sessions).length<2){toast('This is the only session');return}const s=DB.sessions[id];if(!await ask(`Delete session ${s.year}?`,isLive()?'It will be deleted for EVERY device sharing live. Download a backup first if unsure.':'All its results will be lost. Download a backup first if unsure.','Delete session'))return;if(isLive()){try{await liveDeleteSession(id)}catch(e){liveFail(e);return}if(SY.remoteActive===id)SY.remoteActive=null}delete DB.sessions[id];if(DB.active===id)DB.active=Object.keys(DB.sessions)[0];save();rerender()},
- backup:()=>{const d=new Date();saveFile(`SJS_Sports_Backup_${S().year}_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`,JSON.stringify(DB))},
+ backup:()=>{try{localStorage.setItem('sjs_sports_lastbk',String(Date.now()))}catch(e){}const d=new Date();saveFile(`SJS_Sports_Backup_${S().year}_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`,JSON.stringify(DB))},
  copyBackup:async()=>{try{await navigator.clipboard.writeText(JSON.stringify(DB));toast('Backup copied — paste it into a note or email')}catch(e){const t=$('#pasteTxt');t.value=JSON.stringify(DB);t.select();toast('Select-all and copy the text in the box')}},
  restoreFile:()=>$('#fileIn').click(),
  restorePaste:()=>restore(val('pasteTxt')),
@@ -2610,8 +2823,8 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  if(isLive()){SY.last={};SY.ready={};SY.subSid=null;SY.remoteActive=DB.active;try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}subscribe()}
  save();location.hash='#home';render();toast('Backup restored')}
 
-const MANAGE_ACTS=new Set('hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
-const SCORE_ACTS=new Set(['fxSaveRes','fxCreate','fxOff','fxAdd','fxDelM','fxUse','saveRes','clearRes','restoreVer','heatOn','heatOff','heatAdd','heatDel','heatRowAdd','heatRowDel','heatMake','heatMarkQ']);
+const MANAGE_ACTS=new Set('pubToggle practiceStart practiceEnd hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
+const SCORE_ACTS=new Set(['jmOn','jmAdd','jmDel','jmFill','jmHouses','jmSave','fxSaveRes','fxCreate','fxOff','fxAdd','fxDelM','fxUse','saveRes','clearRes','restoreVer','heatOn','heatOff','heatAdd','heatDel','heatRowAdd','heatRowDel','heatMake','heatMarkQ']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn';
 function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
 function blockField(el){if(!el.matches||!el.matches(WRITE_SEL)||canManage())return false;toast(NOPERM_M);rerender();return true}
@@ -2620,17 +2833,25 @@ let roMO=null;function roWatch(){if(roMO)return;roMO=new MutationObserver(()=>{c
 function roPaint(p){if(isVO()){roWatch();main.querySelectorAll('button[data-act]').forEach(b=>{if(NOSHARE_ACTS.has(b.dataset.act))b.style.display='none'})}
  main.querySelectorAll('.robar').forEach(x=>{if(!isLive()||isMgr()&&canScore())x.remove()});if(!isLive())return;roWatch();const mgr=isMgr(),sc=canScore();
  if(!mgr){main.querySelectorAll(WRITE_SEL).forEach(x=>{x.disabled=true});main.querySelectorAll('label.btn').forEach(l=>{if(l.querySelector('input:disabled')){l.setAttribute('aria-disabled','true');l.style.opacity='.42';l.style.pointerEvents='none'}});main.querySelectorAll('button[data-act]').forEach(b=>{if(MANAGE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_M}})}
- if(!sc){main.querySelectorAll('button[data-act]').forEach(b=>{if(SCORE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_S}});main.querySelectorAll('[data-hx],[data-fx],[data-fxt]').forEach(x=>x.disabled=true)}
+ if(!sc){main.querySelectorAll('button[data-act]').forEach(b=>{if(SCORE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_S}});main.querySelectorAll('[data-hx],[data-fx],[data-fxt],[data-jm]').forEach(x=>x.disabled=true)}
  const editPages=['houses','categories','athletes','housing','events','schedule','entries','points','bonus','certificate','setup'];
  if((!mgr&&editPages.includes(p)||!sc&&p==='results')&&!main.querySelector('.robar')){const h=main.querySelector('h2');if(h)h.insertAdjacentHTML('afterend',`<div class="banner robar"><b>${ROLE_L[spRole()]}</b><span class="mut">${p==='results'?NOPERM_S:'You can look, download and print, but only the Admin or the Sports In-charge can make changes here.'} <a href="#users">Who can do what ›</a></span></div>`)}}
 main.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='SELECT')return;const f=ACT[el.dataset.act];if(f){e.preventDefault();if(blockAct(el.dataset.act))return;f(el)}});
 main.addEventListener('input',e=>{const el=e.target;if(isLive()&&!canManage()&&el.matches&&el.matches(WRITE_SEL))return;
+ if(el.dataset.r!=null&&ui.draft&&/^att\d$/.test(el.dataset.k||'')){const r=ui.draft.rows[+el.dataset.r];if(r){r[el.dataset.k]=el.value;const b=[0,1,2].map(k=>parsePerf(r['att'+k])).filter(v=>!isNaN(v));if(b.length){r.perf=String(Math.max(...b));const pf=el.closest('.rrow').querySelector('[data-k=perf]');if(pf)pf.value=r.perf}}return}
  if(el.dataset.r!=null&&ui.draft){const r=ui.draft.rows[+el.dataset.r];if(r){r[el.dataset.k]=el.value;if(el.dataset.k==='pos')paintRow(el.closest('.rrow'),r,S().events.find(x=>x.id===ui.sel))}return}
  if(el.dataset.uf==='q'){ui.evf.q=el.value;$('#evList').innerHTML=evListHTML();return}
  if(el.dataset.ef==='q'){ui.enf.q=el.value;$('#enList2').innerHTML=enListHTML();return}
  if(el.dataset.af==='q'){ui.af.q=el.value;ui.aPage=0;clearTimeout(ui.at);ui.at=setTimeout(()=>{rerender();const q=main.querySelector('[data-af=q]');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},350)}
 });
 main.addEventListener('change',e=>{const el=e.target,s=S();if(blockField(el))return;
+ if(el.dataset.jm){if(!canScore()){toast(NOPERM_S);rerender();return}if(isLocked()){rerender();return}const J=jmOf(ui.jmSel,true);const k=el.dataset.jm;
+  if(k==='n'){J.n=Math.min(7,Math.max(1,parseInt(el.value)||1));while(J.judges.length<J.n)J.judges.push('Judge '+(J.judges.length+1))}
+  else if(k==='max'){J.max=Math.max(1,parseFloat(el.value)||10)}
+  else if(k==='jname'){J.judges[+el.dataset.i]=el.value.trim()||('Judge '+(+el.dataset.i+1))}
+  else if(k==='mark'){const r=J.rows[+el.dataset.i];if(!r)return;r.m=r.m||[];let v=el.value.trim();if(v!==''&&!isNaN(parseFloat(v))&&parseFloat(v)>J.max){toast(`Marks are out of ${J.max}`);v=String(J.max)}r.m[+el.dataset.k]=v}
+  else if(k==='row'){const r=J.rows[+el.dataset.i];if(!r)return;r[el.dataset.k]=el.value;if(el.dataset.k==='name'){const ev=S().events.find(x=>x.id===ui.jmSel);const a=matchAth(el.value,ev,r.houseId)||S().athletes.find(z=>norm(z.name)===norm(el.value));if(a){r.athId=a.id;if(!r.houseId&&a.houseId)r.houseId=a.houseId}else r.athId=''}}
+  save();rerender();if(k==='mark'){const nx=document.querySelector(`main input[data-jm=mark][data-i="${el.dataset.i}"][data-k="${+el.dataset.k+1}"]`)||document.querySelector(`main input[data-jm=mark][data-i="${+el.dataset.i+1}"][data-k="0"]`);if(nx)nx.focus()}return}
  if(el.dataset.fxt){ui.fxNew={...(ui.fxNew||{format:S().houses.length>=4?'knockout':'league'}),teams:fxTeamsSel()};return}
  if(el.dataset.fx){if(!canScore()){toast(NOPERM_S);rerender();return}if(isLocked()){reEd();return}const fx=fxOf(evSel());if(!fx)return;const m=fx.matches.find(x=>x.id===el.dataset.m);if(!m)return;const k=el.dataset.fx;
   if(k==='a'||k==='b'){m[k]=el.value;m[k==='a'?'lockA':'lockB']=!!el.value;if(!el.value)delete m[k==='a'?'lockA':'lockB']}else if(k==='sa'||k==='sb'){m[k]=el.value.replace(/[^0-9.]/g,'')}else m[k]=el.value;
@@ -2661,6 +2882,8 @@ main.addEventListener('change',e=>{const el=e.target,s=S();if(blockField(el))ret
  if(el.dataset.act2==='repCat'){ui.repCat=el.value;rerender();return}
  if(el.dataset.act2==='repDay'){ui.repDay=el.value;rerender();return}
  if(el.dataset.act2==='certSel'){ui.certSel=el.value;rerender();return}
+ if(el.dataset.act2==='certHouse'){ui.certHouse=el.value;rerender();return}
+ if(el.dataset.act2==='bibHouse'){ui.bibHouse=el.value;rerender();return}
  if(el.dataset.msel){if(el.dataset.msel==='all'){(ui.mShown||[]).forEach(id=>el.checked?ui.msel.add(id):ui.msel.delete(id))}else{el.checked?ui.msel.add(el.dataset.msel):ui.msel.delete(el.dataset.msel)}rerender();return}
  if(el.id==='meName'){try{localStorage.setItem(ME_KEY,el.value.trim())}catch(e){}toast('Name saved on this device');return}
  if(el.dataset.act2&&/^h(How|Scope|Class|G)$/.test(el.dataset.act2)){const k=el.dataset.act2;if(k==='hClass')ui.hClass=el.value;else if(k==='hG')ui.hG=el.value;else{ui[k]=el.value;ui.hPrev=ui.hPrev}rerender();return}
