@@ -377,12 +377,13 @@ const RULES_TXT=`    // ===== SJS Sports App (Annual Sports Meet) — user contr
     function spOpen(sid) {
       return get(/databases/$(database)/documents/sports/main/s/$(sid)).data.get('locked', false) != true;
     }
+    function spGiveRole() {
+      return (isAdmin() && (request.resource.data.role == 'incharge' || request.resource.data.role == 'scorer')) || (spRole() == 'incharge' && request.resource.data.role == 'scorer' && (resource == null || resource.data.role == 'scorer'));
+    }
     match /sports_roles/{email} {
       allow get: if signedIn() && (spManager() || spEmail() == email);
       allow list: if spManager();
-      allow create, update: if (isAdmin() && request.resource.data.role in ['incharge', 'scorer'])
-        || (spRole() == 'incharge' && request.resource.data.role == 'scorer'
-            && (resource == null || resource.data.role == 'scorer'));
+      allow create, update: if spGiveRole();
       allow delete: if isAdmin() || (spRole() == 'incharge' && resource.data.role == 'scorer');
     }
     match /sports/main { allow read: if signedIn(); allow write: if spManager(); }
@@ -415,7 +416,7 @@ const canScore=()=>!isLive()||['admin','incharge','scorer','teacher'].includes(s
 /* view-only teachers: look only — no download, print, copy; screenshots are discouraged with a name watermark */
 const VO_KEY='sjs_sports_vo';
 function isVO(){if(isLive())return spRole()==='viewer';try{return localStorage.getItem(VO_KEY)==='1'}catch(e){return false}}
-const NOSHARE_ACTS=new Set(['printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
+const NOSHARE_ACTS=new Set(['copyDuty','printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
 const NOPERM_V='View only: downloading, printing and copying are turned off for your Gmail.';
 function voPaint(){const on=isVO();document.body.classList.toggle('vo',on);
  if(isLive()){try{on?localStorage.setItem(VO_KEY,'1'):localStorage.removeItem(VO_KEY)}catch(e){}}
@@ -763,7 +764,7 @@ function editorHTML(){
   ${hasP?`<input data-r="${i}" data-k="perf" inputmode="decimal" aria-label="Performance" placeholder="${e.measure==='time'?'e.g. 12.45':'e.g. 4.35'}" value="${esc(r.perf)}">`:''}
   <span class="ptag">${p} pts</span><button class="x" data-act="rowdel" data-r="${i}" aria-label="Remove row">×</button></div>`}).join('');
  const rec=e.rec&&e.rec.val?`Meet record: <b>${esc(e.rec.val)} ${unitOf(e.measure)}</b> — ${esc(e.rec.holder)}${e.rec.house?' ('+esc(e.rec.house)+')':''}${e.rec.year?', '+esc(e.rec.year):''}`:(hasP?'No meet record yet — the winner will set the first one.':'');
- return`<div class="card"><div class="row" style="justify-content:space-between;align-items:start"><div><h3 style="margin:0">${esc(e.name)}</h3><div class="mut">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc(t.name)} · points ${t.pts.join(' / ')||'none'}</div>${rec?`<div class="tiny" style="margin-top:4px">${rec}</div>`:''}</div>${hasRes(e)?'<span class="tag ok">Saved</span>':''}</div>
+ return`<div class="card"><div class="row" style="justify-content:space-between;align-items:start"><div><h3 style="margin:0">${esc(e.name)}</h3><div class="mut">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc(t.name)} · points ${t.pts.join(' / ')||'none'}</div>${e.org?`<div class="tiny" style="margin-top:2px">In-charge: <b>${esc(e.org)}</b></div>`:''}${rec?`<div class="tiny" style="margin-top:4px">${rec}</div>`:''}</div>${hasRes(e)?'<span class="tag ok">Saved</span>':''}</div>
  <div style="margin-top:14px" class="tiny">Position · House · ${team?'Team':'Athlete'}${hasP?' · '+(e.measure==='time'?'Time':'Distance'):''}</div>
  <div style="margin-top:6px">${rows}</div><datalist id="athList">${athDatalist(e)}</datalist>
  <div class="row" style="margin-top:10px"><button class="btn pri" data-act="saveRes">Save result</button><button class="btn" data-act="rowadd">Add row (tie / extra place)</button>${hasP?'<button class="btn" data-act="autopos">Rank by performance</button>':''}<button class="btn" data-act="nextEv">Next pending event</button>${hasRes(e)?'<button class="btn danger" data-act="clearRes">Clear result</button>':''}</div>
@@ -1055,7 +1056,7 @@ function progWorkbook(houseId){const s=S(),a=DB.app;const E=s.entries||{};const 
  const sheets=[];
  /* instructions */
  sheets.push(instrSheet('Programme & participants — day-wise (fill, edit and upload back)',[
-  '1. “Programme” sheet = every event or item with its Day, Time, Venue, Category, Gender, Points rule, Result by and Entries per house. Change any of these and upload. To add a NEW item, type it on an empty row at the bottom (leave the ID column empty).',
+  '1. “Programme” sheet = every event or item with its Day, Time, Venue, Category, Gender, Points rule, Result by, Entries per house and In-charge / organiser (teacher names; several names with a comma). Change any of these and upload. To add a NEW item, type it on an empty row at the bottom (leave the ID column empty).',
   '2. One sheet per day (Day 1, Day 2 …). Under each event there is a column for every house with numbered places: type or pick (drop-down) the participants. The drop-down lists the members of that house; you may also type a new name.',
   '3. REPLACEMENT: just overwrite the old name with the new one, or clear the cell to remove the student, then upload. Only the houses whose columns are in the file are changed.',
   '4. Do not change the grey ID column or the house names above each list. You may move rows of an event but keep each event block together.',
@@ -1063,11 +1064,11 @@ function progWorkbook(houseId){const s=S(),a=DB.app;const E=s.entries||{};const 
   houseId?`6. This copy is for ${(Hs(houseId)||{}).name} House only — uploading it changes ${(Hs(houseId)||{}).name} participants only.`:'6. To collect from house masters separately, download a copy for each house (choose the house before downloading).'
  ]));
  /* programme */
- const pr=[['Day','Time','Venue','Event / item','Category','Gender','Points rule','Result by','Entries per house','ID (do not change)'].map(v=>({v,s:v.startsWith('Event')||v==='Category'||v==='Gender'?5:1}))];
- s.events.slice().sort(schedCmp(s)).forEach(e=>pr.push([e.dayId&&dayById(e.dayId)?dayById(e.dayId).name:'',fmtTime(e.time),e.venue||'',e.name,e.catId?catName(e.catId):'Open',e.gender,(Ts(e.typeId)||{}).name||'',(RESBY.find(r=>r[0]===e.measure)||RESBY[2])[1],slotsFor(e),'E:'+e.id].map(v=>({v:v??'',s:4}))));
- for(let i=0;i<40;i++)pr.push(Array.from({length:10},()=>({v:'',s:4})));
+ const pr=[['Day','Time','Venue','Event / item','Category','Gender','Points rule','Result by','Entries per house','In-charge / organiser','ID (do not change)'].map(v=>({v,s:v.startsWith('Event')||v==='Category'||v==='Gender'?5:1}))];
+ s.events.slice().sort(schedCmp(s)).forEach(e=>pr.push([e.dayId&&dayById(e.dayId)?dayById(e.dayId).name:'',fmtTime(e.time),e.venue||'',e.name,e.catId?catName(e.catId):'Open',e.gender,(Ts(e.typeId)||{}).name||'',(RESBY.find(r=>r[0]===e.measure)||RESBY[2])[1],slotsFor(e),e.org||'','E:'+e.id].map(v=>({v:v??'',s:4}))));
+ for(let i=0;i<40;i++)pr.push(Array.from({length:11},()=>({v:'',s:4})));
  const L=pr.length;const nD=(s.days||[]).length;
- sheets.push({name:'Programme',rows:pr,widths:[11,11,18,28,14,10,18,18,10,0],freeze:true,landscape:true,valid:[
+ sheets.push({name:'Programme',rows:pr,widths:[11,11,18,28,14,10,18,18,10,26,0],freeze:true,landscape:true,valid:[
   {ref:`A2:A${L}`,f:`Lists!$A$2:$A$${Math.max(2,nD+1)}`,free:true},{ref:`E2:E${L}`,f:`Lists!$B$2:$B$${s.cats.length+2}`},{ref:`F2:F${L}`,f:'Lists!$C$2:$C$4'},{ref:`G2:G${L}`,f:`Lists!$D$2:$D$${Math.max(2,s.types.length+1)}`},{ref:`H2:H${L}`,f:'Lists!$E$2:$E$4'}]});
  /* day sheets */
  const memCols={};houses.forEach((h,i)=>memCols[h.id]=colL(5+i));
@@ -1107,17 +1108,17 @@ function planProg(sheets,mode){
  const resBy=v=>{v=norm(v);return/^t/.test(v)?'time':/^(d|h)/.test(v)?'dist':v?'none':null};
  /* programme sheet */
  const ps=sheets.find(sh=>!sh.hidden&&/^programme/i.test(String(sh.name).trim()));
- if(ps){read++;const hr=ps.rows[0]||[];const col=re=>hr.findIndex(h=>re.test(norm(h)));const C={day:col(/^day/),time:col(/^time/),venue:col(/^venue/),name:col(/^event/),cat:col(/^categ/),gen:col(/^gender/),rule:col(/^points/),res:col(/^result/),slots:col(/^entries/),id:col(/^id/)};
+ if(ps){read++;const hr=ps.rows[0]||[];const col=re=>hr.findIndex(h=>re.test(norm(h)));const C={day:col(/^day/),time:col(/^time/),venue:col(/^venue/),name:col(/^event/),cat:col(/^categ/),gen:col(/^gender/),rule:col(/^points/),res:col(/^result/),slots:col(/^entries/),org:col(/^(in.?charge|organi)/),id:col(/^id/)};
   for(let i=1;i<ps.rows.length;i++){const r=ps.rows[i]||[];const g=k=>C[k]>=0?String(r[C[k]]??'').trim():'';const name=g('name');const idv=g('id').replace(/^E:/,'');if(!name&&!idv)continue;const where=`Programme, row ${i+1}`;
    const tm=parseTimeCell(g('time'));if(tm===null)probs.push(`${where}: time “${g('time')}” not understood — use 9:30 AM or 14:00`);
    const cat=g('cat');let catId;if(!cat||/^open$/i.test(cat))catId='';else{const c=findCat(cat);if(!c){probs.push(`${where}: category “${cat}” not found — kept as before`)}else catId=c.id}
    const gen=(()=>{const v=norm(g('gen'));return/^b/.test(v)?'Boys':/^g/.test(v)?'Girls':/^m/.test(v)?'Mixed':''})();
    const ty=g('rule')?findType(g('rule')):null;if(g('rule')&&!ty)probs.push(`${where}: points rule “${g('rule')}” not found — kept as before`);
-   const ch={dayId:findDay(g('day')),time:tm===null?undefined:tm,venue:g('venue'),slots:parseInt(g('slots'))||0};if(catId!==undefined)ch.catId=catId;if(gen)ch.gender=gen;if(ty)ch.typeId=ty.id;const rb=resBy(g('res'));if(rb)ch.measure=rb;if(name)ch.name=name;
+   const ch={dayId:findDay(g('day')),time:tm===null?undefined:tm,venue:g('venue'),slots:parseInt(g('slots'))||0};if(C.org>=0)ch.org=orgNames(g('org')).join(', ');if(catId!==undefined)ch.catId=catId;if(gen)ch.gender=gen;if(ty)ch.typeId=ty.id;const rb=resBy(g('res'));if(rb)ch.measure=rb;if(name)ch.name=name;
    const e=idv&&evById[idv];
    if(e){if(!ch.slots||ch.slots===slotsFor(e))delete ch.slots;const diff=Object.keys(ch).filter(k=>ch[k]!==undefined&&String(e[k]??'')!==String(ch[k]??''));if(diff.length)evUpd.push({e,ch,diff})}
    else if(idv){probs.push(`${where}: “${name}” no longer exists in the app — skipped (add it again without an ID to create it)`)}
-   else{if(!name)continue;evNew.push({id:uid(),name,catId:catId||'',gender:gen||'Mixed',typeId:(ty||s.types[0]).id,measure:rb||'none',rec:blankRec(),dayId:ch.dayId,time:tm||'',venue:ch.venue,slots:ch.slots})}}}
+   else{if(!name)continue;evNew.push({id:uid(),name,catId:catId||'',gender:gen||'Mixed',typeId:(ty||s.types[0]).id,measure:rb||'none',rec:blankRec(),dayId:ch.dayId,time:tm||'',venue:ch.venue,slots:ch.slots,org:ch.org||''})}}}
  /* day sheets */
  const ent={};const byChest={};s.athletes.forEach(x=>{if(x.chest)byChest[norm(x.chest)]=x});let cellsRead=0;
  for(const sh of sheets){if(sh.hidden)continue;let cur=null,map=null,any=false;
@@ -1155,7 +1156,7 @@ function applyProg(p){const s=S();s.days=s.days||[];s.entries=s.entries||{};
 function progPlanHTML(){const p=ui.imp;const n=p.probs.length;
  return`<div class="card imp" style="margin-top:12px"><h3>Check before importing · ${esc(ui.impFile||'')}</h3>
  <ul style="margin:0 0 8px;padding-left:20px;line-height:1.7">
-  ${p.evUpd.length?`<li><b>${p.evUpd.length}</b> event${p.evUpd.length>1?'s':''} changed in the programme: ${p.evUpd.slice(0,6).map(u=>esc(u.e.name+' · '+u.e.gender+' · '+catName(u.e.catId))+' <span class="tiny">('+u.diff.map(k=>({dayId:'day',time:'time',venue:'venue',catId:'category',gender:'gender',typeId:'points rule',measure:'result by',slots:'per house',name:'name'}[k]||k)).join(', ')+')</span>').join('; ')}${p.evUpd.length>6?' …':''}</li>`:''}${p.evNew.length?`<li><b>${p.evNew.length}</b> new events / items will be added: ${p.evNew.slice(0,8).map(e=>esc(e.name+' · '+e.gender)).join(', ')}${p.evNew.length>8?' …':''}</li>`:''}${p.newDays.length?`<li><b>${p.newDays.length}</b> new day${p.newDays.length>1?'s':''}: ${p.newDays.map(d=>esc(d.name)).join(', ')}</li>`:''}
+  ${p.evUpd.length?`<li><b>${p.evUpd.length}</b> event${p.evUpd.length>1?'s':''} changed in the programme: ${p.evUpd.slice(0,6).map(u=>esc(u.e.name+' · '+u.e.gender+' · '+catName(u.e.catId))+' <span class="tiny">('+u.diff.map(k=>({dayId:'day',time:'time',venue:'venue',catId:'category',gender:'gender',typeId:'points rule',measure:'result by',slots:'per house',name:'name',org:'in-charge'}[k]||k)).join(', ')+')</span>').join('; ')}${p.evUpd.length>6?' …':''}</li>`:''}${p.evNew.length?`<li><b>${p.evNew.length}</b> new events / items will be added: ${p.evNew.slice(0,8).map(e=>esc(e.name+' · '+e.gender)).join(', ')}${p.evNew.length>8?' …':''}</li>`:''}${p.newDays.length?`<li><b>${p.newDays.length}</b> new day${p.newDays.length>1?'s':''}: ${p.newDays.map(d=>esc(d.name)).join(', ')}</li>`:''}
   <li><b>${p.add}</b> participants added${p.mode==='replace'?`, <b>${p.rem}</b> removed or replaced`:''} in <b>${p.evTouched}</b> events${p.newMem.length?` · <b>${p.newMem.length}</b> new names added to the member lists`:''}</li></ul>
  ${p.changes.length?`<details><summary style="cursor:pointer;font-weight:600">See participant changes</summary><ul class="tiny" style="max-height:180px;overflow:auto">${p.changes.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details>`:''}
  ${n?`<details ${n<12?'open':''}><summary style="cursor:pointer;font-weight:600;color:#b45309">${n} thing${n>1?'s':''} to check</summary><ul class="tiny" style="max-height:200px;overflow:auto">${p.probs.slice(0,300).map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details>`:'<p class="tiny" style="color:#11804e">No problems found.</p>'}
@@ -1236,7 +1237,7 @@ function entriesReport(cat,head,sign,foot,sw){const s=S(),E=s.entries||{};const 
  const evs=repEvents(cat).filter(e=>(E[e.id]||[]).length);
  if(!evs.length)return`<div class="p-doc">${head}<p>No entries yet. Add them in Event entries.</p></div>`;
  return`<div class="p-doc">${head}${evs.map(e=>{const l=(E[e.id]||[]).map(ath).filter(Boolean).sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||'')||norm(a.name).localeCompare(norm(b.name)));const m=e.measure!=='none';
-  return`<div style="break-inside:avoid;page-break-inside:avoid"><h3>${e.dayId&&dayById(e.dayId)?esc(dayById(e.dayId).name)+(e.time?' · '+fmtTime(e.time):'')+' · ':''}${esc(e.name)} — ${esc(e.gender)} · ${esc(catName(e.catId))}${e.venue?' · '+esc(e.venue):''} <span style="font-weight:400;font-size:12px">(${l.length} entries)</span></h3><table><thead><tr><th style="width:30px">Sl</th><th style="width:60px">Chest</th><th>Name</th><th style="width:60px">Class</th><th style="width:100px">House</th><th style="width:${m?90:70}px">${m?(e.measure==='time'?'Time':'Mark'):'Score'}</th><th style="width:60px">Position</th></tr></thead><tbody>${l.map((a,i)=>`<tr><td>${i+1}</td><td>${esc(a.chest||'')}</td><td>${esc(a.name)}</td><td>${esc(a.cls||'')}</td><td>${sw(Hs(a.houseId))}</td><td></td><td></td></tr>`).join('')}</tbody></table></div>`}).join('')}<div class="p-sign"><div>Judge / Official</div><div>${esc(DB.app.sign1)}</div></div>${foot}</div>`}
+  return`<div style="break-inside:avoid;page-break-inside:avoid"><h3>${e.dayId&&dayById(e.dayId)?esc(dayById(e.dayId).name)+(e.time?' · '+fmtTime(e.time):'')+' · ':''}${esc(e.name)} — ${esc(e.gender)} · ${esc(catName(e.catId))}${e.venue?' · '+esc(e.venue):''} <span style="font-weight:400;font-size:12px">(${l.length} entries)</span>${e.org?`<br><span style="font-weight:400;font-size:12px">In-charge: ${esc(e.org)}</span>`:''}</h3><table><thead><tr><th style="width:30px">Sl</th><th style="width:60px">Chest</th><th>Name</th><th style="width:60px">Class</th><th style="width:100px">House</th><th style="width:${m?90:70}px">${m?(e.measure==='time'?'Time':'Mark'):'Score'}</th><th style="width:60px">Position</th></tr></thead><tbody>${l.map((a,i)=>`<tr><td>${i+1}</td><td>${esc(a.chest||'')}</td><td>${esc(a.name)}</td><td>${esc(a.cls||'')}</td><td>${sw(Hs(a.houseId))}</td><td></td><td></td></tr>`).join('')}</tbody></table></div>`}).join('')}<div class="p-sign"><div>Judge / Official</div><div>${esc(DB.app.sign1)}</div></div>${foot}</div>`}
 function membersReport(cat,head,sign,foot,sw){const s=S(),E=s.entries||{};const cntE={};Object.entries(E).forEach(([eid,l])=>l.forEach(id=>(cntE[id]=cntE[id]||[]).push(eid)));
  return`<div class="p-doc">${head}${s.houses.map(h=>{const l=s.athletes.filter(a=>a.houseId===h.id&&(!cat||a.catId===cat)).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||norm(a.name).localeCompare(norm(b.name)));if(!l.length)return'';
   return`<div style="break-before:page;page-break-before:always"><h3>${sw(h)} House — ${l.length} members (${l.filter(a=>a.gender==='B').length} boys, ${l.filter(a=>a.gender==='G').length} girls)${h.captain?` · Captain: ${esc(h.captain)}`:''}</h3><table><thead><tr><th style="width:30px">Sl</th><th>Name</th><th style="width:55px">Class</th><th style="width:40px">Sec</th><th style="width:45px">Roll</th><th style="width:55px">Gender</th><th style="width:90px">Category</th><th style="width:55px">Chest</th><th>Events</th></tr></thead><tbody>${l.map((a,i)=>`<tr><td>${i+1}</td><td>${esc(a.name)}</td><td>${esc(a.cls||'')}</td><td>${esc(a.sec||'')}</td><td>${esc(a.roll||'')}</td><td>${a.gender==='B'?'Boy':a.gender==='G'?'Girl':''}</td><td>${esc((Cs(a.catId)||{}).name||'')}</td><td>${esc(a.chest||'')}</td><td style="font-size:11px">${(cntE[a.id]||[]).map(id=>{const e=s.events.find(x=>x.id===id);return e?esc(e.name):''}).filter(Boolean).join(', ')}</td></tr>`).join('')}</tbody></table></div>`}).join('')||'<p>No members yet.</p>'}${foot}</div>`}
@@ -1322,7 +1323,7 @@ function pRecords(){
 }
 
 /* ---------- reports ---------- */
-const REPS={schedule:'Day-wise Programme',log:'Change Log',summary:'House Points Summary',matrix:'Event-wise House Points',results:'Results Sheet',champions:'Individual Champions',certs:'Merit Certificates',entries:'Entry Lists (start lists)',members:'House Member Lists'};
+const REPS={schedule:'Day-wise Programme',duties:'Teacher Duty List',log:'Change Log',summary:'House Points Summary',matrix:'Event-wise House Points',results:'Results Sheet',champions:'Individual Champions',certs:'Merit Certificates',entries:'Entry Lists (start lists)',members:'House Member Lists'};
 function repHTML(kind,cat){
  const s=S(),c=calc(),a=DB.app;
  const head=`<div class="p-head">${a.logo?`<img src="${a.logo}" alt="" style="height:20mm;max-width:50mm;object-fit:contain;display:block;margin:0 auto 4px">`:''}<h1>${esc(a.school)}</h1>${a.motto?`<div class="m">Motto: ${esc(a.motto)}</div>`:''}<div class="a">${esc(a.address)}</div><h2>${esc(s.title)} ${esc(s.year)} — ${REPS[kind]}${ui.repDay?' · '+esc(dayLabel(ui.repDay)):''}${cat?' · '+esc(catName(cat)):''}</h2>${s.date||s.venue?`<div class="a">${[s.date&&fmtDate(s.date),s.venue].filter(Boolean).map(esc).join(' · ')}</div>`:''}</div>`;
@@ -1332,6 +1333,7 @@ function repHTML(kind,cat){
  const foot=`<div class="p-foot">Generated by SJS Sports App on ${new Date().toLocaleString('en-IN')} · ${c.done} of ${c.total} events completed</div>`;
  if(kind==='entries')return entriesReport(cat,head,sign,foot,sw);
  if(kind==='schedule')return scheduleReport(head,sign,foot,sw);
+ if(kind==='duties')return dutyReport(cat,head,sign,foot);
  if(kind==='log')return logReport(head,sign,foot);
  if(kind==='members')return membersReport(cat,head,sign,foot,sw);
  if(kind==='summary'){const ks=catKeys(s);
@@ -1741,7 +1743,13 @@ function dayProgressHTML(){const s=S();if(!(s.days||[]).length)return'';const ro
  return`<div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Programme by day</h3><a class="btn sm" href="#schedule">Open schedule</a></div>
  ${rows.map(({d,l,done})=>`<div class="dprog"><b>${esc(d.name)}</b><span class="tiny">${d.date?esc(fmtDate(d.date)):''}</span><div class="dbar"><span style="width:${Math.round(done/l.length*100)}%"></span></div><span class="tiny">${done} / ${l.length} done</span></div>`).join('')}
  ${nxt?`<p style="margin:10px 0 0"><span class="tag">Next up</span> <b>${nxt.time?fmtTime(nxt.time)+' · ':''}${esc(nxt.name)}</b> <span class="tiny">${esc(nxt.gender)} · ${esc(catName(nxt.catId))} · ${esc((dayById(nxt.dayId)||{}).name||'')}${nxt.venue?' · '+esc(nxt.venue):''}</span></p>`:''}</div>`}
-function pSchedule(){
+/* ---------- In-charge / organiser of each event ---------- */
+const orgNames=v=>String(v||'').split(/\s*(?:,|;|\/|&|\band\b|\n)\s*/i).map(x=>x.trim()).filter(Boolean);
+let STAFF=null;
+async function loadStaff(){if(STAFF||!SY.fs||!SY.user)return;STAFF=[];try{const q=await SY.fs.collection('att_teachers').get();STAFF=q.docs.map(d=>String(d.data().name||'').trim()).filter(Boolean);if(['schedule','events','reports'].includes(ui.page))softRender()}catch(e){STAFF=[]}}
+function staffList(){const s=S();const used=s.events.flatMap(e=>orgNames(e.org));return[...new Set([...used,...(STAFF||[])])].sort((a,b)=>a.localeCompare(b))}
+const staffDL=()=>`<datalist id="staffList">${staffList().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+function pSchedule(){if(isLive())loadStaff();
  const s=S();s.days=s.days||[];const D=ui.sday||'';const list=dayEvents(D);const all=s.events.length;const none=s.events.filter(e=>inDay(e,'_none')).length;
  const dsel=(e)=>`<select data-col="events" data-id="${e.id}" data-f="dayId" data-re="1" aria-label="Day">${opt('','— Not scheduled',e.dayId&&dayById(e.dayId)?e.dayId:'')}${s.days.map(d=>opt(d.id,d.name,e.dayId)).join('')}</select>`;
  const chips=[['','All events',all],...s.days.map(d=>[d.id,d.name,s.events.filter(e=>e.dayId===d.id).length]),['_none','Not scheduled',none]];
@@ -1758,39 +1766,57 @@ function pSchedule(){
   <label class="chk"><input type="checkbox" id="baOnly" checked> Only events that are not scheduled yet</label>
   <button class="btn pri" data-act="bulkDay">Assign</button>
   <p class="tiny">Example: all Minor and Sub-Junior events on Day 1, all Junior and Senior on Day 2, major games on Day 3.</p></div></div>
+ <div class="card" style="margin-top:16px"><h3>In-charge for many events at once</h3>
+  <p class="tiny" style="margin-top:0">Example: Sir Lalramenga for every <b>Jump</b> on Day 1, or Mam Ruth for all <b>Sub-Minor</b> events. Type more than one name with a comma. You can also type the name on each row below, or fill the “In-charge” column in the Excel programme and upload it.</p>
+  <div class="row" style="align-items:end"><label style="flex:2 1 220px">Teacher name(s)<input id="boName" list="staffList" placeholder="e.g. Sir Lalramenga, Mam Ruth"></label>
+  <label>Day<select id="boDay">${opt('','All days',D&&D!=='_none'?'':'')}${s.days.map(d=>opt(d.id,d.name,D)).join('')}</select></label>
+  <label>Category<select id="boCat">${opt('','All categories','')}${s.cats.map(c=>opt(c.id,c.name,'')).join('')}${opt('_open','Open','')}</select></label>
+  <label>Gender<select id="boGen">${opt('','Boys & Girls','')}${genOpts('')}</select></label>
+  <label style="flex:1 1 150px">Event name has<input id="boHas" placeholder="e.g. Jump, Relay, Race"></label></div>
+  <label class="chk"><input type="checkbox" id="boOnly" checked> Only events that have no in-charge yet</label>
+  <div class="row"><button class="btn pri" data-act="bulkOrg">Set in-charge</button><button class="btn" data-act="dayRep" data-id="duties">Print teacher duty list</button></div></div>
  <div style="margin-top:16px">${progBar()}</div>
  <div class="card" style="margin-top:16px">
   <div class="chips">${chips.map(([id,n,k])=>`<button class="chip ${D===id?'on':''}" data-act="sDay" data-id="${id}">${esc(n)} <span class="mut">${k}</span></button>`).join('')}</div>
   <div class="row" style="margin-top:8px">
    <button class="btn sm" data-act="dayRep" data-id="schedule">Print programme</button><button class="btn sm" data-act="dayRep" data-id="entries">Print participant lists</button><button class="btn sm" data-act="dayRep" data-id="results">Print results</button><button class="btn sm" data-act="dayXls">Download Excel (programme + participants)</button></div>
   ${D&&D!=='_none'?`<div class="row" style="margin-top:10px;align-items:end"><label style="flex:0 1 140px">Start time<input type="time" id="atStart" value="${esc(ui.atStart||'09:00')}"></label><label style="flex:0 1 160px">Minutes per event<input type="number" min="1" id="atGap" value="${esc(ui.atGap||10)}"></label><button class="btn sm" data-act="autoTime">Fill times in this order</button><span class="tiny">Sets times one after another for the events below. Use ↑ ↓ to change the order first.</span></div>`:''}
-  <div class="scroll" style="margin-top:10px"><table class="t stack"><thead><tr><th>Time</th><th>Event / item</th><th>Day</th><th>Venue</th><th>Per house</th><th class="n">Entries</th><th>Status</th>${D&&D!=='_none'?'<th>Order</th>':''}</tr></thead><tbody>
+  <div class="scroll" style="margin-top:10px"><table class="t stack"><thead><tr><th>Time</th><th>Event / item</th><th>Day</th><th>Venue</th><th>In-charge / organiser</th><th>Per house</th><th class="n">Entries</th><th>Status</th>${D&&D!=='_none'?'<th>Order</th>':''}</tr></thead><tbody>
   ${list.map((e,i)=>`<tr><td><input type="time" data-col="events" data-id="${e.id}" data-f="time" data-re="1" value="${esc(e.time||'')}" style="width:150px" aria-label="Time"></td>
    <td><b>${esc(e.name)}</b><br><span class="tiny">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc((Ts(e.typeId)||{}).name||'')}</span></td>
    <td>${dsel(e)}</td><td><input data-col="events" data-id="${e.id}" data-f="venue" list="venueList" value="${esc(e.venue||'')}" placeholder="e.g. Main field" style="min-width:120px" aria-label="Venue"></td>
+   <td><input data-col="events" data-id="${e.id}" data-f="org" list="staffList" value="${esc(e.org||'')}" placeholder="Teacher name(s)" style="min-width:170px" aria-label="In-charge or organiser"></td>
    <td><input type="number" min="1" data-col="events" data-id="${e.id}" data-f="slots" value="${esc(slotsFor(e))}" style="width:70px" aria-label="Participants per house"></td>
    <td class="n"><a href="#entries" data-act="toEntries" data-id="${e.id}">${entCount(e)}</a></td>
    <td>${hasRes(e)?`<span class="tag ok">Done</span> <span class="tiny">${winnerTxt(e)}</span>`:'<span class="tag">Pending</span>'}</td>
-   ${D&&D!=='_none'?`<td style="white-space:nowrap"><button class="btn sm" data-act="ordUp" data-id="${e.id}" ${i?'':'disabled'} aria-label="Move up">↑</button> <button class="btn sm" data-act="ordDown" data-id="${e.id}" ${i<list.length-1?'':'disabled'} aria-label="Move down">↓</button></td>`:''}</tr>`).join('')||`<tr><td colspan="7"><div class="empty">${D==='_none'?'Every event has a day.':'No events on this day yet — use “Put many events on a day at once”, or choose a day for each event.'}</div></td></tr>`}
+   ${D&&D!=='_none'?`<td style="white-space:nowrap"><button class="btn sm" data-act="ordUp" data-id="${e.id}" ${i?'':'disabled'} aria-label="Move up">↑</button> <button class="btn sm" data-act="ordDown" data-id="${e.id}" ${i<list.length-1?'':'disabled'} aria-label="Move down">↓</button></td>`:''}</tr>`).join('')||`<tr><td colspan="9"><div class="empty">${D==='_none'?'Every event has a day.':'No events on this day yet — use “Put many events on a day at once”, or choose a day for each event.'}</div></td></tr>`}
   </tbody></table></div>
-  <datalist id="venueList">${[...new Set(s.events.map(e=>e.venue).filter(Boolean).concat(['Main field','Track','Jumping pit','Throwing area','Volleyball court','Basketball court','School hall','Stage']))].map(v=>`<option value="${esc(v)}">`).join('')}</datalist></div>`;
+  ${staffDL()}<datalist id="venueList">${[...new Set(s.events.map(e=>e.venue).filter(Boolean).concat(['Main field','Track','Jumping pit','Throwing area','Volleyball court','Basketball court','School hall','Stage']))].map(v=>`<option value="${esc(v)}">`).join('')}</datalist></div>`;
 }
+function dutyMap(cat){const s=S(),m={};repEvents(cat).slice().sort(schedCmp(s)).forEach(e=>{const n=orgNames(e.org);(n.length?n:['— No in-charge yet']).forEach(x=>(m[x]=m[x]||[]).push(e))});
+ return Object.entries(m).sort((a,b)=>a[0].startsWith('—')-b[0].startsWith('—')||a[0].localeCompare(b[0]))}
+const dayTxt=e=>e.dayId&&dayById(e.dayId)?dayById(e.dayId).name:'Not scheduled';
+function dutyReport(cat,head,sign,foot){const m=dutyMap(cat);if(!m.length)return`<div class="p-doc">${head}<p>No events yet.</p>${foot}</div>`;
+ return`<div class="p-doc">${head}${m.map(([n,l])=>`<div style="break-inside:avoid;page-break-inside:avoid"><h3>${esc(n)} <span style="font-weight:400;font-size:12px">(${l.length} event${l.length>1?'s':''})</span></h3><table><thead><tr><th style="width:30px">Sl</th><th style="width:80px">Day</th><th style="width:65px">Time</th><th>Event / item</th><th style="width:90px">Category</th><th style="width:55px">Gender</th><th style="width:110px">Venue</th><th style="width:130px">With</th></tr></thead><tbody>${l.map((e,i)=>`<tr><td>${i+1}</td><td>${esc(dayTxt(e))}</td><td>${fmtTime(e.time)}</td><td>${esc(e.name)}</td><td>${esc(catName(e.catId))}</td><td>${esc(e.gender)}</td><td>${esc(e.venue||'')}</td><td>${esc(orgNames(e.org).filter(x=>x!==n).join(', '))}</td></tr>`).join('')}</tbody></table></div>`).join('')}${sign}${foot}</div>`}
+function dutyText(){const s=S();const m=dutyMap(ui.repCat).filter(([n])=>!n.startsWith('—'));const L=[`*${DB.app.school}*`,`*${s.title} ${s.year} — Teacher duty list*${ui.repDay?' · '+dayLabel(ui.repDay):''}`,''];
+ m.forEach(([n,l])=>{L.push(`*${n}*`);l.forEach(e=>L.push(`• ${dayTxt(e)}${e.time?' '+fmtTime(e.time):''} — ${e.name} (${e.gender}, ${catName(e.catId)})${e.venue?' · '+e.venue:''}`));L.push('')});
+ const none=s.events.filter(e=>inDay(e,ui.repDay||'')&&(!ui.repCat||(e.catId||'_open')===ui.repCat)&&!orgNames(e.org).length).length;if(none)L.push(`(${none} events still without an in-charge)`);return L.join('\n')}
 function scheduleReport(head,sign,foot,sw){const s=S(),d=ui.repDay||'',cat=ui.repCat;
  const days=d?[d]:[...(s.days||[]).map(x=>x.id),'_none'];
  const body=days.map(id=>{const l=dayEvents(id).filter(e=>!cat||(e.catId||'_open')===cat);if(!l.length)return'';const dd=dayById(id);
-  return`<div style="break-inside:avoid-page"><h3>${id==='_none'?'Not yet scheduled':esc(dd.name)+(dd.date?' — '+esc(fmtDate(dd.date)):'')} <span style="font-weight:400;font-size:12px">(${l.length} events)</span></h3><table><thead><tr><th style="width:30px">Sl</th><th style="width:70px">Time</th><th>Event / item</th><th style="width:85px">Category</th><th style="width:55px">Gender</th><th style="width:110px">Venue</th><th style="width:50px" class="n">Entries</th><th style="width:150px">Winner</th></tr></thead><tbody>${l.map((e,i)=>`<tr><td>${i+1}</td><td>${fmtTime(e.time)}</td><td>${esc(e.name)}</td><td>${esc(catName(e.catId))}</td><td>${esc(e.gender)}</td><td>${esc(e.venue||'')}</td><td class="n">${entCount(e)||''}</td><td>${winnerTxt(e)}</td></tr>`).join('')}</tbody></table></div>`}).join('');
+  return`<div style="break-inside:avoid-page"><h3>${id==='_none'?'Not yet scheduled':esc(dd.name)+(dd.date?' — '+esc(fmtDate(dd.date)):'')} <span style="font-weight:400;font-size:12px">(${l.length} events)</span></h3><table><thead><tr><th style="width:30px">Sl</th><th style="width:70px">Time</th><th>Event / item</th><th style="width:85px">Category</th><th style="width:55px">Gender</th><th style="width:100px">Venue</th><th style="width:130px">In-charge</th><th style="width:45px" class="n">Entries</th><th style="width:130px">Winner</th></tr></thead><tbody>${l.map((e,i)=>`<tr><td>${i+1}</td><td>${fmtTime(e.time)}</td><td>${esc(e.name)}</td><td>${esc(catName(e.catId))}</td><td>${esc(e.gender)}</td><td>${esc(e.venue||'')}</td><td>${esc(e.org||'')}</td><td class="n">${entCount(e)||''}</td><td>${winnerTxt(e)}</td></tr>`).join('')}</tbody></table></div>`}).join('');
  return`<div class="p-doc">${head}${body||'<p>No events scheduled yet. Set days and times on the Schedule page.</p>'}${sign}${foot}</div>`}
 function dayWorkbook(){const s=S(),D=ui.sday||'';const days=D?[D]:[...(s.days||[]).map(x=>x.id),'_none'];const E=s.entries||{};const ath=id=>s.athletes.find(a=>a.id===id);
- const prog=[[{v:'Day',s:1},{v:'Time',s:1},{v:'Event / item',s:1},{v:'Category',s:1},{v:'Gender',s:1},{v:'Venue',s:1},{v:'Entries',s:1},{v:'Winner',s:1}]];
+ const prog=[[{v:'Day',s:1},{v:'Time',s:1},{v:'Event / item',s:1},{v:'Category',s:1},{v:'Gender',s:1},{v:'Venue',s:1},{v:'In-charge',s:1},{v:'Entries',s:1},{v:'Winner',s:1}]];
  const part=[[{v:`${DB.app.school} — ${s.title} ${s.year} — Participant lists${D?' · '+dayLabel(D):''}`,s:2}],[null]];
  days.forEach(id=>dayEvents(id).forEach(e=>{const dn=id==='_none'?'Not scheduled':(dayById(id)||{}).name||'';
-  prog.push([dn,fmtTime(e.time),e.name,catName(e.catId),e.gender,e.venue||'',entCount(e),winnerTxt(e).replace(/&amp;/g,'&')].map(v=>({v,s:4})));
+  prog.push([dn,fmtTime(e.time),e.name,catName(e.catId),e.gender,e.venue||'',e.org||'',entCount(e),winnerTxt(e).replace(/&amp;/g,'&')].map(v=>({v,s:4})));
   const l=(E[e.id]||[]).map(ath).filter(Boolean).sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||'')||norm(a.name).localeCompare(norm(b.name)));
-  part.push([{v:`${dn}${e.time?' · '+fmtTime(e.time):''} · ${e.name} — ${e.gender} · ${catName(e.catId)}${e.venue?' · '+e.venue:''}`,s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5}]);
+  part.push([{v:`${dn}${e.time?' · '+fmtTime(e.time):''} · ${e.name} — ${e.gender} · ${catName(e.catId)}${e.venue?' · '+e.venue:''}${e.org?' · In-charge: '+e.org:''}`,s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5}]);
   part.push(['Sl','Chest No','Name','Class','House',e.measure==='time'?'Time':e.measure==='dist'?'Mark':'Score','Position'].map(v=>({v,s:1})));
   if(!l.length)part.push([{v:'',s:4},{v:'',s:4},{v:'(no entries yet)',s:4},{v:'',s:4},{v:'',s:4},{v:'',s:4},{v:'',s:4}]);
   l.forEach((a,i)=>part.push([i+1,a.chest||'',a.name,a.cls||'',(Hs(a.houseId)||{}).name||'','',''].map(v=>({v,s:4}))));part.push([null])}));
- return buildXLSX([{name:'Programme',rows:prog,widths:[14,11,30,14,10,18,9,30],freeze:true,landscape:true,active:true},{name:'Participants',rows:part,widths:[6,10,30,9,14,12,11],landscape:false}])}
+ return buildXLSX([{name:'Programme',rows:prog,widths:[14,11,30,14,10,18,22,9,30],freeze:true,landscape:true,active:true},{name:'Participants',rows:part,widths:[6,10,30,9,14,12,11],landscape:false}])}
 
 /* ---------- full results workbook (.xlsx) ---------- */
 function resultsWorkbook(){
@@ -1967,7 +1993,7 @@ function pReports(){
  <div class="row">${Object.entries(REPS).map(([v,l])=>`<button class="btn sm ${k===v?'pri':''}" data-act="rep" data-id="${v}">${l}</button>`).join('')}</div>
  <div class="row" style="margin-top:12px"><label style="flex:0 1 220px">Day<select data-act2="repDay">${opt('','All days',ui.repDay)}${(s.days||[]).map(d=>opt(d.id,dayLabel(d.id),ui.repDay)).join('')}${opt('_none','Not scheduled',ui.repDay)}</select></label><label style="flex:0 1 260px">Category<select data-act2="repCat">${opt('','All categories',cat)}${s.cats.map(c=>opt(c.id,c.name,cat)).join('')}${opt('_open','Open',cat)}</select></label>
  ${k==='certs'?`<label style="flex:0 1 260px">Certificates for<select data-act2="certSel">${opt('all','All winners + Best Boy/Girl',ui.certSel)}${opt('first','1st place only',ui.certSel)}${opt('best','Best Boy & Best Girl only',ui.certSel)}${opt('blank','Blank certificate (fill by hand)',ui.certSel)}</select></label>${ui.certSel==='blank'?`<label style="flex:0 1 220px">Sport picture<select data-act2="blankSport">${SPORTS.filter(x=>x[0]!=='auto').map(x=>opt(x[0],x[1],ui.blankSport||'trophy')).join('')}</select></label>`:''}`:''}
- <button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
+ ${k==='duties'?'<button class="btn pri" data-act="copyDuty">Copy for WhatsApp</button>':''}<button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
  ${isVO()?'':`<p class="tiny">${k==='certs'?'Click any text on a certificate below to correct it before printing. Change colours, wording and pictures in <a href="#certificate">Certificate design</a>. In the print window choose Paper: A4, Layout: Landscape, Margins: None, and tick Background graphics. ':''}If Print does nothing here, download the page and print it from your browser — or use the offline copy of the app, where printing works directly.</p>`}</div>
  <div class="paper ${k==='certs'?'certs':''}" id="paper">${repHTML(k,cat)}</div>`;
 }
@@ -2045,7 +2071,7 @@ const ICO={home:'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10',results:'M4 20h4L19 9l-4-4
 const svgI=k=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICO[k]||ICO.events}"/></svg>`;
 const NAV=[
  {id:'meet',g:'Meet day',items:[['home','Dashboard','dashboard home overview'],['results','Enter results','points marks winner position first second third result'],['scoreboard','Live scoreboard','score board tv projector standings'],['champions','Champions','champion house runner up best boy best girl individual winner'],['records','Meet records','record best ever']]},
- {id:'ready',g:'Get ready',steps:true,items:[['houses','Houses','house colour color name david moses joseph daniel'],['categories','Categories','category sub minor junior senior age group class'],['athletes','Athletes / participants','students members list upload excel import sjs app delete'],['housing','Assign houses','house assign automatic manual'],['events','Events / items','event item race game cultural add copy standard list'],['schedule','Schedule (day-wise)','day 1 day 2 time programme timetable'],['entries','Event entries','participants entries names replace'],['points','Points rules','points rule 5 3 1 relay team'],['bonus','Special points','march past discipline bonus penalty']]},
+ {id:'ready',g:'Get ready',steps:true,items:[['houses','Houses','house colour color name david moses joseph daniel'],['categories','Categories','category sub minor junior senior age group class'],['athletes','Athletes / participants','students members list upload excel import sjs app delete'],['housing','Assign houses','house assign automatic manual'],['events','Events / items','event item race game cultural add copy standard list'],['schedule','Schedule (day-wise)','day 1 day 2 time programme timetable in-charge incharge organiser teacher duty'],['entries','Event entries','participants entries names replace'],['points','Points rules','points rule 5 3 1 relay team'],['bonus','Special points','march past discipline bonus penalty']]},
  {id:'print',g:'Print & share',items:[['reports','Reports & certificates','print report certificate excel download results sheet'],['certificate','Certificate design','certificate design layout signature logo']]},
  {id:'manage',g:'Manage',items:[['sessions','Sessions & backup','session year backup restore live sharing clear new'],['users','Users & roles','user users role roles access permission in-charge incharge recorder teacher admin who can'],['setup','School details','school name logo motto address signature']]}];
 const NAVL=Object.fromEntries(NAV.flatMap(g=>g.items.map(([k,l])=>[k,l])));
@@ -2146,6 +2172,12 @@ const ACT={
  roleDel:async el=>{const em=el.dataset.id;const u=(SY.roleList||[]).find(x=>x.email===em);if(!u)return;
   if(!await ask(`Remove ${u.name||em}?`,`${ROLE_L[u.role]||u.role} access is removed. Results they already entered stay.`,'Remove'))return;
   try{await SY.fs.collection('sports_roles').doc(em).delete();toast('Access removed')}catch(e){toast(e&&e.code==='permission-denied'?NOPERM_M:'Could not remove: '+(e.message||e))}},
+ bulkOrg:async()=>{const s=S();const name=orgNames(val('boName')).join(', ');const d=$('#boDay').value,c=$('#boCat').value,g=$('#boGen').value,has=norm(val('boHas')),only=$('#boOnly').checked;
+  const l=s.events.filter(e=>(!d||e.dayId===d)&&(!c||(e.catId||'_open')===c)&&(!g||e.gender===g)&&(!has||norm(e.name).includes(has))&&(!only||!String(e.org||'').trim()));
+  if(!l.length){toast('No events match — change the choices'+(only?' or untick “Only events that have no in-charge yet”':''));return}
+  if(!await ask(name?`Make ${name} in-charge of ${l.length} events?`:`Clear the in-charge of ${l.length} events?`,l.slice(0,8).map(e=>e.name+' ('+e.gender+', '+catName(e.catId)+')').join(', ')+(l.length>8?' …':''),name?'Set in-charge':'Clear'))return;
+  l.forEach(e=>{e.org=name});save();rerender();toast(`${l.length} events updated`)},
+ copyDuty:async()=>{const txt=dutyText();try{await navigator.clipboard.writeText(txt);toast('Duty list copied — paste it in the staff WhatsApp group')}catch(e){toast('Copy is not allowed in this browser')}},
  stdToggle:()=>{ui.stdOpen=!ui.stdOpen;rerender()},
  stdTab:el=>{ui.stdG=el.dataset.id;rerender()},
  stdDel:el=>{const L=stdEdit();const g=L.find(x=>x.id===el.dataset.gi);if(!g)return;g.items=g.items.filter(i=>i.id!==el.dataset.id);save();rerender()},
@@ -2294,7 +2326,7 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  if(isLive()){SY.last={};SY.ready={};SY.subSid=null;SY.remoteActive=DB.active;try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}subscribe()}
  save();location.hash='#home';render();toast('Backup restored')}
 
-const MANAGE_ACTS=new Set('mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
+const MANAGE_ACTS=new Set('bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
 const SCORE_ACTS=new Set(['saveRes','clearRes','restoreVer']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn';
 function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
