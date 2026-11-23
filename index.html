@@ -75,7 +75,7 @@ a{color:inherit}
 .rolechip{display:inline-block;font-weight:700;font-size:13px;border-radius:99px;padding:4px 11px;background:var(--soft);border:1px solid var(--line)}.r-admin{background:#1f3a8a;color:#fff;border-color:#1f3a8a}.r-incharge{background:#0f7b4d;color:#fff;border-color:#0f7b4d}.r-scorer,.r-teacher{background:#fff4d6;color:#6b4a00;border-color:#f0d58a}
 .perm td.c{text-align:center}.perm .yes{color:#0f7b4d;font-weight:800;font-size:17px}.perm .no{color:var(--mut)}.perm th{font-size:13px}
 .rulepre{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;white-space:pre-wrap;overflow:auto;max-height:340px}
-.robar{margin:0 0 14px}
+.robar{margin:0 0 14px}.hubar{position:sticky;top:74px;z-index:6;box-shadow:0 6px 18px #0003}@media(max-width:860px){.hubar{top:auto;bottom:70px;position:sticky}}
 body.vo main,body.vo .side,body.vo .top,body.vo .pal{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 body.vo main input,body.vo main textarea,body.vo .pal input{-webkit-user-select:text;user-select:text}
 body.vo main img,body.vo main svg{-webkit-user-drag:none;pointer-events:auto}
@@ -2032,7 +2032,7 @@ function classList(s=S()){const m={};s.athletes.forEach(a=>{const k=classKey(a);
 const classTitle=c=>c?(c.cls?'Class '+c.cls:'No class')+(c.sec?' – '+c.sec:''):'';
 function pHousing(){const s=S();const mode=ui.hmode||'auto';const all=s.athletes;const noH=all.filter(a=>!a.houseId||!Hs(a.houseId)).length;
  const hh=huGet(),lu=hh.u[hh.u.length-1],lr=hh.r[hh.r.length-1];
- const undo=lu||lr?`<div class="banner" style="align-items:center"><b>House changes</b><span class="mut" style="flex:1 1 260px">${lu?`Last: ${esc(lu.label)} · ${Object.keys(lu.map).length} student${Object.keys(lu.map).length===1?'':'s'} · ${esc(fmtWhen(lu.at))}${hh.u.length>1?` · ${hh.u.length} changes can be undone, one after another`:''}`:'Nothing left to undo.'}</span>
+ const undo=lu||lr?`<div class="banner hubar" style="align-items:center"><b>House changes</b><span class="mut" style="flex:1 1 260px">${lu?`Last: ${esc(lu.label)} · ${Object.keys(lu.map).length} student${Object.keys(lu.map).length===1?'':'s'} · ${esc(fmtWhen(lu.at))}${hh.u.length>1?` · ${hh.u.length} changes can be undone, one after another`:''}`:'Nothing left to undo.'}</span>
   ${lu?`<button class="btn sm" data-act="hUndo">↶ Undo</button>`:''}${lr?`<button class="btn sm" data-act="hRedo" title="${esc(lr.label)}">↷ Redo</button>`:''}</div>`:'';
  if(!all.length)return`<h2>Assign houses</h2><div class="empty">No members yet. Import them from SJS App or upload the Excel list on <a href="#athletes">Athletes / participants</a>.</div>`;
  const head=`<h2>Assign houses</h2><p class="lead">Give every student a house — automatically in one click, or by hand class by class. You can mix both: do most automatically, then change any student by hand.</p>
@@ -2058,9 +2058,9 @@ function pHousing(){const s=S();const mode=ui.hmode||'auto';const all=s.athletes
   <label style="flex:0 1 160px">Show<select data-act2="hG">${opt('','Boys and girls',ui.hG||'')}${opt('B','Boys only',ui.hG||'')}${opt('G','Girls only',ui.hG||'')}</select></label>
   <button class="btn sm" data-act="hAutoClass">Fill the rest of this class automatically</button><button class="btn sm" data-act="hToList" title="Edit or delete these students in the member list">Edit / delete these students ›</button></div></div>
  <div class="g2 hg" style="margin-top:16px"><div class="card"><h3>${esc(classTitle(cur))}</h3>
-  <p class="tiny" style="margin-top:0">Tap a house beside each student. It is saved at once.</p>
+  <p class="tiny" style="margin-top:0">Tap a house beside each student. It is saved at once. Tap the same house again to remove it.</p>
   <div class="hlist">${list.map(a=>`<div class="hrow ${a.houseId&&Hs(a.houseId)?'':'nohouse'}"><span class="hnm"><b>${esc(a.name)}</b><span class="tiny">${a.roll?'Roll '+esc(a.roll)+' · ':''}${genderOf(a.gender)}</span></span>
-   <span class="hbtns">${s.houses.map(h=>`<button class="hb ${a.houseId===h.id?'on':''}" style="--hc:${h.color};--ht:${txtOn(h.color)}" data-act="hSet" data-id="${a.id}" data-h="${h.id}" aria-label="${esc(h.name)}">${esc(h.name)}</button>`).join('')}</span></div>`).join('')||'<div class="empty">Everyone in this class has a house. Untick “Only students without a house” to change them.</div>'}</div></div>
+   <span class="hbtns">${s.houses.map(h=>`<button class="hb ${a.houseId===h.id?'on':''}" style="--hc:${h.color};--ht:${txtOn(h.color)}" data-act="hSet" data-id="${a.id}" data-h="${h.id}" aria-label="${esc(h.name)}" aria-pressed="${a.houseId===h.id}" title="${a.houseId===h.id?'Tap again to remove the house':esc(h.name)}">${esc(h.name)}</button>`).join('')}</span></div>`).join('')||'<div class="empty">Everyone in this class has a house. Untick “Only students without a house” to change them.</div>'}</div></div>
   <div class="card"><h3>This class</h3>${countsTable(all.filter(a=>classKey(a)===ck))}<h3 style="margin-top:16px">Whole school</h3>${countsTable(all)}</div></div>`}
 
 function pReports(){
@@ -2405,7 +2405,7 @@ const ACT={
  hToList:()=>{const c=classList().find(x=>x.k===ui.hClass);ui.af={q:'',cat:'',h:'',g:'',cls:c&&c.cls?c.cls:'_none',sec:c&&c.sec||''};ui.aPage=0;ui.msel=new Set();location.hash='#athletes'},
  hOpenClass:el=>{ui.hmode='manual';ui.hClass=el.dataset.id;rerender();window.scrollTo(0,0)},
  hStep:el=>{const c=classList();const i=c.findIndex(x=>x.k===ui.hClass)+(+el.dataset.id);if(c[i]){ui.hClass=c[i].k;rerender();window.scrollTo(0,0)}},
- hSet:el=>{const s=S();const a=s.athletes.find(z=>z.id===el.dataset.id);if(!a)return;const old=a.houseId||'';a.houseId=el.dataset.h;huPush({[a.id]:old},`${a.name} → ${(Hs(a.houseId)||{}).name}`);save();rerender()},
+ hSet:el=>{const s=S();const a=s.athletes.find(z=>z.id===el.dataset.id);if(!a)return;const old=a.houseId||'';const off=old===el.dataset.h;a.houseId=off?'':el.dataset.h;huPush({[a.id]:old},off?`${a.name} → no house`:`${a.name} → ${(Hs(a.houseId)||{}).name}`);save();rerender();if(off)toast(`${a.name}: house removed`)},
  hAutoClass:()=>{const n=applyHousePlan(planHouses('none',ui.hHow||'gender',ui.hClass),'Rest of '+classTitle(classList().find(c=>c.k===ui.hClass))+' assigned automatically');rerender();toast(n?`${n} students given a house`:'Everyone in this class already has a house')},
  recatAll:async()=>{const p=planRecat();if(!p.ch){toast(p.miss?`Nothing to change · ${p.miss} members' classes match no category`:'Every member is already in the right category');return}
   if(!await ask(`Change ${p.ch} members' category?`,Object.entries(p.by).map(([k,n])=>`${k}: ${n}`).join('  •  ')+(p.miss?`  •  ${p.miss} members match no category and stay as they are`:''),'Update categories'))return;
