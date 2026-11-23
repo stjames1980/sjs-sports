@@ -75,7 +75,25 @@ a{color:inherit}
 .rolechip{display:inline-block;font-weight:700;font-size:13px;border-radius:99px;padding:4px 11px;background:var(--soft);border:1px solid var(--line)}.r-admin{background:#1f3a8a;color:#fff;border-color:#1f3a8a}.r-incharge{background:#0f7b4d;color:#fff;border-color:#0f7b4d}.r-scorer,.r-teacher{background:#fff4d6;color:#6b4a00;border-color:#f0d58a}
 .perm td.c{text-align:center}.perm .yes{color:#0f7b4d;font-weight:800;font-size:17px}.perm .no{color:var(--mut)}.perm th{font-size:13px}
 .rulepre{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;white-space:pre-wrap;overflow:auto;max-height:340px}
-.robar{margin:0 0 14px}.hubar{position:sticky;top:74px;z-index:6;box-shadow:0 6px 18px #0003}@media(max-width:860px){.hubar{top:auto;bottom:70px;position:sticky}}
+.robar{margin:0 0 14px}
+.fxfmt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.fxopt{all:unset;box-sizing:border-box;cursor:pointer;border:2px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:4px;background:var(--card)}.fxopt span{font-size:12.5px;color:var(--mut)}.fxopt.on{border-color:var(--pri);background:var(--soft);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 18%,transparent)}.fxopt:focus-visible{outline:2px solid var(--pri)}
+.fxprog{height:6px;border-radius:9px;background:var(--soft);margin:10px 0 4px;overflow:hidden}.fxprog i{display:block;height:100%;background:var(--pri);border-radius:9px;transition:width .3s}
+.fxbracket{display:flex;gap:14px;overflow-x:auto;padding:8px 2px 4px;align-items:stretch}.fxcol{flex:1 0 240px;display:flex;flex-direction:column;justify-content:space-around;gap:12px}.fxcolh{font:800 13px/1 var(--disp);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);text-align:center}
+.fxm{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--card);box-shadow:0 2px 8px #0001;position:relative}.fxm.done{border-color:color-mix(in srgb,#11804e 45%,var(--line))}.fxm.bye{opacity:.75}
+.fxhd{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--mut);margin-bottom:8px}.fxhd b{color:var(--ink);font-size:13.5px}.fxhd .tag{margin-left:auto}
+.fxline{display:flex;align-items:center;gap:8px;padding:4px;border-radius:12px;margin-top:4px}.fxline.win{background:color-mix(in srgb,#f5b301 22%,transparent)}.fxline.win .fxteam::after{content:' 🏆'}.fxline.lose{opacity:.6}
+.fxline input{width:58px;flex:0 0 58px;text-align:center;font:800 20px/1 var(--disp);padding:6px 4px;min-height:40px}.fxline .fxteam{text-align:left}
+.fxrow{display:flex;align-items:center;gap:8px}.fxs{flex:1;display:flex;align-items:center;gap:6px;min-width:0;border-radius:10px;padding:3px}.fxs:last-child{flex-direction:row}.fxs.win{background:color-mix(in srgb,#f5b301 22%,transparent)}.fxs.win .fxteam::after{content:' 🏆'}
+.fxs input{width:52px;text-align:center;font:800 20px/1 var(--disp);padding:6px 4px;min-height:40px}.fxvs{font:700 12px/1 var(--disp);color:var(--mut)}
+.fxteam{display:inline-block;flex:1;min-width:0;text-align:center;border-radius:99px;padding:8px 10px;font-weight:800;background:var(--hc);color:var(--ht);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fxteam.tbd{background:var(--soft);color:var(--mut);font-weight:600;font-style:italic;border:1px dashed var(--line)}
+.fxsel{flex:1;min-width:0;font-weight:800;border-radius:99px;background:var(--hc,var(--soft));color:var(--ht,var(--ink))}
+.fxft{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}.fxw{display:flex;align-items:center;gap:6px;font-size:12.5px;margin:0}.fxw select{width:auto;min-height:34px;padding:4px 8px}.fxmore{flex:1 1 100%;font-size:13px}.fxmore summary{cursor:pointer;color:var(--mut)}
+.fxlist{display:grid;gap:10px}.fxlist.two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}.fxtab td,.fxtab th{padding:6px 8px}.fxtab .fxteam{padding:4px 10px;font-size:13px}
+.fxpl{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}.fxpl .fxteam{padding:3px 10px;font-size:13px}
+@media(max-width:700px){.fxfmt{grid-template-columns:1fr}.fxcol{flex-basis:84vw}.fxs input{width:44px}}
+.htr{display:grid;grid-template-columns:60px 130px minmax(0,1fr) 100px 52px 36px;gap:6px;align-items:center;margin-top:4px}.htr.hhead{font-size:12px;color:var(--mut);font-weight:600}.htr.q{background:color-mix(in srgb,#11804e 10%,transparent);border-radius:8px}
+.qbox{display:flex;align-items:center;gap:4px;font-weight:700;font-size:13px;margin:0;cursor:pointer}.qbox input{width:18px;height:18px}
+@media(max-width:700px){.htr{grid-template-columns:40px minmax(0,1fr) 68px 28px 24px;gap:4px;padding-top:6px;border-top:1px solid var(--line)}.htr>select{grid-column:1/-1;order:-1}.htr.hhead{display:none}.htr input{padding-left:6px;padding-right:6px;min-width:0}.htr .qbox{font-size:0;gap:0}.htr .x{width:24px}}.hubar{position:sticky;top:74px;z-index:6;box-shadow:0 6px 18px #0003}@media(max-width:860px){.hubar{top:auto;bottom:70px;position:sticky}}
 body.vo main,body.vo .side,body.vo .top,body.vo .pal{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 body.vo main input,body.vo main textarea,body.vo .pal input{-webkit-user-select:text;user-select:text}
 body.vo main img,body.vo main svg{-webkit-user-drag:none;pointer-events:auto}
@@ -787,6 +805,111 @@ function evListHTML(){
  return list.map(e=>{const r=s.results[e.id];const w=r&&r.rows.find(x=>x.pos==1);
   return`<button class="evi ${ui.sel===e.id?'on':''}" data-act="pick" data-id="${e.id}"><span><span class="e1">${esc(e.name)}</span><br><span class="e2">${e.time?fmtTime(e.time)+' · ':''}${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc((Ts(e.typeId)||{}).name||'')}${!f.day&&e.dayId&&dayById(e.dayId)?' · '+esc(dayById(e.dayId).name):''}</span></span>${w?`<span class="tag ok">${dot(Hs(w.houseId))}Done</span>`:'<span class="tag">Pending</span>'}</button>`}).join('');
 }
+/* ---------- Heats (qualifying rounds): kept with the event, no points; finalists go to the final ---------- */
+function fxTeamsSel(){const l=[...document.querySelectorAll('#editor [data-fxt]')];return l.length?l.filter(x=>x.checked).map(x=>x.dataset.fxt):null}
+function heatsOf(eid,make){const s=S();let r=s.results[eid];if(!r){if(!make)return null;r=s.results[eid]={rows:[],at:Date.now(),by:whoAmI()}}if(!r.heats&&make)r.heats={qTop:2,qFast:0,lanes:8,list:[]};return r.heats||null}
+const hPerf=(e,v)=>{const n=parsePerf(v);return isNaN(n)?null:n};
+const hBetter=e=>e.measure==='dist'?(a,b)=>b-a:(a,b)=>a-b;
+function heatFinalists(e,H){const out=[];H.list.forEach(h=>h.rows.forEach(r=>{if(r.q&&(r.name||r.houseId))out.push({...r,heat:h.name})}));const cmp=hBetter(e);return out.sort((a,b)=>{const x=hPerf(e,a.perf),y=hPerf(e,b.perf);return x===null?1:y===null?-1:cmp(x,y)})}
+function heatsHTML(e){const s=S();const H=heatsOf(e.id);const team=!!(Ts(e.typeId)||{}).team;if(team)return'';const lab=e.measure==='time'?'Time':e.measure==='dist'?'Mark':'Place in heat';
+ if(!H)return`<div class="card heatc" style="margin-top:12px"><div class="row" style="align-items:center;justify-content:space-between"><div style="flex:1 1 300px"><h3 style="margin:0 0 4px">Heats</h3><p class="tiny" style="margin:0">Running heats first (too many runners for one race)? Record each heat here — no points are given — mark who qualifies, then enter the final above.</p></div><button class="btn" data-act="heatOn">Use heats for this event</button></div></div>`;
+ const fin=heatFinalists(e,H);const nRows=H.list.reduce((n,h)=>n+h.rows.length,0);
+ return`<div class="card heatc" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Heats <span class="tiny">(qualifying rounds — no points)</span></h3><div class="row"><button class="btn sm" data-act="heatPrint">Print heat sheets</button><button class="btn sm danger" data-act="heatOff">Remove heats</button></div></div>
+ <div class="row" style="margin-top:10px;align-items:end"><label style="flex:0 1 150px">Top from each heat<input type="number" min="0" max="20" data-hx="qTop" value="${esc(H.qTop??2)}"></label>${e.measure!=='none'?`<label style="flex:0 1 170px">+ fastest of the rest<input type="number" min="0" max="20" data-hx="qFast" value="${esc(H.qFast??0)}"></label>`:''}<label style="flex:0 1 150px">Runners per heat<input type="number" min="2" max="20" data-hx="lanes" value="${esc(H.lanes??8)}"></label>
+  <button class="btn" data-act="heatMake">Make heats from entries</button><button class="btn" data-act="heatAdd">+ Add heat</button>${nRows?`<button class="btn pri" data-act="heatMarkQ">Mark qualifiers</button>`:''}</div>
+ ${H.list.map((h,hi)=>`<div class="heat"><div class="row" style="justify-content:space-between;align-items:center;margin-top:14px"><b>${esc(h.name)}</b> <span class="tiny">${h.rows.length} runner${h.rows.length===1?'':'s'}${h.rows.some(r=>r.q)?' · '+h.rows.filter(r=>r.q).length+' qualified':''}</span><button class="x" data-act="heatDel" data-h="${hi}" aria-label="Delete heat">×</button></div>
+  <div class="htr hhead"><span>Lane</span><span>House</span><span>${team?'Team':'Athlete'}</span><span>${lab}</span><span>Q</span><span></span></div>
+  ${h.rows.map((r,ri)=>{const hc=Hs(r.houseId);return`<div class="htr ${r.q?'q':''}"><input type="number" min="1" data-hx="row" data-h="${hi}" data-r="${ri}" data-k="lane" value="${esc(r.lane??ri+1)}" aria-label="Lane">
+   <select data-hx="row" data-h="${hi}" data-r="${ri}" data-k="houseId" aria-label="House" style="${hc?`background:${hc.color};color:${txtOn(hc.color)};font-weight:700`:''}">${houseOpts(r.houseId,'House…')}</select>
+   <input data-hx="row" data-h="${hi}" data-r="${ri}" data-k="name" list="athList" autocomplete="off" value="${esc(r.name||'')}" placeholder="Athlete name" aria-label="Name">
+   <input data-hx="row" data-h="${hi}" data-r="${ri}" data-k="perf" inputmode="decimal" value="${esc(r.perf||'')}" placeholder="${e.measure==='time'?'12.45':e.measure==='dist'?'4.35':'1'}" aria-label="${lab}">
+   <label class="qbox" title="Qualified for the final"><input type="checkbox" data-hx="row" data-h="${hi}" data-r="${ri}" data-k="q" ${r.q?'checked':''}> Q</label>
+   <button class="x" data-act="heatRowDel" data-h="${hi}" data-r="${ri}" aria-label="Remove runner">×</button></div>`}).join('')}
+  <button class="btn sm" style="margin-top:6px" data-act="heatRowAdd" data-h="${hi}">+ Add runner</button></div>`).join('')||'<div class="empty" style="margin-top:10px">No heats yet — press “Make heats from entries” (uses the participants in Event entries) or “+ Add heat” and type the names.</div>'}
+ ${fin.length?`<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px"><b>Finalists (${fin.length})</b> <span class="tiny">Tap a name to put it in the next empty row of the final above.</span><div class="chips" style="margin-top:6px">${fin.map((f,i)=>{const hc=Hs(f.houseId);return`<button class="chip" data-act="finPick" data-i="${i}" style="${hc?`border-color:${hc.color}`:''}">${hc?`<span class="p-sw" style="background:${hc.color}"></span>`:''}${esc(f.name||'—')}${f.perf?` <span class="mut">${esc(f.perf)}</span>`:''}</button>`}).join('')}</div></div>`:''}
+ </div>`}
+/* ---------- Match fixtures for team games: knock-out, league, or league + final ---------- */
+const FXF={knockout:'Knock-out',league:'League (round robin)',leaguefinal:'League + Final'};
+function fxOf(eid){const r=S().results[eid];return r&&r.fx||null}
+function fxSetDoc(eid,fx){const s=S();let r=s.results[eid];if(!r)r=s.results[eid]={rows:[],at:Date.now(),by:whoAmI()};if(fx)r.fx=fx;else delete r.fx}
+const bracketOrder=n=>{let o=[1];while(o.length<n){const m=o.length*2;o=o.flatMap(x=>[x,m+1-x])}return o};
+const koRoundName=(left)=>left===2?'Final':left===4?'Semi-final':left===8?'Quarter-final':'Round of '+left;
+function fxGen(format,teams,opt){const M=[];const id=()=>uid();const n=teams.length;
+ if(format==='knockout'){const size=Math.max(2,2**Math.ceil(Math.log2(Math.max(2,n))));const R=Math.log2(size);const ord=bracketOrder(size);let prev=[];
+  for(let r=0;r<R;r++){const cnt=size/2**(r+1);const left=size/2**r;const cur=[];
+   for(let k=0;k<cnt;k++){const m={id:id(),stage:'ko',round:koRoundName(left)+(cnt>1?' '+(k+1):''),r,a:'',b:'',sa:'',sb:'',w:''};
+    if(r===0){m.a=teams[ord[2*k]-1]||'';m.b=teams[ord[2*k+1]-1]||'';if(!m.a||!m.b){m.bye=true}}else{m.srcA={m:prev[2*k].id,take:'W'};m.srcB={m:prev[2*k+1].id,take:'W'}}
+    cur.push(m);M.push(m)}
+   if(r===R-2&&opt.third&&cnt===2)var semis=cur;prev=cur}
+  if(typeof semis!=='undefined'&&semis&&opt.third&&n>=4)M.push({id:id(),stage:'third',round:'Third place',r:R,a:'',b:'',sa:'',sb:'',w:'',srcA:{m:semis[0].id,take:'L'},srcB:{m:semis[1].id,take:'L'}})}
+ else{const L=teams.slice();if(L.length%2)L.push('');const k=L.length;const rounds=k-1;
+  for(let r=0;r<rounds;r++){for(let i=0;i<k/2;i++){const a=L[i],b=L[k-1-i];if(a&&b)M.push({id:id(),stage:'league',round:'Round '+(r+1),r,a:r%2?b:a,b:r%2?a:b,sa:'',sb:'',w:''})}L.splice(1,0,L.pop())}
+  if(format==='leaguefinal'){M.push({id:id(),stage:'final',round:'Final',r:rounds,a:'',b:'',sa:'',sb:'',w:'',srcA:{rank:1},srcB:{rank:2}});if(opt.third&&n>=4)M.push({id:id(),stage:'third',round:'Third place',r:rounds,a:'',b:'',sa:'',sb:'',w:'',srcA:{rank:3},srcB:{rank:4}})}}
+ return{format,teams:teams.slice(),pts:{w:+opt.pw||3,d:+opt.pd||1,l:+opt.pl||0},third:!!opt.third,matches:M,at:Date.now()}}
+const num=v=>v===''||v==null||isNaN(+v)?null:+v;
+function fxWinner(m){if(m.bye)return m.a||m.b||'';if(!m.a||!m.b)return'';const a=num(m.sa),b=num(m.sb);if(a!==null&&b!==null&&a!==b)return a>b?m.a:m.b;return m.w&&(m.w===m.a||m.w===m.b)?m.w:''}
+function fxDraw(m){const a=num(m.sa),b=num(m.sb);return m.stage==='league'&&a!==null&&b!==null&&a===b&&!m.w}
+const fxDone=m=>!!fxWinner(m)||fxDraw(m);
+const fxLoser=m=>{const w=fxWinner(m);return w?(w===m.a?m.b:m.a):''};
+function fxTable(fx){const T={};fx.teams.forEach(h=>T[h]={h,P:0,W:0,D:0,L:0,F:0,A:0,Pts:0});const P=fx.pts||{w:3,d:1,l:0};
+ fx.matches.filter(m=>m.stage==='league'&&fxDone(m)&&T[m.a]&&T[m.b]).forEach(m=>{const A=T[m.a],B=T[m.b];A.P++;B.P++;const a=num(m.sa)||0,b=num(m.sb)||0;A.F+=a;A.A+=b;B.F+=b;B.A+=a;
+  if(fxDraw(m)){A.D++;B.D++;A.Pts+=P.d;B.Pts+=P.d}else{const w=fxWinner(m),W=T[w],Lo=T[w===m.a?m.b:m.a];W.W++;Lo.L++;W.Pts+=P.w;Lo.Pts+=P.l}});
+ const h2h=(x,y)=>{const m=fx.matches.find(m=>m.stage==='league'&&((m.a===x&&m.b===y)||(m.a===y&&m.b===x))&&fxDone(m));if(!m||fxDraw(m))return 0;return fxWinner(m)===x?-1:1};
+ return Object.values(T).sort((a,b)=>b.Pts-a.Pts||(b.F-b.A)-(a.F-a.A)||b.F-a.F||h2h(a.h,b.h)||((Hs(a.h)||{}).name||'').localeCompare((Hs(b.h)||{}).name||''))}
+function fxSync(fx){const byId={};fx.matches.forEach(m=>byId[m.id]=m);const lg=fx.matches.filter(m=>m.stage==='league');const lgDone=lg.length&&lg.every(fxDone);const tab=lgDone?fxTable(fx):null;
+ const res=src=>{if(!src)return null;if(src.m){const s=byId[src.m];if(!s||!fxDone(s))return'';return src.take==='L'?fxLoser(s):fxWinner(s)}if(src.rank)return tab&&tab[src.rank-1]?tab[src.rank-1].h:'';return null};
+ for(let pass=0;pass<4;pass++)fx.matches.forEach(m=>{if(m.srcA&&!m.lockA){const v=res(m.srcA);if(v!==null&&m.a!==v){m.a=v}}if(m.srcB&&!m.lockB){const v=res(m.srcB);if(v!==null&&m.b!==v){m.b=v}}});return fx}
+function fxSrcLabel(fx,src){if(!src)return'';if(src.rank)return['','1st','2nd','3rd','4th'][src.rank]+' in league';const s=fx.matches.find(m=>m.id===src.m);return(src.take==='L'?'Loser ':'Winner ')+(s?s.round:'')}
+function fxPlacings(fx){const all=fx.matches.filter(m=>!m.bye);if(!all.length||!all.every(fxDone))return null;const out=[];const put=(h,p)=>{if(h&&!out.some(x=>x.houseId===h))out.push({pos:p,houseId:h})};
+ if(fx.format==='league'){fxTable(fx).forEach((x,i)=>put(x.h,i+1));return out}
+ const fin=fx.matches.find(m=>m.stage==='final'||(m.stage==='ko'&&m.round==='Final'));const th=fx.matches.find(m=>m.stage==='third');
+ if(fin){put(fxWinner(fin),1);put(fxLoser(fin),2)}
+ if(th){put(fxWinner(th),3);put(fxLoser(th),4)}
+ if(fx.format==='leaguefinal'){fxTable(fx).forEach(x=>put(x.h,out.length+1));return out}
+ const ko=fx.matches.filter(m=>m.stage==='ko'&&!m.bye).sort((a,b)=>b.r-a.r);let p=out.length+1;const byR={};ko.forEach(m=>{if(m.round==='Final')return;(byR[m.r]=byR[m.r]||[]).push(fxLoser(m))});
+ Object.keys(byR).sort((a,b)=>b-a).forEach(r=>{const l=byR[r].filter(h=>h&&!out.some(x=>x.houseId===h));l.forEach(h=>out.push({pos:p,houseId:h}));p+=l.length});return out}
+const hChip=(h,ph)=>{const x=Hs(h);return x?`<span class="fxteam" style="--hc:${x.color};--ht:${txtOn(x.color)}">${esc(x.name)}</span>`:`<span class="fxteam tbd">${esc(ph||'To be decided')}</span>`};
+function fxMatchHTML(fx,m,edit){const w=fxWinner(m),dr=fxDraw(m),done=fxDone(m);const tieNeed=!m.bye&&m.a&&m.b&&num(m.sa)!==null&&num(m.sb)!==null&&num(m.sa)===num(m.sb)&&m.stage!=='league';
+ const sel=(k,src,lock)=>`<label>${k==='a'?'Team 1':'Team 2'}<select data-fx="${k}" data-m="${m.id}" aria-label="Team">${opt('',src?fxSrcLabel(fx,src)+(lock?'':' (auto)'):'Choose house',m[k])}${fx.teams.map(h=>opt(h,(Hs(h)||{}).name||'?',m[k])).join('')}</select></label>`;
+ const line=(k,sk,src)=>`<div class="fxline ${w&&w===m[k]?'win':''} ${done&&w&&w!==m[k]?'lose':''}">${hChip(m[k],fxSrcLabel(fx,src))}<input data-fx="${sk}" data-m="${m.id}" inputmode="numeric" value="${esc(m[sk]??'')}" placeholder="–" aria-label="Score of ${esc((Hs(m[k])||{}).name||'team')}" ${m.a&&m.b&&edit?'':'disabled'}></div>`;
+ return`<div class="fxm ${done?'done':''} ${m.bye?'bye':''}"><div class="fxhd"><b>${esc(m.round)}</b>${m.date||m.time||m.venue?`<span>${[m.date&&fmtDate(m.date),m.time&&fmtTime(m.time),m.venue].filter(Boolean).map(esc).join(' · ')}</span>`:''}${done&&!m.bye?'<span class="tag ok">Played</span>':m.bye?'<span class="tag">Bye</span>':m.a&&m.b?'<span class="tag">Upcoming</span>':''}</div>
+ ${m.bye?`<div class="fxline win">${hChip(m.a||m.b)}<span class="tiny" style="flex:0 0 auto">through</span></div>`:`${line('a','sa',m.srcA)}${line('b','sb',m.srcB)}`}
+ ${m.bye?'':`<div class="fxft">${m.a&&m.b?`<label class="fxw">${tieNeed?'<b>Level — who won (penalties / tie-break)?</b>':'Winner'}<select data-fx="w" data-m="${m.id}" aria-label="Winner" ${edit?'':'disabled'}>${opt('',m.stage==='league'?'By score (draw if level)':'By score',m.w)}${opt(m.a,(Hs(m.a)||{}).name,m.w)}${opt(m.b,(Hs(m.b)||{}).name,m.w)}</select></label>${dr?'<span class="tag">Draw</span>':''}`:'<span class="tiny">Teams fill in by themselves when the earlier matches are played.</span>'}
+  ${edit?`<details class="fxmore"><summary>Change teams, date, time, venue</summary><div class="row" style="margin-top:6px">${sel('a',m.srcA,m.lockA)}${sel('b',m.srcB,m.lockB)}</div><div class="row"><label>Date<input type="date" data-fx="date" data-m="${m.id}" value="${esc(m.date||'')}"></label><label>Time<input type="time" data-fx="time" data-m="${m.id}" value="${esc(m.time||'')}"></label></div><div class="row"><label>Venue<input data-fx="venue" data-m="${m.id}" value="${esc(m.venue||'')}" list="venueList" placeholder="e.g. Main field"></label><label>Round name<input data-fx="round" data-m="${m.id}" value="${esc(m.round)}"></label></div><button class="btn sm danger" data-act="fxDelM" data-m="${m.id}">Delete match</button></details>`:''}</div>`}
+ </div>`}
+function fxTableHTML(fx){const T=fxTable(fx);const rk=fx.matches.filter(m=>m.stage==='league');const done=rk.filter(fxDone).length;
+ return`<div class="scroll"><table class="t fxtab"><thead><tr><th>#</th><th>House</th><th class="n" title="Played">P</th><th class="n" title="Won">W</th><th class="n" title="Drawn">D</th><th class="n" title="Lost">L</th><th class="n" title="Goals / points for">F</th><th class="n" title="Against">A</th><th class="n" title="Difference">+/−</th><th class="n">Pts</th></tr></thead><tbody>${T.map((x,i)=>`<tr><td>${i+1}</td><td>${hChip(x.h)}</td><td class="n">${x.P}</td><td class="n">${x.W}</td><td class="n">${x.D}</td><td class="n">${x.L}</td><td class="n">${x.F}</td><td class="n">${x.A}</td><td class="n">${x.F-x.A>0?'+':''}${x.F-x.A}</td><td class="n"><b>${x.Pts}</b></td></tr>`).join('')}</tbody></table></div><p class="tiny" style="margin:4px 0 0">${done} of ${rk.length} league matches played · Win ${fx.pts.w} · Draw ${fx.pts.d} · Loss ${fx.pts.l} · Ties: points, then +/−, then goals for, then the match between them.</p>`}
+function fixturesHTML(e){const s=S();const t=Ts(e.typeId)||{};if(!t.team||e.measure!=='none')return'';const fx=fxOf(e.id);
+ if(!fx){const f=ui.fxNew||{format:s.houses.length>=4?'knockout':'league',third:true};return`<div class="card fxc" style="margin-top:12px"><h3 style="margin:0 0 4px">Match fixtures</h3><p class="tiny" style="margin:0 0 10px">For football, volleyball, kabaddi, kho-kho, tug of war and other team games. The app makes the matches, fills the next round by itself, and gives the final placings to this event.</p>
+  <div class="fxfmt">${[['knockout','Knock-out','Semi-finals → Final (+ 3rd place match). Losers are out. Quick — 3 or 4 matches for 4 houses.'],['league','League','Every house plays every house (6 matches for 4 houses). Table decides the places.'],['leaguefinal','League + Final','League first, then 1st vs 2nd in a Final (and 3rd vs 4th). Fair and exciting.']].map(([k,n,d])=>`<button class="fxopt ${f.format===k?'on':''}" data-act="fxPick" data-id="${k}"><b>${n}</b><span>${d}</span></button>`).join('')}</div>
+  <div class="row" style="margin-top:10px;align-items:end"><div style="flex:2 1 260px"><span class="tiny">Houses taking part</span><div class="chips">${s.houses.map(h=>`<label class="chip" style="cursor:pointer"><input type="checkbox" data-fxt="${h.id}" ${!f.teams||f.teams.includes(h.id)?'checked':''} style="width:16px;height:16px;margin-right:4px">${esc(h.name)}</label>`).join('')}</div></div>
+  <label style="flex:1 1 160px">Draw<select id="fxDraw">${opt('random','Random draw',f.draw||'random')}${opt('order','House order (as listed)',f.draw||'random')}</select></label>
+  ${f.format!=='league'?`<label class="chk" style="flex:1 1 160px"><input type="checkbox" id="fxThird" ${f.third!==false?'checked':''}> 3rd place match</label>`:''}
+  ${f.format!=='knockout'?`<label style="flex:0 1 90px">Win pts<input type="number" id="fxPw" value="3"></label><label style="flex:0 1 90px">Draw pts<input type="number" id="fxPd" value="1"></label>`:''}
+  <button class="btn pri" data-act="fxCreate">Create fixtures</button></div></div>`}
+ fxSync(fx);const pl=fxPlacings(fx);const ko=fx.matches.filter(m=>m.stage==='ko');const lg=fx.matches.filter(m=>m.stage==='league');const fin=fx.matches.filter(m=>m.stage==='final'||m.stage==='third');const th=fx.matches.filter(m=>m.stage==='third'&&fx.format==='knockout');
+ const edit=canScore()&&!s.locked;const played=fx.matches.filter(m=>!m.bye&&fxDone(m)).length,total=fx.matches.filter(m=>!m.bye).length;
+ const rounds=[...new Set(ko.map(m=>m.r))].sort((a,b)=>a-b);
+ return`<div class="card fxc" style="margin-top:12px"><div class="row" style="justify-content:space-between;align-items:center"><div><h3 style="margin:0">Match fixtures · ${esc(FXF[fx.format])}</h3><span class="tiny">${played} of ${total} matches played</span></div><div class="row"><button class="btn sm" data-act="fxPrint">Print fixtures</button>${edit?'<button class="btn sm" data-act="fxAdd">+ Add match</button><button class="btn sm danger" data-act="fxOff">Remove fixtures</button>':''}</div></div>
+ <div class="fxprog"><i style="width:${total?Math.round(played/total*100):0}%"></i></div>
+ ${ko.length?`<div class="fxbracket">${rounds.map(r=>`<div class="fxcol"><div class="fxcolh">${esc(ko.find(m=>m.r===r).round.replace(/ \d+$/,''))}${ko.filter(m=>m.r===r).length>1?'s':''}</div>${ko.filter(m=>m.r===r).map(m=>fxMatchHTML(fx,m,edit)).join('')}</div>`).join('')}${th.length?`<div class="fxcol"><div class="fxcolh">Third place</div>${th.map(m=>fxMatchHTML(fx,m,edit)).join('')}</div>`:''}</div>`:''}
+ ${lg.length?`<div class="fxlg"><h4 style="margin:12px 0 6px">League table</h4>${fxTableHTML(fx)}<h4 style="margin:14px 0 6px">League matches</h4><div class="fxlist two">${lg.map(m=>fxMatchHTML(fx,m,edit)).join('')}</div></div>`:''}
+ ${fin.length&&fx.format==='leaguefinal'?`<h4 style="margin:12px 0 6px">Final round</h4><div class="fxlist two">${fin.map(m=>fxMatchHTML(fx,m,edit)).join('')}</div>`:''}
+ ${fx.matches.filter(m=>m.stage==='extra').length?`<h4 style="margin:12px 0 6px">Other matches</h4><div class="fxlist two">${fx.matches.filter(m=>m.stage==='extra').map(m=>fxMatchHTML(fx,m,edit)).join('')}</div>`:''}
+ <div class="fxpl">${pl?`<div><b>Final placings</b><div class="chips" style="margin-top:6px">${pl.map(x=>`<span class="chip"><b>${ord(x.pos)}</b>&nbsp;${hChip(x.houseId)}</span>`).join('')}</div></div>${edit?`<button class="btn pri" data-act="fxUse">Use these placings as the result</button>`:''}`:`<span class="tiny">When every match is played, the final placings appear here and can be saved as this event's result (points go to the houses).</span>`}</div>
+ <datalist id="venueList">${[...new Set(s.events.map(x=>x.venue).filter(Boolean).concat(['Main field','Volleyball court','Basketball court','Kabaddi court','School hall']))].map(v=>`<option value="${esc(v)}">`).join('')}</datalist></div>`}
+function fixturesReport(cat,head,sign,foot,sw){const s=S();const evs=repEvents(cat).filter(e=>fxOf(e.id)).filter(e=>!ui.fxEv||e.id===ui.fxEv);
+ if(!evs.length)return`<div class="p-doc">${head}<p>No fixtures yet. Open a team game in Enter results and use “Match fixtures”.</p>${foot}</div>`;
+ const sc=m=>m.bye?'bye':num(m.sa)!==null&&num(m.sb)!==null?`${esc(m.sa)} – ${esc(m.sb)}${m.w&&num(m.sa)===num(m.sb)?' ('+esc((Hs(m.w)||{}).name||'')+' won)':''}`:m.w?esc((Hs(m.w)||{}).name||'')+' won':'';
+ return`<div class="p-doc">${head}${evs.map(e=>{const fx=fxSync(fxOf(e.id));const pl=fxPlacings(fx);return`<div style="break-inside:avoid-page"><h3>${esc(e.name)} — ${esc(e.gender)} · ${esc(catName(e.catId))} <span style="font-weight:400;font-size:12px">(${esc(FXF[fx.format])})${e.org?' · In-charge: '+esc(e.org):''}</span></h3>
+  <table><thead><tr><th style="width:110px">Round</th><th style="width:120px">Date / time</th><th>Match</th><th style="width:110px">Venue</th><th style="width:120px">Result</th></tr></thead><tbody>${fx.matches.map(m=>`<tr><td>${esc(m.round)}</td><td>${[m.date&&fmtDate(m.date),m.time&&fmtTime(m.time)].filter(Boolean).map(esc).join(' ')}</td><td>${m.bye?sw(Hs(m.a||m.b))+' — bye':`${m.a?sw(Hs(m.a)):esc(fxSrcLabel(fx,m.srcA))} <b>vs</b> ${m.b?sw(Hs(m.b)):esc(fxSrcLabel(fx,m.srcB))}`}</td><td>${esc(m.venue||'')}</td><td>${sc(m)}</td></tr>`).join('')}</tbody></table>
+  ${fx.matches.some(m=>m.stage==='league')?`<h4 style="margin:8px 0 4px">League table</h4><table><thead><tr><th>#</th><th>House</th><th class="n">P</th><th class="n">W</th><th class="n">D</th><th class="n">L</th><th class="n">F</th><th class="n">A</th><th class="n">+/−</th><th class="n">Pts</th></tr></thead><tbody>${fxTable(fx).map((x,i)=>`<tr><td>${i+1}</td><td>${sw(Hs(x.h))}</td><td class="n">${x.P}</td><td class="n">${x.W}</td><td class="n">${x.D}</td><td class="n">${x.L}</td><td class="n">${x.F}</td><td class="n">${x.A}</td><td class="n">${x.F-x.A}</td><td class="n"><b>${x.Pts}</b></td></tr>`).join('')}</tbody></table>`:''}
+  ${pl?`<p><b>Final placings:</b> ${pl.map(x=>ord(x.pos)+' '+esc((Hs(x.houseId)||{}).name||'')).join(' · ')}</p>`:''}</div>`}).join('')}${sign}${foot}</div>`}
+function heatsReport(cat,head,sign,foot,sw){const s=S();const evs=repEvents(cat).filter(e=>{const r=s.results[e.id];return r&&r.heats&&r.heats.list&&r.heats.list.length}).filter(e=>!ui.heatEv||e.id===ui.heatEv);
+ if(!evs.length)return`<div class="p-doc">${head}<p>No heats yet. Open an event in Enter results and use “Heats”.</p>${foot}</div>`;
+ return`<div class="p-doc">${head}${evs.map(e=>{const H=s.results[e.id].heats;const lab=e.measure==='time'?'Time':e.measure==='dist'?'Mark':'Place';return`<h3>${e.dayId&&dayById(e.dayId)?esc(dayById(e.dayId).name)+(e.time?' · '+fmtTime(e.time):'')+' · ':''}${esc(e.name)} — ${esc(e.gender)} · ${esc(catName(e.catId))}${e.org?` <span style="font-weight:400;font-size:12px">· In-charge: ${esc(e.org)}</span>`:''}</h3>
+  <p style="margin:0 0 6px;font-size:12px">Qualify: top ${H.qTop??2} from each heat${H.qFast?` + ${H.qFast} fastest of the rest`:''}</p>
+  ${H.list.map(h=>`<div style="break-inside:avoid;page-break-inside:avoid"><h4 style="margin:8px 0 4px">${esc(h.name)}</h4><table><thead><tr><th style="width:45px">Lane</th><th>Athlete</th><th style="width:110px">House</th><th style="width:90px">${lab}</th><th style="width:40px">Q</th></tr></thead><tbody>${h.rows.slice().sort((a,b)=>(+a.lane||99)-(+b.lane||99)).map(r=>`<tr><td>${esc(r.lane||'')}</td><td>${esc(r.name||'')}</td><td>${sw(Hs(r.houseId))}</td><td>${esc(r.perf||'')}</td><td>${r.q?'Q':''}</td></tr>`).join('')}</tbody></table></div>`).join('')}`}).join('')}<div class="p-sign"><div>Judge / Official</div><div>${esc(DB.app.sign2||'')}</div></div>${foot}</div>`}
 function athDatalist(e){const s=S();const en=((s.entries||{})[e.id]||[]).map(id=>s.athletes.find(a=>a.id===id)).filter(Boolean);if(en.length)return en.map(a=>`<option value="${esc(a.name)}">${esc((Hs(a.houseId)||{}).name||'')} · entered${a.chest?' · #'+esc(a.chest):''}</option>`).join('');return s.athletes.filter(a=>(!e.catId||a.catId===e.catId)&&(e.gender==='Boys'?a.gender==='B':e.gender==='Girls'?a.gender==='G':true)).map(a=>`<option value="${esc(a.name)}">${esc((Hs(a.houseId)||{}).name||'')}${a.cls?' · Class '+esc(a.cls):''}${a.chest?' · #'+esc(a.chest):''}</option>`).join('')}
 function editorHTML(){
  const s=S(),e=s.events.find(x=>x.id===ui.sel);
@@ -807,7 +930,7 @@ function editorHTML(){
  <div class="row" style="margin-top:10px"><button class="btn pri" data-act="saveRes">Save result</button><button class="btn" data-act="rowadd">Add row (tie / extra place)</button>${hasP?'<button class="btn" data-act="autopos">Rank by performance</button>':''}<button class="btn" data-act="nextEv">Next pending event</button>${hasRes(e)?'<button class="btn danger" data-act="clearRes">Clear result</button>':''}</div>
  ${(()=>{const r=s.results[e.id];if(!r)return'';const h=r.hist||[];return`<div class="tiny" style="margin-top:10px">${r.rows&&r.rows.length?`Saved by <b>${esc(r.by||'—')}</b> · ${esc(fmtWhen(r.at))}`:`Cleared by ${esc(r.by||'—')} · ${esc(fmtWhen(r.at))}`}${h.length?` <details style="display:inline-block;margin-left:6px"><summary style="cursor:pointer">${h.length} earlier version${h.length>1?'s':''}</summary><ul style="margin:6px 0;padding-left:18px">${h.map((x,i)=>`<li>${esc(fmtWhen(x.at))} · ${esc(x.by||'—')}: ${esc(rowsSummary(x.rows))} <button class="btn sm" data-act="restoreVer" data-id="${i}">Restore</button></li>`).join('')}</ul></details>`:''}</div>`})()}
  ${s.locked?'<div class="banner" style="margin-top:10px"><b>Locked</b><span class="mut">Results are final. Unlock in Sessions &amp; backup to change.</span></div>':''}
- <p class="tiny">Typing a registered athlete's name fills their house. New names are added to Athletes automatically when you save. Two rows with the same position are treated as a tie and both get the points.</p></div>`;
+ <p class="tiny">Typing a registered athlete's name fills their house. New names are added to Athletes automatically when you save. Two rows with the same position are treated as a tie and both get the points.</p></div>${heatsHTML(e)}${fixturesHTML(e)}`;
 }
 function pResults(){
  const f=ui.evf,s=S();
@@ -1360,7 +1483,7 @@ function pRecords(){
 }
 
 /* ---------- reports ---------- */
-const REPS={schedule:'Day-wise Programme',duties:'Teacher Duty List',log:'Change Log',summary:'House Points Summary',matrix:'Event-wise House Points',results:'Results Sheet',champions:'Individual Champions',certs:'Merit Certificates',entries:'Entry Lists (start lists)',members:'House Member Lists'};
+const REPS={schedule:'Day-wise Programme',duties:'Teacher Duty List',heats:'Heat Sheets',fixtures:'Match Fixtures',log:'Change Log',summary:'House Points Summary',matrix:'Event-wise House Points',results:'Results Sheet',champions:'Individual Champions',certs:'Merit Certificates',entries:'Entry Lists (start lists)',members:'House Member Lists'};
 function repHTML(kind,cat){
  const s=S(),c=calc(),a=DB.app;
  const head=`<div class="p-head">${a.logo?`<img src="${a.logo}" alt="" style="height:20mm;max-width:50mm;object-fit:contain;display:block;margin:0 auto 4px">`:''}<h1>${esc(a.school)}</h1>${a.motto?`<div class="m">Motto: ${esc(a.motto)}</div>`:''}<div class="a">${esc(a.address)}</div><h2>${esc(s.title)} ${esc(s.year)} — ${REPS[kind]}${ui.repDay?' · '+esc(dayLabel(ui.repDay)):''}${cat?' · '+esc(catName(cat)):''}</h2>${s.date||s.venue?`<div class="a">${[s.date&&fmtDate(s.date),s.venue].filter(Boolean).map(esc).join(' · ')}</div>`:''}</div>`;
@@ -1371,6 +1494,8 @@ function repHTML(kind,cat){
  if(kind==='entries')return entriesReport(cat,head,sign,foot,sw);
  if(kind==='schedule')return scheduleReport(head,sign,foot,sw);
  if(kind==='duties')return dutyReport(cat,head,sign,foot);
+ if(kind==='heats')return heatsReport(cat,head,sign,foot,sw);
+ if(kind==='fixtures')return fixturesReport(cat,head,sign,foot,sw);
  if(kind==='log')return logReport(head,sign,foot);
  if(kind==='members')return membersReport(cat,head,sign,foot,sw);
  if(kind==='summary'){const ks=catKeys(s);
@@ -1978,7 +2103,7 @@ function planSjs(classes,lists){const s=S();const all=lists.flat();
    if(ch.cls||!ex.catId){const c=catForClass(st.cls);if(c&&c!==ex.catId)ch.catId=c}
    if(Object.keys(ch).length){upd++;pc.upd++}else same++;rows.push({ex,ch})}
   else{add++;pc.add++;rows.push({ex:null,v:{id:uid(),name:st.name,cls:st.cls,sec:st.sec,roll:st.roll,gender:st.gender,houseId:'',catId:catForClass(st.cls),chest:'',adm:st.adm,remarks:'',sjs:st.sjs}})}});
- const E=s.entries||{};const inUse=id=>Object.values(E).some(l=>l.includes(id))||Object.values(s.results).some(r=>r.rows.some(x=>x.athId===id));
+ const E=s.entries||{};const inUse=id=>Object.values(E).some(l=>l.includes(id))||Object.values(s.results).some(r=>(r.rows||[]).some(x=>x.athId===id));
  const gone=s.athletes.filter(a=>a.sjs&&!used.has(a.id));
  const noCat=rows.filter(r=>!(r.ex?(r.ch.catId||r.ex.catId):r.v.catId)).length;
  return{kind:'sjs',rows,add,upd,same,total:all.length,classes:perClass,gone,goneFree:gone.filter(a=>!inUse(a.id)),noCat}}
@@ -2236,13 +2361,13 @@ const ACT={
   let added=0;if(!t.team)rows.forEach(r=>{if(!r.name){r.athId='';return}const a=(r.athId&&s.athletes.find(z=>z.id===r.athId&&norm(z.name)===norm(r.name)))||matchAth(r.name,e,r.houseId);
    if(a&&a.houseId===r.houseId)r.athId=a.id;else if(!canManage()){r.athId=''}else{const n={id:uid(),name:r.name,cls:'',gender:e.gender==='Boys'?'B':e.gender==='Girls'?'G':'',houseId:r.houseId,catId:e.catId||'',chest:''};s.athletes.push(n);r.athId=n.id;added++}});
   const prev=s.results[e.id];const hist=prev&&prev.rows&&prev.rows.length?[{rows:prev.rows,at:prev.at,by:prev.by||''},...(prev.hist||[])]:(prev&&prev.hist)||[];
-  s.results[e.id]={rows,at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;
+  s.results[e.id]={...(prev&&prev.heats?{heats:prev.heats}:{}),...(prev&&prev.fx?{fx:prev.fx}:{}),rows,at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;
   const rec=calc().recs.find(x=>x.e.id===e.id&&x.old&&x.old.val);
   toast(rec?'Saved — NEW MEET RECORD!':'Saved — house points updated'+(added?` · ${added} new athlete${added>1?'s':''} added`:''));
   $('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
  restoreVer:async el=>{if(isLocked())return;const s=S(),r=s.results[ui.sel];const i=+el.dataset.id;const h=r&&r.hist&&r.hist[i];if(!h)return;if(!await ask('Go back to this version?',rowsSummary(h.rows),'Restore'))return;
-  const hist=[...(r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''}]:[]),...r.hist.filter((x,k)=>k!==i)].slice(0,6);s.results[ui.sel]={rows:h.rows,at:Date.now(),by:whoAmI()+' (restored)',hist};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML();toast('Earlier version restored')},
- clearRes:async()=>{if(isLocked())return;if(!await ask('Clear this result?','The places and points for this event will be removed. You can restore it from the earlier versions.','Clear result'))return;const s=S(),r=s.results[ui.sel];const hist=r&&r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''},...(r.hist||[])]:(r&&r.hist)||[];s.results[ui.sel]={rows:[],at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
+  const hist=[...(r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''}]:[]),...r.hist.filter((x,k)=>k!==i)].slice(0,6);s.results[ui.sel]={...(r.heats?{heats:r.heats}:{}),...(r.fx?{fx:r.fx}:{}),rows:h.rows,at:Date.now(),by:whoAmI()+' (restored)',hist};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML();toast('Earlier version restored')},
+ clearRes:async()=>{if(isLocked())return;if(!await ask('Clear this result?','The places and points for this event will be removed. You can restore it from the earlier versions.','Clear result'))return;const s=S(),r=s.results[ui.sel];const hist=r&&r.rows&&r.rows.length?[{rows:r.rows,at:r.at,by:r.by||''},...(r.hist||[])]:(r&&r.hist)||[];s.results[ui.sel]={...(r&&r.heats?{heats:r.heats}:{}),...(r&&r.fx?{fx:r.fx}:{}),rows:[],at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
  nextEv:()=>{const n=nextPending();if(!n){toast('All events have results');return}ui.sel=n.id;ui.draft=null;$('#evList').innerHTML=evListHTML();$('#editor').innerHTML=editorHTML()},
  addEvent:()=>{const s=S();const name=val('neName');if(!name){toast('Type the event name');$('#neName').focus();return}
   const cats=chk('neAllCat')?s.cats.map(c=>c.id):[$('#neCat').value];const gens=chk('neBoth')?['Boys','Girls']:[$('#neGen').value];let n=0;
@@ -2257,6 +2382,37 @@ const ACT={
  roleDel:async el=>{const em=el.dataset.id;const u=(SY.roleList||[]).find(x=>x.email===em);if(!u)return;
   if(!await ask(`Remove ${u.name||loginName(em)}?`,`${ROLE_L[u.role]||u.role} access is removed. Results they already entered stay.`,'Remove'))return;
   try{await SY.fs.collection('sports_roles').doc(em).delete();toast('Access removed')}catch(e){toast(e&&e.code==='permission-denied'?NOPERM_M:'Could not remove: '+(e.message||e))}},
+ fxPick:el=>{const cur=ui.fxNew||{};ui.fxNew={...cur,format:el.dataset.id,teams:fxTeamsSel()};$('#editor').innerHTML=editorHTML()},
+ fxCreate:()=>{if(isLocked())return;const s=S();const teams=fxTeamsSel()||s.houses.map(h=>h.id);if(teams.length<2){toast('Choose at least two houses');return}
+  const f=ui.fxNew||{format:s.houses.length>=4?'knockout':'league'};const draw=($('#fxDraw')||{}).value||'random';let order=teams.slice();if(draw==='random')for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}
+  const fx=fxGen(f.format,order,{third:$('#fxThird')?$('#fxThird').checked:false,pw:$('#fxPw')&&$('#fxPw').value,pd:$('#fxPd')&&$('#fxPd').value,pl:0});fxSetDoc(ui.sel,fxSync(fx));ui.fxNew=null;save();$('#editor').innerHTML=editorHTML();toast(`${fx.matches.filter(m=>!m.bye).length} matches made — enter scores as they are played`)},
+ fxOff:async()=>{if(isLocked())return;if(!await ask('Remove the fixtures of this event?','All matches and scores of this event are deleted. A saved final result stays.','Remove'))return;fxSetDoc(ui.sel,null);save();$('#editor').innerHTML=editorHTML()},
+ fxAdd:()=>{if(isLocked())return;const fx=fxOf(ui.sel);if(!fx)return;fx.matches.push({id:uid(),stage:'extra',round:'Match '+(fx.matches.length+1),r:99,a:'',b:'',sa:'',sb:'',w:''});save();$('#editor').innerHTML=editorHTML();toast('Match added at the bottom — choose the houses')},
+ fxDelM:async el=>{if(isLocked())return;const fx=fxOf(ui.sel);if(!fx)return;const m=fx.matches.find(x=>x.id===el.dataset.m);if(!m)return;if(fx.matches.some(x=>(x.srcA&&x.srcA.m===m.id)||(x.srcB&&x.srcB.m===m.id))&&!await ask(`Delete ${m.round}?`,'Later matches take their teams from this match — you will need to choose those teams by hand.','Delete'))return;fx.matches=fx.matches.filter(x=>x!==m);save();$('#editor').innerHTML=editorHTML()},
+ fxUse:async()=>{const fx=fxOf(ui.sel);if(!fx||!ui.draft)return;const pl=fxPlacings(fxSync(fx));if(!pl)return;ui.draft.rows=pl.map(x=>({pos:x.pos,houseId:x.houseId,name:'',athId:'',perf:''}));$('#editor').innerHTML=editorHTML();$('#editor').scrollIntoView({behavior:'smooth'});toast('Placings filled in above — check them and press Save result')},
+ fxPrint:()=>{ui.report='fixtures';ui.fxEv=ui.sel;ui.repDay='';ui.repCat='';location.hash='#reports'},
+ heatOn:()=>{if(isLocked())return;heatsOf(ui.sel,true);save();$('#editor').innerHTML=editorHTML()},
+ heatOff:async()=>{if(isLocked())return;const s=S(),r=s.results[ui.sel];if(!r||!r.heats)return;if(!await ask('Remove the heats of this event?','The heat lists and times are deleted. The final result stays.','Remove heats'))return;delete r.heats;save();$('#editor').innerHTML=editorHTML()},
+ heatAdd:()=>{if(isLocked())return;const H=heatsOf(ui.sel,true);H.list.push({id:uid(),name:'Heat '+(H.list.length+1),rows:[]});save();$('#editor').innerHTML=editorHTML()},
+ heatDel:async el=>{if(isLocked())return;const H=heatsOf(ui.sel);const h=H&&H.list[+el.dataset.h];if(!h)return;if(h.rows.some(r=>r.name||r.perf)&&!await ask(`Delete ${h.name}?`,`${h.rows.length} runners in it are removed.`,'Delete'))return;H.list.splice(+el.dataset.h,1);H.list.forEach((x,i)=>{if(/^Heat \d+$/.test(x.name))x.name='Heat '+(i+1)});save();$('#editor').innerHTML=editorHTML()},
+ heatRowAdd:el=>{if(isLocked())return;const H=heatsOf(ui.sel);const h=H&&H.list[+el.dataset.h];if(!h)return;h.rows.push({lane:h.rows.length+1,houseId:'',name:'',athId:'',perf:'',q:false});save();$('#editor').innerHTML=editorHTML();const l=document.querySelectorAll(`#editor input[data-h="${el.dataset.h}"][data-k="name"]`);if(l.length)l[l.length-1].focus()},
+ heatRowDel:el=>{if(isLocked())return;const H=heatsOf(ui.sel);const h=H&&H.list[+el.dataset.h];if(!h)return;h.rows.splice(+el.dataset.r,1);save();$('#editor').innerHTML=editorHTML()},
+ heatMake:async()=>{if(isLocked())return;const s=S(),e=s.events.find(x=>x.id===ui.sel);const H=heatsOf(ui.sel,true);const ids=(s.entries||{})[e.id]||[];const L=ids.map(id=>s.athletes.find(a=>a.id===id)).filter(Boolean);
+  if(!L.length){toast('No participants entered for this event yet — add them in Event entries, or use “+ Add heat” and type names');return}
+  if(H.list.some(h=>h.rows.length)&&!await ask('Make the heats again?','The heats you have now are replaced.','Make heats'))return;
+  const per=Math.max(2,+H.lanes||8);const n=Math.ceil(L.length/per);const byH={};L.forEach(a=>(byH[a.houseId||'_']=byH[a.houseId||'_']||[]).push(a));
+  const order=[];const qs=Object.values(byH);while(qs.some(q=>q.length))qs.forEach(q=>{if(q.length)order.push(q.shift())});
+  const heats=Array.from({length:n},(_,i)=>({id:uid(),name:'Heat '+(i+1),rows:[]}));order.forEach((a,i)=>{const r=Math.floor(i/n),k=r%2?n-1-i%n:i%n;heats[k].rows.push({lane:heats[k].rows.length+1,houseId:a.houseId||'',name:a.name,athId:a.id,perf:'',q:false})});
+  H.list=heats;save();$('#editor').innerHTML=editorHTML();toast(`${n} heat${n>1?'s':''} made from ${L.length} participants — houses are spread across the heats`)},
+ heatMarkQ:()=>{if(isLocked())return;const s=S(),e=s.events.find(x=>x.id===ui.sel);const H=heatsOf(ui.sel);if(!H)return;const top=Math.max(0,+H.qTop||0),fast=Math.max(0,+H.qFast||0);const cmp=hBetter(e);const pv=r=>e.measure==='none'?(parseFloat(r.perf)||null):hPerf(e,r.perf);
+  let missing=0;const rest=[];H.list.forEach(h=>{h.rows.forEach(r=>r.q=false);const w=h.rows.filter(r=>pv(r)!==null).sort((a,b)=>e.measure==='none'?pv(a)-pv(b):cmp(pv(a),pv(b)));missing+=h.rows.length-w.length;w.forEach((r,i)=>{if(i<top)r.q=true;else rest.push(r)})});
+  if(fast&&e.measure!=='none')rest.sort((a,b)=>cmp(pv(a),pv(b))).slice(0,fast).forEach(r=>r.q=true);
+  save();$('#editor').innerHTML=editorHTML();const nq=H.list.reduce((n,h)=>n+h.rows.filter(r=>r.q).length,0);toast(`${nq} qualified for the final${missing?` · ${missing} without a ${e.measure==='time'?'time':e.measure==='dist'?'mark':'place'} were left out`:''}`)},
+ finPick:el=>{const s=S(),e=s.events.find(x=>x.id===ui.sel);const H=heatsOf(ui.sel);if(!H||!ui.draft)return;const f=heatFinalists(e,H)[+el.dataset.i];if(!f)return;
+  if(ui.draft.rows.some(r=>r.name&&norm(r.name)===norm(f.name))){toast(f.name+' is already in the final');return}
+  let r=ui.draft.rows.find(x=>!x.houseId&&!x.name);if(!r){const n=ui.draft.rows.length?Math.max(...ui.draft.rows.map(x=>+x.pos||0))+1:1;r={pos:n,houseId:'',name:'',athId:'',perf:''};ui.draft.rows.push(r)}
+  r.houseId=f.houseId||'';r.name=f.name||'';r.athId=f.athId||'';$('#editor').innerHTML=editorHTML()},
+ heatPrint:()=>{ui.report='heats';ui.heatEv=ui.sel;ui.repDay='';ui.repCat='';location.hash='#reports'},
  arrangeDay:async()=>{const s=S(),D=ui.sday;if(!D||D==='_none')return;const st=val('arStart')||'09:00',mins=Math.max(1,parseInt(val('arGap'))||10);ui.atStart=st;ui.atGap=mins;
   const before=clashList(D,s).length;const plan=planArrange(D,st,mins,s);if(!plan.length){toast('No events on this day');return}
   const old=plan.map(({e})=>({id:e.id,ord:e.ord,time:e.time}));plan.forEach(({e,ord,time})=>{e.ord=ord;e.time=time});const after=clashList(D,s).length;
@@ -2302,7 +2458,7 @@ const ACT={
   save();rerender();toast(`${n} athletes imported${skip?` · ${skip} lines skipped`:''}`)},
  delAth:async el=>{const s=S();const used=s.events.some(e=>(s.results[e.id]?.rows||[]).some(r=>r.athId===el.dataset.id));if(used&&!await ask('Delete this athlete?','They appear in results. Their places stay but are no longer linked to this record.','Delete'))return;s.athletes=s.athletes.filter(a=>a.id!==el.dataset.id);const E=s.entries||{};Object.keys(E).forEach(k=>E[k]=E[k].filter(id=>id!==el.dataset.id));save();rerender()},
  addHouse:()=>{S().houses.push({id:uid(),name:'New House',color:'#7b4fd6',captain:'',vice:'',master:''});save();rerender()},
- delHouse:async el=>{const s=S();const h=Hs(el.dataset.id);const used=Object.values(s.results).some(r=>r.rows.some(x=>x.houseId===h.id));if(!await ask(`Delete ${h.name} house?`,used?'This house has points in results. Those places will lose their house.':'You can add it again later.','Delete'))return;s.houses=s.houses.filter(x=>x!==h);save();rerender()},
+ delHouse:async el=>{const s=S();const h=Hs(el.dataset.id);const used=Object.values(s.results).some(r=>(r.rows||[]).some(x=>x.houseId===h.id));if(!await ask(`Delete ${h.name} house?`,used?'This house has points in results. Those places will lose their house.':'You can add it again later.','Delete'))return;s.houses=s.houses.filter(x=>x!==h);save();rerender()},
  addCat:()=>{const n=val('ncName');if(!n){toast('Type a category name');return}S().cats.push({id:uid(),name:n,desc:val('ncDesc')});save();rerender()},
  delCat:async el=>{const s=S();const n=s.events.filter(e=>e.catId===el.dataset.id).length;if(!await ask('Delete this category?',n?`${n} events use it. They will move to Open.`:'','Delete'))return;s.events.forEach(e=>{if(e.catId===el.dataset.id)e.catId=''});s.athletes.forEach(a=>{if(a.catId===el.dataset.id)a.catId=''});s.cats=s.cats.filter(c=>c.id!==el.dataset.id);save();rerender()},
  catUp:el=>{const c=S().cats,i=c.findIndex(x=>x.id===el.dataset.id);if(i>0){[c[i-1],c[i]]=[c[i],c[i-1]];save();rerender()}},
@@ -2313,7 +2469,7 @@ const ACT={
  delBonus:el=>{if(isLocked())return;const s=S();s.bonus=s.bonus.filter(b=>b.id!==el.dataset.id);save();rerender()},
  champCat:el=>{ui.champCat=el.dataset.id;rerender()},
  setRec:el=>{const s=S(),e=s.events.find(x=>x.id===el.dataset.id);const w=s.results[e.id].rows.find(x=>x.pos==1);e.rec={val:w.perf,holder:w.name||((Hs(w.houseId)||{}).name+' House'),house:(Hs(w.houseId)||{}).name||'',year:s.year};save();rerender();toast('Meet record updated')},
- rep:el=>{ui.report=el.dataset.id;rerender()},
+ rep:el=>{ui.report=el.dataset.id;ui.heatEv=null;ui.fxEv=null;rerender()},
  printRep:()=>{const st=document.createElement('style');st.textContent=ui.report==='certs'?'@page{size:A4 landscape;margin:0}':'@page{size:A4;margin:12mm}';document.head.appendChild(st);try{window.print()}catch(e){toast('Printing is blocked here — use Download')}setTimeout(()=>st.remove(),1500)},
  dlRep:()=>{const s=S();const land=ui.report==='certs';const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(REPS[ui.report])} ${esc(s.year)}</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;700&display=swap" rel="stylesheet"><style>${PCSS}body{margin:16px;background:#fff}@page{size:A4 ${land?'landscape':'portrait'};margin:${land?0:12}mm}${land?'body{margin:0;background:#ddd8cc}.cs{margin:0 auto 12px}@media print{body{background:#fff}.cs{margin:0}}':''}.np{font:600 15px sans-serif;padding:10px 18px;margin:12px;cursor:pointer}@media print{.np{display:none}body{margin:0}}</style></head><body><button class="np" onclick="print()">Print</button>${land&&$('#paper')?$('#paper').innerHTML.replace(/ contenteditable="true" spellcheck="false"/g,''):repHTML(ui.report,ui.repCat)}</body></html>`;saveFile(`SJS_${REPS[ui.report].replace(/\W+/g,'_')}_${s.year}.html`,html)},
  csv:()=>{const s=S();const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;const L=[['Session','Event','Category','Gender','Rule','Position','House','Name','Class','Performance','Points'].join(',')];
@@ -2421,7 +2577,7 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  save();location.hash='#home';render();toast('Backup restored')}
 
 const MANAGE_ACTS=new Set('hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
-const SCORE_ACTS=new Set(['saveRes','clearRes','restoreVer']);
+const SCORE_ACTS=new Set(['fxCreate','fxOff','fxAdd','fxDelM','fxUse','saveRes','clearRes','restoreVer','heatOn','heatOff','heatAdd','heatDel','heatRowAdd','heatRowDel','heatMake','heatMarkQ']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn';
 function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
 function blockField(el){if(!el.matches||!el.matches(WRITE_SEL)||canManage())return false;toast(NOPERM_M);rerender();return true}
@@ -2430,7 +2586,7 @@ let roMO=null;function roWatch(){if(roMO)return;roMO=new MutationObserver(()=>{c
 function roPaint(p){if(isVO()){roWatch();main.querySelectorAll('button[data-act]').forEach(b=>{if(NOSHARE_ACTS.has(b.dataset.act))b.style.display='none'})}
  main.querySelectorAll('.robar').forEach(x=>{if(!isLive()||isMgr()&&canScore())x.remove()});if(!isLive())return;roWatch();const mgr=isMgr(),sc=canScore();
  if(!mgr){main.querySelectorAll(WRITE_SEL).forEach(x=>{x.disabled=true});main.querySelectorAll('label.btn').forEach(l=>{if(l.querySelector('input:disabled')){l.setAttribute('aria-disabled','true');l.style.opacity='.42';l.style.pointerEvents='none'}});main.querySelectorAll('button[data-act]').forEach(b=>{if(MANAGE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_M}})}
- if(!sc)main.querySelectorAll('button[data-act]').forEach(b=>{if(SCORE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_S}});
+ if(!sc){main.querySelectorAll('button[data-act]').forEach(b=>{if(SCORE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_S}});main.querySelectorAll('[data-hx],[data-fx],[data-fxt]').forEach(x=>x.disabled=true)}
  const editPages=['houses','categories','athletes','housing','events','schedule','entries','points','bonus','certificate','setup'];
  if((!mgr&&editPages.includes(p)||!sc&&p==='results')&&!main.querySelector('.robar')){const h=main.querySelector('h2');if(h)h.insertAdjacentHTML('afterend',`<div class="banner robar"><b>${ROLE_L[spRole()]}</b><span class="mut">${p==='results'?NOPERM_S:'You can look, download and print, but only the Admin or the Sports In-charge can make changes here.'} <a href="#users">Who can do what ›</a></span></div>`)}}
 main.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='SELECT')return;const f=ACT[el.dataset.act];if(f){e.preventDefault();if(blockAct(el.dataset.act))return;f(el)}});
@@ -2441,6 +2597,15 @@ main.addEventListener('input',e=>{const el=e.target;if(isLive()&&!canManage()&&e
  if(el.dataset.af==='q'){ui.af.q=el.value;ui.aPage=0;clearTimeout(ui.at);ui.at=setTimeout(()=>{rerender();const q=main.querySelector('[data-af=q]');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},350)}
 });
 main.addEventListener('change',e=>{const el=e.target,s=S();if(blockField(el))return;
+ if(el.dataset.fxt){ui.fxNew={...(ui.fxNew||{format:S().houses.length>=4?'knockout':'league'}),teams:fxTeamsSel()};return}
+ if(el.dataset.fx){if(!canScore()){toast(NOPERM_S);rerender();return}if(isLocked()){$('#editor').innerHTML=editorHTML();return}const fx=fxOf(ui.sel);if(!fx)return;const m=fx.matches.find(x=>x.id===el.dataset.m);if(!m)return;const k=el.dataset.fx;
+  if(k==='a'||k==='b'){m[k]=el.value;m[k==='a'?'lockA':'lockB']=!!el.value;if(!el.value)delete m[k==='a'?'lockA':'lockB']}else if(k==='sa'||k==='sb'){m[k]=el.value.replace(/[^0-9.]/g,'')}else m[k]=el.value;
+  fxSync(fx);save();if(!['date','time','venue','round'].includes(k)||k==='round'){$('#editor').innerHTML=editorHTML()}return}
+ if(el.dataset.hx!=null){if(!canScore()){toast(NOPERM_S);rerender();return}if(isLocked()){$('#editor').innerHTML=editorHTML();return}const H=heatsOf(ui.sel,true);const k=el.dataset.hx;
+  if(k==='row'){const h=H.list[+el.dataset.h];const r=h&&h.rows[+el.dataset.r];if(!r)return;const f=el.dataset.k;r[f]=f==='q'?el.checked:el.value;
+   if(f==='name'){const ev=s.events.find(x=>x.id===ui.sel);const a=matchAth(el.value,ev,r.houseId)||s.athletes.find(z=>norm(z.name)===norm(el.value));if(a){r.athId=a.id;if(!r.houseId&&a.houseId)r.houseId=a.houseId}else r.athId=''}
+   save();if(f==='houseId'||f==='name'||f==='q')$('#editor').innerHTML=editorHTML();return}
+  H[k]=Math.max(0,parseInt(el.value)||0);save();return}
  if(el.id==='ruPick'){const o=el.selectedOptions[0];if(o&&o.value){$('#ruEmail').value=loginName(o.value);$('#ruName').value=o.dataset.n||''}return}
  if(el.dataset.urole){if(spRole()!=='admin'){toast('Only the Admin can change roles');rerender();return}const em=el.dataset.urole;
   SY.fs.collection('sports_roles').doc(em).set({role:el.value,by:SY.user.displayName||SY.user.email,at:Date.now()},{merge:true}).then(()=>toast('Role changed'),e2=>{toast('Could not change: '+(e2.message||e2));rerender()});return}
