@@ -269,6 +269,8 @@ table.t{width:100%;border-collapse:collapse;font-size:15px}
 .bibwr{width:70%;flex:1;margin:6mm 0;border:.6mm dashed #9aa3ad;border-radius:4mm;display:flex;align-items:flex-end;justify-content:center;font:600 5mm/1 Barlow,Arial,sans-serif!important;color:#9aa3ad;letter-spacing:.08em;text-transform:uppercase;padding-bottom:3mm}
 .bibs.bsm{grid-template-columns:1fr 1fr;gap:5mm}.bsm .bib{height:92mm;border-width:.9mm;border-radius:4mm}.bsm .bibtop{padding:2.5mm 4mm;font-size:3.2mm}.bsm .bibtop b{font-size:5.5mm}.bsm .bibno{font-size:40mm}.bsm .bibnm{font-size:6.5mm;padding:0 3mm}.bsm .bibft{font-size:3mm;padding:0 3mm 2.5mm}.bsm .bibwr{font-size:3mm!important;margin:3mm 0;padding-bottom:2mm}
 @media print{.bibs.bsm{gap:5mm}.bibs.bsm .bib{height:94mm}}
+.plan{border:2px solid var(--pri,#1f7a4d)}.planmsg{margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--soft,#eef5f0);font-size:14px}
+.pin{border:0;background:none;font-size:18px;cursor:pointer;opacity:.25;filter:grayscale(1);padding:4px}.pin.on{opacity:1;filter:none}
 </style>
 <style id="pcss"></style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
@@ -443,7 +445,7 @@ const RULES_TXT=`    // ===== SJS Sports App (Annual Sports Meet) — user contr
       allow write: if spManager() || (coll == 'r' && spRecorder() && spOpen(sid));
     }`;
 const SY={myRole:null,isStaff:false,roleList:null,roleErr:'',roleUnsub:[],state:'off',user:null,fs:null,unsub:[],sesUnsub:[],subSid:null,last:{},ready:{},applying:false,timer:null,readonly:false,err:'',pending:0,remoteActive:null,pendingRender:false};
-const CFG_FIELDS=['id','year','title','date','venue','created','demo','houses','cats','types','events','maxEntry','days','locked','maxPerStudent','restGap','practice','from'];
+const CFG_FIELDS=['id','year','title','date','venue','created','demo','houses','cats','types','events','maxEntry','days','locked','maxPerStudent','restGap','practice','from','plan'];
 const SJ=o=>{const f=x=>Array.isArray(x)?x.map(f):x&&typeof x==='object'?Object.keys(x).sort().reduce((a,k)=>(x[k]!==undefined&&(a[k]=f(x[k])),a),{}):x;return JSON.stringify(f(o===undefined?null:o))};
 const clean=o=>JSON.parse(JSON.stringify(o));
 const pickCfg=s=>{const o={};CFG_FIELDS.forEach(k=>{if(s[k]!==undefined)o[k]=s[k]});return clean(o)};
@@ -466,7 +468,7 @@ const canScore=()=>!isLive()||['admin','incharge','scorer','teacher'].includes(s
 /* view-only teachers: look only — no download, print, copy; screenshots are discouraged with a name watermark */
 const VO_KEY='sjs_sports_vo';
 function isVO(){if(isLive())return spRole()==='viewer';try{return localStorage.getItem(VO_KEY)==='1'}catch(e){return false}}
-const NOSHARE_ACTS=new Set(['bibPdf','copyDay','copyDuty','printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
+const NOSHARE_ACTS=new Set(['progPdf','bibPdf','copyDay','copyDuty','printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
 const NOPERM_V='View only: downloading, printing and copying are turned off for your login.';
 function voPaint(){const on=isVO();document.body.classList.toggle('vo',on);
  if(isLive()){try{on?localStorage.setItem(VO_KEY,'1'):localStorage.removeItem(VO_KEY)}catch(e){}}
@@ -1096,6 +1098,75 @@ function fieldReport(cat,head,sign,foot,sw){const s=S(),E=s.entries||{};const ev
 function bibList(cat,all){const s=S();const E=s.entries||{};const ent=new Set(Object.values(E).flat());if(all===undefined)all=!!ui.bibAll;
  const l=s.athletes.filter(a=>(!cat||a.catId===cat)&&(!ui.bibHouse||a.houseId===ui.bibHouse)&&(all||ent.has(a.id)));
  return l.sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||'')||(parseInt(a.chest)||1e9)-(parseInt(b.chest)||1e9)||norm(a.name).localeCompare(norm(b.name)))}
+
+/* ---------- Auto-plan the whole meet: days, times, venues — no student or teacher clashes ---------- */
+const PLAN0={start:'09:00',end:'15:30',lunch:'12:30',lunchMin:45,ath:'spread',games:'spread',cult:'spread',scope:'unsched',venues:true,dur:{}};
+const planCfg=()=>{const p=S().plan||{};return Object.assign({},PLAN0,p,{dur:Object.assign({},p.dur||{})})};
+function typeDur(t){const n=String(t&&t.name||'').toLowerCase();return /major|game/.test(n)?40:/relay/.test(n)?15:/group/.test(n)?20:/cultur|literar/.test(n)?15:10}
+function durOf(e,P){const t=Ts(e.typeId)||{};const v=+(P.dur||{})[t.id];return v>0?v:typeDur(t)}
+function evGroup(e){const t=Ts(e.typeId)||{};if(isJudged(e)||/cultur|literar/i.test(t.name||''))return'cult';if(t.team&&e.measure==='none')return'games';return'ath'}
+function guessVenue(e){const n=norm(e.name);
+ if(evGroup(e)==='cult')return /drawing|painting|essay|handwriting|poster|calligraph|craft|rangoli|quiz|writing/.test(n)?'School hall':'Stage';
+ if(/football|soccer/.test(n))return'Football ground';if(/volley/.test(n))return'Volleyball court';if(/basket/.test(n))return'Basketball court';if(/badminton/.test(n))return'Badminton court';
+ if(/chess|carrom|table tennis|ludo/.test(n))return'School hall';if(/jump|vault/.test(n))return'Jumping pit';if(/throw|shot put|discus|javelin|hammer/.test(n))return'Throwing area';
+ if(/relay|race|run|hurdle|walk|sprint|\d+ ?m\b|metre|meter|sack|frog|spoon|legged|cycle|obstacle|hopping/.test(n))return'Track';return'Main field'}
+const hhmm=t=>String(Math.floor(t/60)%24).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+function autoPlan(P){const s=S();const days=s.days||[];const E=s.entries||{};const g=restGap(s);const dIds=days.map(d=>d.id);
+ const done=e=>hasRes(e);const keepDay=e=>done(e)||e.pin||(P.scope==='unsched'&&e.dayId&&dayById(e.dayId));
+ const ven=e=>e.venue||(P.venues?guessVenue(e):'Main field');
+ const load={};dIds.forEach(d=>load[d]={});const add=(d,v,m)=>{load[d][v]=(load[d][v]||0)+m};
+ s.events.filter(e=>keepDay(e)&&load[e.dayId]).forEach(e=>add(e.dayId,ven(e),durOf(e,P)));
+ const move=s.events.filter(e=>!keepDay(e));const units={};
+ move.forEach(e=>{const gr=evGroup(e);const k=gr==='ath'&&P.ath==='cat'?'cat|'+(e.catId||''):gr+'|'+norm(e.name)+'|'+(e.catId||'');(units[k]=units[k]||[]).push(e)});
+ const allowed=gr=>{const v=gr==='games'?P.games:gr==='cult'?P.cult:'spread';return v&&v!=='spread'&&load[v]?[v]:dIds};
+ const newDay={};const U=Object.values(units).map(u=>({u,m:u.reduce((n,e)=>n+durOf(e,P),0)})).sort((a,b)=>b.m-a.m);
+ U.forEach(({u,m})=>{const byV={};u.forEach(e=>{const v=ven(e);byV[v]=(byV[v]||0)+durOf(e,P)});let best=null,bs=1e18;
+  allowed(evGroup(u[0])).forEach(d=>{const L=load[d];const peak=Math.max(0,...Object.entries(byV).map(([v,x])=>(L[v]||0)+x));const tot=Object.values(L).reduce((a,b)=>a+b,0)+m;const sc=peak*1e5+tot;if(sc<bs){bs=sc;best=d}});
+  u.forEach(e=>{newDay[e.id]=best;add(best,ven(e),durOf(e,P))})});
+ const st=hm(P.start)??540,en=hm(P.end)??930,lu=hm(P.lunch),lm=Math.max(0,+P.lunchMin||0);
+ const R={};dIds.forEach(d=>R[d]={v:{},p:{},t:{}});
+ const occ=(d,e,a,b,v)=>{const r=R[d];(r.v[v]=r.v[v]||[]).push([a,b]);(E[e.id]||[]).forEach(id=>(r.p[id]=r.p[id]||[]).push([a,b]));orgNames(e.org).forEach(n=>{n=norm(n);(r.t[n]=r.t[n]||[]).push([a,b])})};
+ const hit=(L,a,b,gap)=>{let to=-1;(L||[]).forEach(([x,y])=>{if(a<y+gap&&x<b+gap)to=Math.max(to,y+gap)});return to};
+ const timed=e=>keepDay(e)&&R[e.dayId]&&hm(e.time)!==null&&(done(e)||e.pin||P.scope==='unsched');
+ s.events.forEach(e=>{if(timed(e))occ(e.dayId,e,hm(e.time),hm(e.time)+durOf(e,P),ven(e))});
+ const todo=s.events.filter(e=>!done(e)&&!timed(e)&&(newDay[e.id]||(e.dayId&&R[e.dayId])));
+ const ci={};s.cats.forEach((c,i)=>ci[c.id]=i);const gr={ath:0,games:1,cult:2};
+ todo.sort((a,b)=>gr[evGroup(a)]-gr[evGroup(b)]||(/relay/i.test(a.name)-/relay/i.test(b.name))||a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'})||(ci[a.catId]??99)-(ci[b.catId]??99)||String(a.gender).localeCompare(String(b.gender)));
+ const out=[];let late=0;
+ todo.forEach(e=>{const d=newDay[e.id]||e.dayId;const r=R[d];const v=ven(e);const du=durOf(e,P);const ps=E[e.id]||[];const ts=orgNames(e.org).map(norm);let t=st,guard=0;
+  while(guard++<600){const a=t,b=t+du;let nx=-1;
+   if(lu!==null&&lm>0&&a<lu+lm&&b>lu)nx=lu+lm;
+   nx=Math.max(nx,hit(r.v[v],a,b,0));ps.forEach(id=>{nx=Math.max(nx,hit(r.p[id],a,b,g))});ts.forEach(n=>{nx=Math.max(nx,hit(r.t[n],a,b,0))});
+   if(nx<0)break;t=Math.max(t+5,Math.ceil(nx/5)*5)}
+  if(t+du>en)late++;occ(d,e,t,t+du,v);out.push({e,d,t,v,du})});
+ return{out,late,newDays:Object.keys(newDay).length}}
+function planSummary(s=S()){const P=planCfg();return(s.days||[]).map(d=>{const l=s.events.filter(e=>e.dayId===d.id&&hm(e.time)!==null);if(!l.length)return`${esc(d.name)}: ${s.events.filter(e=>e.dayId===d.id).length} events`;
+ const a=Math.min(...l.map(e=>hm(e.time))),b=Math.max(...l.map(e=>hm(e.time)+durOf(e,P)));return`<b>${esc(d.name)}</b>: ${s.events.filter(e=>e.dayId===d.id).length} events · ${fmtTime(hhmm(a))} – ${fmtTime(hhmm(b))}`}).join(' &nbsp;·&nbsp; ')}
+function planCard(){const s=S(),P=planCfg();const days=s.days||[];const mgr=canManage();
+ if(!days.length)return`<div class="card plan" style="margin-top:16px"><h3 style="margin-top:0">⚡ Auto-plan the whole meet</h3><p class="tiny" style="margin-top:0">First make the days of the meet. How many days?</p><div class="row" style="align-items:end"><label style="flex:0 1 140px">Number of days<input type="number" min="1" max="10" id="plDays" value="2"></label><button class="btn pri" data-act="planDays">Make the days</button></div></div>`;
+ const dOpt=(v)=>opt('spread','Spread across all days',v)+days.map(d=>opt(d.id,'All on '+d.name,v)).join('');
+ const used=[...new Set(s.events.map(e=>e.typeId))].map(id=>Ts(id)).filter(Boolean);const g=restGap(s);
+ return`<div class="card plan" style="margin-top:16px"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">⚡ Auto-plan the whole meet</h3>${ui.planUndo?'<button class="btn" data-act="planUndo">↶ Undo auto-plan</button>':''}</div>
+ <p class="tiny" style="margin:6px 0 10px">The app divides the events across the days, gives each one a time and a venue, keeps every student's events at least ${g} minutes apart, never puts two events on the same venue at once, and never gives one teacher two events at the same time. <b>📌 Events you change by hand</b> and events that already have results are not moved. You can change anything afterwards.</p>
+ <div class="row">
+  <label style="flex:1 1 220px">Which events<select id="plScope">${opt('unsched','Only events without a day yet',P.scope)}${opt('all','Re-plan all events (except 📌 and finished)',P.scope)}</select></label>
+  <label style="flex:1 1 200px">Athletics &amp; fun events<select id="plAth">${opt('spread','Balanced across the days',P.ath)}${opt('cat','Keep each category on one day',P.ath)}</select></label>
+  <label style="flex:1 1 180px">Major games<select id="plGames">${dOpt(P.games)}</select></label>
+  <label style="flex:1 1 180px">Cultural &amp; literary<select id="plCult">${dOpt(P.cult)}</select></label></div>
+ <div class="row" style="margin-top:6px">
+  <label style="flex:0 1 130px">Day starts<input type="time" id="plStart" value="${esc(P.start)}"></label>
+  <label style="flex:0 1 130px">Day ends<input type="time" id="plEnd" value="${esc(P.end)}"></label>
+  <label style="flex:0 1 130px">Lunch break at<input type="time" id="plLunch" value="${esc(P.lunch)}"></label>
+  <label style="flex:0 1 120px">Lunch minutes<input type="number" min="0" id="plLunchMin" value="${esc(P.lunchMin)}"></label>
+  <label style="flex:0 1 150px">Rest between a student's events<input type="number" min="0" max="240" data-ses="restGap" value="${g}"></label></div>
+ <div class="tiny" style="margin:10px 0 4px"><b>Minutes for each event</b> (by points rule):</div>
+ <div class="row">${used.map(t=>`<label style="flex:0 1 150px">${esc(t.name)}<input type="number" min="1" data-pldur="${t.id}" value="${esc(+P.dur[t.id]>0?P.dur[t.id]:typeDur(t))}"></label>`).join('')}</div>
+ <label class="chk"><input type="checkbox" id="plVen" ${P.venues?'checked':''}> Fill empty venues automatically (Track, Jumping pit, Throwing area, courts, Stage, School hall …)</label>
+ <div class="row" style="align-items:center">${mgr?'<button class="btn pri" data-act="planGo">⚡ Plan the meet</button>':''}<span class="tiny" style="flex:1 1 300px">${planSummary(s)}</span></div>
+ ${ui.planMsg?`<div class="planmsg">${ui.planMsg}</div>`:''}</div>`}
+function planRead(){const P=planCfg();const v=id=>{const el=$('#'+id);return el?el.value:''};
+ P.scope=v('plScope')||P.scope;P.ath=v('plAth')||P.ath;P.games=v('plGames')||P.games;P.cult=v('plCult')||P.cult;P.start=v('plStart')||P.start;P.end=v('plEnd')||P.end;P.lunch=v('plLunch');P.lunchMin=+v('plLunchMin')||0;
+ const vc=$('#plVen');if(vc)P.venues=vc.checked;document.querySelectorAll('[data-pldur]').forEach(i=>{const n=+i.value;if(n>0)P.dur[i.dataset.pldur]=n});return P}
 /* ---------- Chest numbers as a real PDF file (built in, works offline) ---------- */
 const HB_W=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
 const HR_W=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
@@ -1106,6 +1177,39 @@ const pdfRGB=c=>{c=(c||'#888888').replace('#','');if(c.length===3)c=c.split('').
 function pdfRound(x,y,w,h,r){const k=r*0.5523;return`${x+r} ${y} m ${x+w-r} ${y} l ${x+w-r+k} ${y} ${x+w} ${y+r-k} ${x+w} ${y+r} c ${x+w} ${y+h-r} l ${x+w} ${y+h-r+k} ${x+w-r+k} ${y+h} ${x+w-r} ${y+h} c ${x+r} ${y+h} l ${x+r-k} ${y+h} ${x} ${y+h-r+k} ${x} ${y+h-r} c ${x} ${y+r} l ${x} ${y+r-k} ${x+r-k} ${y} ${x+r} ${y} c h`}
 function pdfFit(t,sz,max,bold){t=pdfTxt(t);let f=sz;while(f>5&&pdfW(t,f,bold)>max)f-=0.5;return[t,f]}
 function pdfCenter(t,f,cx,y,bold,col){return`BT /${bold?'F1':'F2'} ${f} Tf ${col} rg ${(cx-pdfW(t,f,bold)/2).toFixed(2)} ${y.toFixed(2)} Td (${pdfEsc(t)}) Tj ET\n`}
+function pdfBuild(pages,PW,PH,title){const objs=['<< /Type /Catalog /Pages 2 0 R >>',null,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'];const kids=[];
+ pages.forEach(c=>{const pn=objs.length+1;kids.push(pn+' 0 R');objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${pn+1} 0 R >>`);objs.push(`<< /Length ${c.length} >>\nstream\n${c}\nendstream`)});
+ objs[1]=`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${kids.length} >>`;
+ let out='%PDF-1.4\n';const off=[];objs.forEach((o,i)=>{off.push(out.length);out+=`${i+1} 0 obj\n${o}\nendobj\n`});const xr=out.length;
+ out+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+off.map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objs.length+1} /Root 1 0 R /Info << /Title (${pdfEsc(pdfTxt(title||''))}) >> >>\nstartxref\n${xr}\n%%EOF`;
+ const b=new Uint8Array(out.length);for(let i=0;i<out.length;i++)b[i]=out.charCodeAt(i)&255;return b}
+function pdfWrap(t,w,sz,bold){const out=[];String(t??'').split('\n').forEach(par=>{const words=pdfTxt(par).split(' ');let line='';
+ words.forEach(wd=>{const tl=line?line+' '+wd:wd;if(pdfW(tl,sz,bold)<=w){line=tl;return}if(line)out.push(line);let cur=wd;
+  while(cur.length>1&&pdfW(cur,sz,bold)>w){let k=cur.length;while(k>1&&pdfW(cur.slice(0,k),sz,bold)>w)k--;out.push(cur.slice(0,k));cur=cur.slice(k)}line=cur});out.push(line)});return out}
+function tablePDF(o){const PW=o.land?841.89:595.28,PH=o.land?595.28:841.89,M=o.margin||14,fs=o.fs||8.5,lh=fs*1.22,pad=2.6,footH=12;const W=PW-2*M;const tw=o.cols.reduce((a,c)=>a+c.w,0);const cw=o.cols.map(c=>c.w/tw*W);
+ const T=(t,x,yy,sz,bold,col)=>`BT /${bold?'F1':'F2'} ${sz} Tf ${col||'0.07 0.07 0.07'} rg ${x.toFixed(2)} ${yy.toFixed(2)} Td (${pdfEsc(t)}) Tj ET\n`;
+ const pages=[];let c='',y=PH-M;const room=h=>y-h>=M+footH;const brk=()=>{pages.push(c);c='';y=PH-M};
+ const grid=h=>{let x=M,g=`q 0.6 0.63 0.67 RG 0.45 w ${M} ${(y-h).toFixed(2)} ${W.toFixed(2)} ${h.toFixed(2)} re S `;for(let i=0;i<cw.length-1;i++){x+=cw[i];g+=`${x.toFixed(2)} ${(y-h).toFixed(2)} m ${x.toFixed(2)} ${y.toFixed(2)} l S `}return g+'Q\n'};
+ const row=(cells,bold,fill)=>{const L=cells.map((v,i)=>pdfWrap(v,cw[i]-2*pad,fs,bold||!!o.cols[i].bold));const h=Math.max(1,...L.map(l=>l.length))*lh+2*pad;return{L,h,draw:()=>{if(fill)c+=`q ${fill} rg ${M} ${(y-h).toFixed(2)} ${W.toFixed(2)} ${h.toFixed(2)} re f Q\n`;let x=M;L.forEach((l,i)=>{const b=bold||!!o.cols[i].bold;l.forEach((ln,k)=>{const xx=o.cols[i].align==='r'?x+cw[i]-pad-pdfW(ln,fs,b):x+pad;c+=T(ln,xx,y-pad-fs*0.82-k*lh,fs,b)});x+=cw[i]});c+=grid(h);y-=h}}};
+ const head=o.cols.map(x=>x.h);const sec=t=>{const h=fs*2;c+=`q ${o.accent||'0.12 0.45 0.29'} rg ${M} ${(y-h).toFixed(2)} ${W.toFixed(2)} ${h.toFixed(2)} re f Q\n`;const[tt,f]=pdfFit(t,fs*1.2,W-10,true);c+=T(tt,M+5,y-h+h*0.32,f,true,'1 1 1');y-=h;row(head,true,'0.9 0.92 0.94').draw()};
+ (o.title||[]).forEach(([t,sz,bold])=>{if(!t)return;const[tt,f]=pdfFit(t,sz,W,bold);c+=T(tt,M+(W-pdfW(tt,f,bold))/2,y-f,f,bold);y-=f*1.3});y-=4;
+ o.sections.forEach((sc,si)=>{if(si)y-=7;const hd=row(head,true);if(!room(fs*2+hd.h+lh*2+2*pad))brk();sec(sc.head);
+  sc.rows.forEach(r=>{const R=row(r,false);if(!room(R.h)){brk();sec(sc.head+'  (continued)')}R.draw()})});
+ if(o.sign&&o.sign.length){if(!room(46))brk();y-=40;const n=o.sign.length,sw=W/n;o.sign.forEach((t,i)=>{const cx=M+sw*i+sw/2;c+=`q 0.3 0.3 0.3 RG 0.6 w ${(cx-70).toFixed(2)} ${y.toFixed(2)} m ${(cx+70).toFixed(2)} ${y.toFixed(2)} l S Q\n`;const tt=pdfTxt(t);c+=T(tt,cx-pdfW(tt,8.5,true)/2,y-11,8.5,true)})}
+ pages.push(c);const n=pages.length;const ft=pdfTxt(o.foot||'');
+ return pdfBuild(pages.map((pc,i)=>{const pg=`Page ${i+1} of ${n}`;return pc+T(ft,M,M+1,7,false,'0.4 0.4 0.4')+T(pg,PW-M-pdfW(pg,7,false),M+1,7,false,'0.4 0.4 0.4')}),PW,PH,o.docTitle)}
+function progSections(day,cat,withPart){const s=S(),P=planCfg(),E=s.entries||{};const days=day?[day]:[...(s.days||[]).map(x=>x.id),'_none'];
+ return days.map(id=>{const l=dayEvents(id).filter(e=>!cat||(e.catId||'_open')===cat);if(!l.length)return null;const dd=dayById(id);
+  const rows=l.map((e,i)=>{const t=hm(e.time);const tm=t===null?'':`${fmtTime(e.time)} - ${fmtTime(hhmm(t+durOf(e,P)))}`;
+   const parts=s.houses.map(h=>{const a=(E[e.id]||[]).map(x=>s.athletes.find(z=>z.id===x)).filter(z=>z&&z.houseId===h.id);return a.length?h.name+': '+a.map(z=>z.name+(z.chest?' ('+z.chest+')':'')).join(', '):''}).filter(Boolean).join('\n');
+   const base=[String(i+1),tm,e.name+(e.pin?'':''),catName(e.catId),e.gender||'',e.venue||'',orgNames(e.org).join(', ')];return withPart?[...base,parts||'-']:[...base,String(entCount(e)||'')]});
+  return{head:id==='_none'?`Not yet scheduled (${l.length} events)`:`${dd.name}${dd.date?' - '+fmtDate(dd.date):''}   (${l.length} events)`,rows}}).filter(Boolean)}
+function progPDF(day,cat,withPart){const s=S();const sec=progSections(day,cat,withPart);if(!sec.length)return null;
+ const cols=withPart?[{h:'Sl',w:3.2},{h:'Time',w:10.5},{h:'Event / item',w:14,bold:true},{h:'Category',w:8},{h:'Gender',w:5.6},{h:'Venue',w:8.5},{h:'In-charge',w:12},{h:'Participants (house: name (chest no.))',w:38}]
+  :[{h:'Sl',w:3.2},{h:'Time',w:15.5},{h:'Event / item',w:21,bold:true},{h:'Category',w:10.5},{h:'Gender',w:7},{h:'Venue',w:12.5},{h:'In-charge',w:18},{h:'Entries',w:6,align:'r'}];
+ return tablePDF({land:withPart,margin:14,fs:withPart?8:8.6,cols,sections:sec,docTitle:DB.app.school+' - Programme',
+  title:[[DB.app.school,14,true],[DB.app.address||'',8,false],[`${s.title} ${s.year} - Programme${day?' - '+dayLabel(day).replace(/·/g,'-'):''}${cat?' - '+catName(cat):''}`,11,true]],
+  sign:[DB.app.sign1||'Sports In-charge',DB.app.sign2||'Principal'],foot:`${DB.app.school} - ${s.title} ${s.year}`})}
 function bibCard(a,x,y,w,h){const s=S(),h0=Hs(a.houseId)||{name:'No house',color:'#888888'};const hc=pdfRGB(h0.color),ht=pdfRGB(txtOn(h0.color));const r=Math.min(18,h*0.08),bw=Math.max(2.5,h*0.012),band=h*0.16;let o='';
  o+=`q ${hc} rg ${pdfRound(x,y,w,h,r)} f Q\n`;
  o+=`q 1 1 1 rg ${pdfRound(x+bw,y+bw,w-2*bw,h-band-bw,Math.max(2,r-bw))} f Q\n`;
@@ -1121,12 +1225,7 @@ function bibCard(a,x,y,w,h){const s=S(),h0=Hs(a.houseId)||{name:'No house',color
  return o}
 function bibPDF(list,small){const PW=small?841.89:595.28,PH=small?595.28:841.89,M=small?22:28,G=small?16:14;const per=small?4:2,cols=small?2:1,rows=per/cols;const cw=(PW-2*M-G*(cols-1))/cols,ch=(PH-2*M-G*(rows-1))/rows;const pages=[];
  for(let i=0;i<list.length;i+=per){let c='';list.slice(i,i+per).forEach((a,j)=>{const col=j%cols,row=Math.floor(j/cols);c+=bibCard(a,M+col*(cw+G),PH-M-(row+1)*ch-row*G,cw,ch)});pages.push(c)}
- const objs=['<< /Type /Catalog /Pages 2 0 R >>',null,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'];const kids=[];
- pages.forEach(c=>{const pn=objs.length+1;kids.push(pn+' 0 R');objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${pn+1} 0 R >>`);objs.push(`<< /Length ${c.length} >>\nstream\n${c}\nendstream`)});
- objs[1]=`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${kids.length} >>`;
- let out='%PDF-1.4\n';const off=[];objs.forEach((o,i)=>{off.push(out.length);out+=`${i+1} 0 obj\n${o}\nendobj\n`});const xr=out.length;
- out+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+off.map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objs.length+1} /Root 1 0 R /Info << /Title (${pdfEsc(pdfTxt(DB.app.school+' - Chest numbers'))}) >> >>\nstartxref\n${xr}\n%%EOF`;
- const b=new Uint8Array(out.length);for(let i=0;i<out.length;i++)b[i]=out.charCodeAt(i)&255;return b}
+ return pdfBuild(pages,PW,PH,DB.app.school+' - Chest numbers')}
 function bibsReport(cat){const s=S();const l=bibList(cat);
  const noChest=l.filter(a=>!a.chest).length;
  if(!l.length)return`<div class="p-doc"><p>No students to print. ${ui.bibAll?'':'No students are entered in events yet (for this choice) — add them on Event entries, or choose “All members” above.'}</p></div>`;
@@ -1273,7 +1372,7 @@ const colIdx=s=>{let n=0;for(const ch of String(s).toUpperCase())n=n*26+(ch.char
 /* style ids: 0 normal · 1 header · 2 title · 3 note · 4 bordered text cell · 5 required header */
 const XSTYLES=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="4"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="16"/><color rgb="FF0B4F31"/><name val="Calibri"/></font><font><sz val="11"/><color rgb="FF333333"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B4F31"/><bgColor indexed="64"/></patternFill></fill><fill><patternFill patternType="solid"><fgColor rgb="FFB45309"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFC9D3CC"/></left><right style="thin"><color rgb="FFC9D3CC"/></right><top style="thin"><color rgb="FFC9D3CC"/></top><bottom style="thin"><color rgb="FFC9D3CC"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf><xf numFmtId="49" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyNumberFormat="1"/><xf numFmtId="0" fontId="1" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
 function sheetXML(sh){
- let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+ let x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>';
  x+=sh.freeze?'<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>':'<sheetViews><sheetView workbookViewId="0"/></sheetViews>';
  if(sh.widths)x+='<cols>'+sh.widths.map((w,i)=>w?`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`:`<col min="${i+1}" max="${i+1}" width="2" hidden="1" customWidth="1"/>`).join('')+'</cols>';
  x+='<sheetData>';
@@ -1282,7 +1381,7 @@ function sheetXML(sh){
  x+='</sheetData>';
  if(sh.merge&&sh.merge.length)x+=`<mergeCells count="${sh.merge.length}">${sh.merge.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`;
  if(sh.valid&&sh.valid.length)x+=`<dataValidations count="${sh.valid.length}">${sh.valid.map(v=>`<dataValidation type="list" allowBlank="1" showErrorMessage="${v.free?0:1}" errorTitle="Choose from the list" error="Please pick a value from the drop-down list." sqref="${v.ref}"><formula1>${xe(v.f)}</formula1></dataValidation>`).join('')}</dataValidations>`;
- x+='<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="'+(sh.landscape?'landscape':'portrait')+'"/></worksheet>';
+ x+='<pageMargins left="0.2" right="0.2" top="0.25" bottom="0.25" header="0.1" footer="0.1"/><pageSetup paperSize="9" orientation="'+(sh.landscape?'landscape':'portrait')+'" fitToWidth="1" fitToHeight="0"/></worksheet>';
  return x}
 function buildXLSX(sheets){
  const n=sheets.length;const files=[];
@@ -2188,14 +2287,15 @@ function pSchedule(){if(isLive())loadStaff();
   <label style="flex:1 1 150px">Event name has<input id="boHas" placeholder="e.g. Jump, Relay, Race"></label></div>
   <label class="chk"><input type="checkbox" id="boOnly" checked> Only events that have no in-charge yet</label>
   <div class="row"><button class="btn pri" data-act="bulkOrg">Set in-charge</button><button class="btn" data-act="dayRep" data-id="duties">Print teacher duty list</button></div></div>
+ ${planCard()}
  ${clashCard(D)}
  <div style="margin-top:16px">${progBar()}</div>
  <div class="card" style="margin-top:16px">
   <div class="chips">${chips.map(([id,n,k])=>`<button class="chip ${D===id?'on':''}" data-act="sDay" data-id="${id}">${esc(n)} <span class="mut">${k}</span></button>`).join('')}</div>
   <div class="row" style="margin-top:8px">
-   <button class="btn sm" data-act="dayRep" data-id="schedule">Print programme</button><button class="btn sm" data-act="dayRep" data-id="entries">Print participant lists</button><button class="btn sm" data-act="dayRep" data-id="results">Print results</button><button class="btn sm" data-act="dayXls">Download Excel (programme + participants)</button></div>
+   <button class="btn sm" data-act="dayRep" data-id="schedule">Print programme</button><button class="btn sm" data-act="dayRep" data-id="entries">Print participant lists</button><button class="btn sm" data-act="dayRep" data-id="results">Print results</button><button class="btn sm" data-act="dayXls">Download Excel (programme + participants)</button><button class="btn sm pri" data-act="progPdf" data-from="s">⬇ PDF programme</button><label class="chk" style="margin:0"><input type="checkbox" data-act="pdfPart" ${ui.pdfPart===false?'':'checked'}> with participant names</label></div>
   ${D&&D!=='_none'?`<div class="row" style="margin-top:10px;align-items:end"><label style="flex:0 1 140px">Start time<input type="time" id="atStart" value="${esc(ui.atStart||'09:00')}"></label><label style="flex:0 1 160px">Minutes per event<input type="number" min="1" id="atGap" value="${esc(ui.atGap||10)}"></label><button class="btn sm" data-act="autoTime">Fill times in this order</button><span class="tiny">Sets times one after another for the events below. Use ↑ ↓ to change the order first.</span></div>`:''}
-  <div class="scroll" style="margin-top:10px"><table class="t stack"><thead><tr><th>Time</th><th>Event / item</th><th>Day</th><th>Venue</th><th>In-charge / organiser</th><th>Per house</th><th class="n">Entries</th><th>Status</th>${D&&D!=='_none'?'<th>Order</th>':''}</tr></thead><tbody>
+  <div class="scroll" style="margin-top:10px"><table class="t stack"><thead><tr><th>Time</th><th>Event / item</th><th>Day</th><th>Venue</th><th>In-charge / organiser</th><th>Per house</th><th class="n">Entries</th><th>Status</th>${D&&D!=='_none'?'<th>Order</th>':''}<th title="📌 = fixed: auto-plan will not move it">Fixed</th></tr></thead><tbody>
   ${list.map((e,i)=>`<tr><td><input type="time" data-col="events" data-id="${e.id}" data-f="time" data-re="1" value="${esc(e.time||'')}" style="width:150px" aria-label="Time"></td>
    <td><b>${esc(e.name)}</b>${(()=>{const n=clashN[e.id];return n?` <span class="tag rec" title="${n} student clash${n>1?'es':''} — see Participant clash check">⚠ ${n}</span>`:''})()}<br><span class="tiny">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc((Ts(e.typeId)||{}).name||'')}</span></td>
    <td>${dsel(e)}</td><td><input data-col="events" data-id="${e.id}" data-f="venue" list="venueList" value="${esc(e.venue||'')}" placeholder="e.g. Main field" style="min-width:120px" aria-label="Venue"></td>
@@ -2203,7 +2303,7 @@ function pSchedule(){if(isLive())loadStaff();
    <td><input type="number" min="1" data-col="events" data-id="${e.id}" data-f="slots" value="${esc(slotsFor(e))}" style="width:70px" aria-label="Participants per house"></td>
    <td class="n"><a href="#entries" data-act="toEntries" data-id="${e.id}">${entCount(e)}</a></td>
    <td>${hasRes(e)?`<span class="tag ok">Done</span> <span class="tiny">${winnerTxt(e)}</span>`:'<span class="tag">Pending</span>'}</td>
-   ${D&&D!=='_none'?`<td style="white-space:nowrap"><button class="btn sm" data-act="ordUp" data-id="${e.id}" ${i?'':'disabled'} aria-label="Move up">↑</button> <button class="btn sm" data-act="ordDown" data-id="${e.id}" ${i<list.length-1?'':'disabled'} aria-label="Move down">↓</button></td>`:''}</tr>`).join('')||`<tr><td colspan="9"><div class="empty">${D==='_none'?'Every event has a day.':'No events on this day yet — use “Put many events on a day at once”, or choose a day for each event.'}</div></td></tr>`}
+   ${D&&D!=='_none'?`<td style="white-space:nowrap"><button class="btn sm" data-act="ordUp" data-id="${e.id}" ${i?'':'disabled'} aria-label="Move up">↑</button> <button class="btn sm" data-act="ordDown" data-id="${e.id}" ${i<list.length-1?'':'disabled'} aria-label="Move down">↓</button></td>`:''}<td><button class="pin ${e.pin?'on':''}" data-act="pinEv" data-id="${e.id}" title="${e.pin?'Fixed — auto-plan will not move it. Tap to unfix.':'Not fixed — tap to keep this day and time when auto-planning'}" aria-label="Fix this event">📌</button></td></tr>`).join('')||`<tr><td colspan="9"><div class="empty">${D==='_none'?'Every event has a day.':'No events on this day yet — use “Put many events on a day at once”, or choose a day for each event.'}</div></td></tr>`}
   </tbody></table></div>
   ${staffDL()}<datalist id="venueList">${[...new Set(s.events.map(e=>e.venue).filter(Boolean).concat(['Main field','Track','Jumping pit','Throwing area','Volleyball court','Basketball court','School hall','Stage']))].map(v=>`<option value="${esc(v)}">`).join('')}</datalist></div>`;
 }
@@ -2221,16 +2321,17 @@ function scheduleReport(head,sign,foot,sw){const s=S(),d=ui.repDay||'',cat=ui.re
   return`<div style="break-inside:avoid-page"><h3>${id==='_none'?'Not yet scheduled':esc(dd.name)+(dd.date?' — '+esc(fmtDate(dd.date)):'')} <span style="font-weight:400;font-size:12px">(${l.length} events)</span></h3><table><thead><tr><th style="width:30px">Sl</th><th style="width:70px">Time</th><th>Event / item</th><th style="width:85px">Category</th><th style="width:55px">Gender</th><th style="width:100px">Venue</th><th style="width:130px">In-charge</th><th style="width:45px" class="n">Entries</th><th style="width:130px">Winner</th></tr></thead><tbody>${l.map((e,i)=>`<tr><td>${i+1}</td><td>${fmtTime(e.time)}</td><td>${esc(e.name)}</td><td>${esc(catName(e.catId))}</td><td>${esc(e.gender)}</td><td>${esc(e.venue||'')}</td><td>${esc(e.org||'')}</td><td class="n">${entCount(e)||''}</td><td>${winnerTxt(e)}</td></tr>`).join('')}</tbody></table></div>`}).join('');
  return`<div class="p-doc">${head}${body||'<p>No events scheduled yet. Set days and times on the Schedule page.</p>'}${sign}${foot}</div>`}
 function dayWorkbook(){const s=S(),D=ui.sday||'';const days=D?[D]:[...(s.days||[]).map(x=>x.id),'_none'];const E=s.entries||{};const ath=id=>s.athletes.find(a=>a.id===id);
- const prog=[[{v:'Day',s:1},{v:'Time',s:1},{v:'Event / item',s:1},{v:'Category',s:1},{v:'Gender',s:1},{v:'Venue',s:1},{v:'In-charge',s:1},{v:'Entries',s:1},{v:'Winner',s:1}]];
+ const prog=[[{v:'Day',s:1},{v:'Time',s:1},{v:'Ends',s:1},{v:'Event / item',s:1},{v:'Category',s:1},{v:'Gender',s:1},{v:'Venue',s:1},{v:'In-charge',s:1},{v:'Entries',s:1},{v:'Participants (house: name (chest no.))',s:1},{v:'Winner',s:1}]];const PL=planCfg();
  const part=[[{v:`${DB.app.school} — ${s.title} ${s.year} — Participant lists${D?' · '+dayLabel(D):''}`,s:2}],[null]];
  days.forEach(id=>dayEvents(id).forEach(e=>{const dn=id==='_none'?'Not scheduled':(dayById(id)||{}).name||'';
-  prog.push([dn,fmtTime(e.time),e.name,catName(e.catId),e.gender,e.venue||'',e.org||'',entCount(e),winnerTxt(e).replace(/&amp;/g,'&')].map(v=>({v,s:4})));
+  const t0=hm(e.time);const pt=s.houses.map(h=>{const a=(E[e.id]||[]).map(ath).filter(z=>z&&z.houseId===h.id);return a.length?h.name+': '+a.map(z=>z.name+(z.chest?' ('+z.chest+')':'')).join(', '):''}).filter(Boolean).join(' | ');
+  prog.push([dn,fmtTime(e.time),t0===null?'':fmtTime(hhmm(t0+durOf(e,PL))),e.name,catName(e.catId),e.gender,e.venue||'',e.org||'',entCount(e),pt,winnerTxt(e).replace(/&amp;/g,'&')].map(v=>({v,s:4})));
   const l=(E[e.id]||[]).map(ath).filter(Boolean).sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||'')||norm(a.name).localeCompare(norm(b.name)));
   part.push([{v:`${dn}${e.time?' · '+fmtTime(e.time):''} · ${e.name} — ${e.gender} · ${catName(e.catId)}${e.venue?' · '+e.venue:''}${e.org?' · In-charge: '+e.org:''}`,s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5},{v:'',s:5}]);
   part.push(['Sl','Chest No','Name','Class','House',e.measure==='time'?'Time':e.measure==='dist'?'Mark':'Score','Position'].map(v=>({v,s:1})));
   if(!l.length)part.push([{v:'',s:4},{v:'',s:4},{v:'(no entries yet)',s:4},{v:'',s:4},{v:'',s:4},{v:'',s:4},{v:'',s:4}]);
   l.forEach((a,i)=>part.push([i+1,a.chest||'',a.name,a.cls||'',(Hs(a.houseId)||{}).name||'','',''].map(v=>({v,s:4}))));part.push([null])}));
- return buildXLSX([{name:'Programme',rows:prog,widths:[14,11,30,14,10,18,22,9,30],freeze:true,landscape:true,active:true},{name:'Participants',rows:part,widths:[6,10,30,9,14,12,11],landscape:false}])}
+ return buildXLSX([{name:'Programme',rows:prog,widths:[12,10,10,26,12,9,16,20,8,70,26],freeze:true,landscape:true,active:true},{name:'Participants',rows:part,widths:[6,10,30,9,14,12,11],landscape:false}])}
 
 /* ---------- full results workbook (.xlsx) ---------- */
 function resultsWorkbook(){
@@ -2435,7 +2536,7 @@ function pReports(){
  <div class="repg">${REPG.map(([g,ks])=>`<div><span class="tiny repgl">${esc(g)}</span><div class="row">${ks.map(v=>`<button class="btn sm ${k===v?'pri':''}" data-act="rep" data-id="${v}">${REPS[v]}</button>`).join('')}</div></div>`).join('')}</div>
  <div class="row" style="margin-top:12px"><label style="flex:0 1 220px">Day<select data-act2="repDay">${opt('','All days',ui.repDay)}${(s.days||[]).map(d=>opt(d.id,dayLabel(d.id),ui.repDay)).join('')}${opt('_none','Not scheduled',ui.repDay)}</select></label><label style="flex:0 1 260px">Category<select data-act2="repCat">${opt('','All categories',cat)}${s.cats.map(c=>opt(c.id,c.name,cat)).join('')}${opt('_open','Open',cat)}</select></label>
  ${k==='certs'?`<label style="flex:0 1 260px">Certificates for<select data-act2="certSel">${opt('all','All winners + Best Boy/Girl',ui.certSel)}${opt('first','1st place only',ui.certSel)}${opt('best','Best Boy & Best Girl only',ui.certSel)}${opt('part','Participation — every student who took part',ui.certSel)}${opt('blank','Blank certificate (fill by hand)',ui.certSel)}</select></label>${ui.certSel==='part'?`<label style="flex:0 1 180px">House<select data-act2="certHouse">${opt('','All houses',ui.certHouse||'')}${S().houses.map(h=>opt(h.id,h.name,ui.certHouse||'')).join('')}</select></label>`:''}${ui.certSel==='blank'?`<label style="flex:0 1 220px">Sport picture<select data-act2="blankSport">${SPORTS.filter(x=>x[0]!=='auto').map(x=>opt(x[0],x[1],ui.blankSport||'trophy')).join('')}</select></label>`:''}`:''}
- ${k==='bibs'?`<label style="flex:0 1 270px">Who<select data-act2="bibWho">${opt('in',`Participants — students in events (${bibList(ui.repCat,false).length})`,ui.bibAll?'all':'in')}${opt('all',`All members (${bibList(ui.repCat,true).length})`,ui.bibAll?'all':'in')}</select></label><label style="flex:0 1 180px">House<select data-act2="bibHouse">${opt('','All houses',ui.bibHouse||'')}${S().houses.map(h=>opt(h.id,h.name,ui.bibHouse||'')).join('')}</select></label><label style="flex:0 1 200px">Size<select data-act2="bibSm">${opt('','Large — 2 on one A4',ui.bibSm?'1':'')}${opt('1','Small — 4 on one A4 (landscape, 2 × 2)',ui.bibSm?'1':'')}</select></label><button class="btn pri" data-act="bibPdf">⬇ Download PDF (${bibList(ui.repCat).length})</button>`:''}${k==='duties'?'<button class="btn pri" data-act="copyDuty">Copy for WhatsApp</button>':''}<button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
+ ${k==='bibs'?`<label style="flex:0 1 270px">Who<select data-act2="bibWho">${opt('in',`Participants — students in events (${bibList(ui.repCat,false).length})`,ui.bibAll?'all':'in')}${opt('all',`All members (${bibList(ui.repCat,true).length})`,ui.bibAll?'all':'in')}</select></label><label style="flex:0 1 180px">House<select data-act2="bibHouse">${opt('','All houses',ui.bibHouse||'')}${S().houses.map(h=>opt(h.id,h.name,ui.bibHouse||'')).join('')}</select></label><label style="flex:0 1 200px">Size<select data-act2="bibSm">${opt('','Large — 2 on one A4',ui.bibSm?'1':'')}${opt('1','Small — 4 on one A4 (landscape, 2 × 2)',ui.bibSm?'1':'')}</select></label><button class="btn pri" data-act="bibPdf">⬇ Download PDF (${bibList(ui.repCat).length})</button>`:''}${k==='duties'?'<button class="btn pri" data-act="copyDuty">Copy for WhatsApp</button>':''}${k==='schedule'?`<button class="btn pri" data-act="progPdf">⬇ PDF programme</button><label class="chk" style="margin:0"><input type="checkbox" data-act="pdfPart" ${ui.pdfPart===false?'':'checked'}> with participant names</label>`:''}${k!=='certs'&&k!=='bibs'?`<label style="flex:0 1 230px">Print margins<select data-act2="repMar">${opt('narrow','Narrow — close to the edges (5 mm)',ui.repMar||'narrow')}${opt('normal','Normal (12 mm)',ui.repMar||'narrow')}</select></label><label style="flex:0 1 160px">Page<select data-act2="repLand">${opt('','Portrait',ui.repLand?'1':'')}${opt('1','Landscape',ui.repLand?'1':'')}</select></label>`:''}<button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
  ${isVO()?'':`<p class="tiny">${k==='certs'?'Click any text on a certificate below to correct it before printing. Change colours, wording and pictures in <a href="#certificate">Certificate design</a>. In the print window choose Paper: A4, Layout: Landscape, Margins: None, and tick Background graphics. ':''}If Print does nothing here, download the page and print it from your browser — or use the offline copy of the app, where printing works directly.</p>`}</div>
  <div class="paper ${k==='certs'?'certs':''}" id="paper">${repHTML(k,cat)}</div>`;
 }
@@ -2738,8 +2839,8 @@ const ACT={
  champCat:el=>{ui.champCat=el.dataset.id;rerender()},
  setRec:el=>{const s=S(),e=s.events.find(x=>x.id===el.dataset.id);const w=s.results[e.id].rows.find(x=>x.pos==1);e.rec={val:w.perf,holder:w.name||((Hs(w.houseId)||{}).name+' House'),house:(Hs(w.houseId)||{}).name||'',year:s.year};save();rerender();toast('Meet record updated')},
  rep:el=>{ui.report=el.dataset.id;ui.heatEv=null;ui.fxEv=null;rerender()},
- printRep:()=>{const st=document.createElement('style');st.textContent=ui.report==='certs'?'@page{size:A4 landscape;margin:0}':ui.report==='bibs'?(ui.bibSm?'@page{size:A4 landscape;margin:8mm}':'@page{size:A4;margin:8mm}'):'@page{size:A4;margin:12mm}';document.head.appendChild(st);try{window.print()}catch(e){toast('Printing is blocked here — use Download')}setTimeout(()=>st.remove(),1500)},
- dlRep:()=>{const s=S();const land=ui.report==='certs'||(ui.report==='bibs'&&!!ui.bibSm);const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(REPS[ui.report])} ${esc(s.year)}</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;700&display=swap" rel="stylesheet"><style>${PCSS}body{margin:16px;background:#fff}@page{size:A4 ${land?'landscape':'portrait'};margin:${land?0:12}mm}${land?'body{margin:0;background:#ddd8cc}.cs{margin:0 auto 12px}@media print{body{background:#fff}.cs{margin:0}}':''}.np{font:600 15px sans-serif;padding:10px 18px;margin:12px;cursor:pointer}@media print{.np{display:none}body{margin:0}}</style></head><body><button class="np" onclick="print()">Print</button>${land&&$('#paper')?$('#paper').innerHTML.replace(/ contenteditable="true" spellcheck="false"/g,''):repHTML(ui.report,ui.repCat)}</body></html>`;saveFile(`SJS_${REPS[ui.report].replace(/\W+/g,'_')}_${s.year}.html`,html)},
+ printRep:()=>{const st=document.createElement('style');st.textContent=ui.report==='certs'?'@page{size:A4 landscape;margin:0}':ui.report==='bibs'?(ui.bibSm?'@page{size:A4 landscape;margin:8mm}':'@page{size:A4;margin:8mm}'):`@page{size:A4${ui.repLand?' landscape':''};margin:${(ui.repMar||'narrow')==='narrow'?5:12}mm}`;document.head.appendChild(st);try{window.print()}catch(e){toast('Printing is blocked here — use Download')}setTimeout(()=>st.remove(),1500)},
+ dlRep:()=>{const s=S();const land=ui.report==='certs'||(ui.report==='bibs'&&!!ui.bibSm);const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(REPS[ui.report])} ${esc(s.year)}</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;700&display=swap" rel="stylesheet"><style>${PCSS}body{margin:16px;background:#fff}@page{size:A4 ${land||(ui.repLand&&ui.report!=='bibs')?'landscape':'portrait'};margin:${ui.report==='certs'?0:ui.report==='bibs'?(land?0:12):((ui.repMar||'narrow')==='narrow'?5:12)}mm}${land?'body{margin:0;background:#ddd8cc}.cs{margin:0 auto 12px}@media print{body{background:#fff}.cs{margin:0}}':''}.np{font:600 15px sans-serif;padding:10px 18px;margin:12px;cursor:pointer}@media print{.np{display:none}body{margin:0}}</style></head><body><button class="np" onclick="print()">Print</button>${land&&$('#paper')?$('#paper').innerHTML.replace(/ contenteditable="true" spellcheck="false"/g,''):repHTML(ui.report,ui.repCat)}</body></html>`;saveFile(`SJS_${REPS[ui.report].replace(/\W+/g,'_')}_${s.year}.html`,html)},
  csv:()=>{const s=S();const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;const L=[['Session','Event','Category','Gender','Rule','Position','House','Name','Class','Performance','Points'].join(',')];
   s.events.forEach(e=>{const t=Ts(e.typeId)||{pts:[]};(s.results[e.id]?.rows||[]).forEach(r=>{const a=r.athId&&s.athletes.find(z=>z.id===r.athId);L.push([s.year,e.name,catName(e.catId),e.gender,t.name,r.pos,(Hs(r.houseId)||{}).name,r.name,a?a.cls:'',r.perf,+t.pts[r.pos-1]||0].map(q).join(','))})});
   saveFile(`SJS_Sports_Results_${s.year}.csv`,'﻿'+L.join('\r\n'))},
@@ -2764,6 +2865,22 @@ const ACT={
   s.results[eid]={...(prev&&prev.heats?{heats:prev.heats}:{}),...(prev&&prev.fx?{fx:prev.fx}:{}),jm:J,rows:keep.map(x=>({pos:x.rank,houseId:x.r.houseId,name:x.r.name||'',athId:x.r.athId||'',perf:String(x.t)})),at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();rerender();toast('Saved — house points updated')},
  jmPrint:()=>{ui.report='judges';ui.jmEv=null;ui.repDay='';ui.repCat=ui.jmCat||'';location.hash='#reports'},
  attToggle:()=>{ui.att=!ui.att;$('#editor').innerHTML=editorHTML()},
+ progPdf:async el=>{const fromS=el.dataset.from==='s';const day=fromS?(ui.sday||''):(ui.repDay||'');const cat=fromS?'':(ui.repCat||'');const wp=ui.pdfPart!==false;
+  const b=progPDF(day,cat,wp);if(!b){toast('No events to put in the PDF');return}const nm=['Programme',day?(day==='_none'?'Unscheduled':(dayById(day)||{}).name):'All_days',cat?catName(cat):'',wp?'with_participants':''].filter(Boolean).join('_').replace(/[^A-Za-z0-9_-]+/g,'-')+'.pdf';await saveFile(nm,b)},
+ pdfPart:()=>{ui.pdfPart=ui.pdfPart===false;rerender()},
+ pinEv:el=>{const e=S().events.find(x=>x.id===el.dataset.id);if(!e)return;e.pin=!e.pin;save();rerender();toast(e.pin?`📌 ${e.name} is fixed — auto-plan keeps its day and time`:`${e.name} is no longer fixed`)},
+ planDays:()=>{const s=S();const n=Math.min(10,Math.max(1,parseInt(val('plDays'))||2));s.days=s.days||[];for(let i=0;i<n;i++)s.days.push({id:uid(),name:'Day '+(s.days.length+1),date:''});save();rerender();toast(`${n} days made — set their dates in “Days of the meet”`)},
+ planGo:async()=>{if(isLocked())return;const s=S();const P=planRead();s.plan=P;const ev=s.events.filter(e=>!hasRes(e));if(!ev.length){toast('No events to plan');return}
+  const n=P.scope==='all'?s.events.filter(e=>!hasRes(e)&&!e.pin).length:s.events.filter(e=>!hasRes(e)&&!(e.dayId&&dayById(e.dayId))).length;
+  const nt=s.events.filter(e=>!hasRes(e)&&e.dayId&&dayById(e.dayId)&&hm(e.time)===null).length;
+  if(!n&&!nt){save();toast('Every event already has a day — choose “Re-plan all events” to plan again');rerender();return}
+  if(!await ask('Plan the meet?',`${n} event${n===1?'':'s'} will get a day, a time${P.venues?' and a venue (where empty)':''}${nt&&P.scope==='unsched'?`, and ${nt} event${nt===1?'':'s'} already on a day will get a time`:''}. Events marked 📌 and events with results stay as they are. You can undo this.`,'Plan the meet'))return;
+  ui.planUndo=s.events.map(e=>({id:e.id,dayId:e.dayId||'',time:e.time||'',venue:e.venue||'',ord:e.ord}));
+  const r=autoPlan(P);r.out.forEach(({e,d,t,v})=>{e.dayId=d;e.time=hhmm(t);if(!e.venue&&P.venues)e.venue=v});
+  (s.days||[]).forEach(d=>dayEvents(d.id,s).forEach((e,i)=>e.ord=i));
+  const cl=clashCount(s);ui.planMsg=`✓ ${r.out.length} events planned. ${cl?`<b>${cl} clash${cl>1?'es':''} could not be avoided</b> — see the clash check below.`:'No student clashes.'}${r.late?` <b>${r.late} event${r.late>1?'s':''} go past ${fmtTime(P.end)}</b> — add a day, start earlier, end later, or shorten the minutes.`:''}`;
+  save();rerender();toast('Meet planned — check each day below')},
+ planUndo:()=>{const s=S(),u=ui.planUndo;if(!u)return;u.forEach(o=>{const e=s.events.find(x=>x.id===o.id);if(e){e.dayId=o.dayId;e.time=o.time;e.venue=o.venue;e.ord=o.ord}});ui.planUndo=null;ui.planMsg='';save();rerender();toast('Auto-plan undone')},
  bibPdf:async()=>{const l=bibList(ui.repCat);if(!l.length){toast(ui.bibAll?'No students to put in the PDF':'No students are entered in events yet — add them on Event entries, or choose All members');return}
   const nm=['Chest_numbers',ui.bibAll?'all_members':'participants',ui.repCat?(Cs(ui.repCat)||{}).name:'',ui.bibHouse?(Hs(ui.bibHouse)||{}).name:'',ui.bibSm?'small':''].filter(Boolean).join('_').replace(/[^A-Za-z0-9_-]+/g,'-')+'.pdf';
   toast(`Making the PDF — ${l.length} cards…`);await new Promise(r=>setTimeout(r,30));await saveFile(nm,bibPDF(l,!!ui.bibSm))},
@@ -2899,7 +3016,7 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  if(isLive()){SY.last={};SY.ready={};SY.subSid=null;SY.remoteActive=DB.active;try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}subscribe()}
  save();location.hash='#home';render();toast('Backup restored')}
 
-const MANAGE_ACTS=new Set('jaAdd brDel brAdd brReset qpSave qpDel qpGroup qpReset pubToggle practiceStart practiceEnd hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
+const MANAGE_ACTS=new Set('jaAdd pinEv planDays planGo planUndo brDel brAdd brReset qpSave qpDel qpGroup qpReset pubToggle practiceStart practiceEnd hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
 const SCORE_ACTS=new Set(['jmClear','jmUnsave','jmOn','jmAdd','jmDel','jmFill','jmHouses','jmSave','fxSaveRes','fxCreate','fxOff','fxAdd','fxDelM','fxUse','saveRes','clearRes','restoreVer','heatOn','heatOff','heatAdd','heatDel','heatRowAdd','heatRowDel','heatMake','heatMarkQ']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn';
 function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
@@ -2960,6 +3077,8 @@ main.addEventListener('change',e=>{const el=e.target,s=S();if(blockField(el))ret
  if(el.dataset.act2==='repDay'){ui.repDay=el.value;rerender();return}
  if(el.dataset.act2==='certSel'){ui.certSel=el.value;rerender();return}
  if(el.dataset.act2==='certHouse'){ui.certHouse=el.value;rerender();return}
+ if(el.dataset.act2==='repMar'){ui.repMar=el.value;return}
+ if(el.dataset.act2==='repLand'){ui.repLand=!!el.value;return}
  if(el.dataset.act2==='bibWho'){ui.bibAll=el.value==='all';rerender();return}
  if(el.dataset.act2==='bibSm'){ui.bibSm=!!el.value;rerender();return}
  if(el.dataset.act2==='bibHouse'){ui.bibHouse=el.value;rerender();return}
@@ -2981,7 +3100,7 @@ main.addEventListener('change',e=>{const el=e.target,s=S();if(blockField(el))ret
  if(el.dataset.col){const it=s[el.dataset.col].find(x=>x.id===el.dataset.id);if(!it)return;let v=el.type==='checkbox'?el.checked:el.value;
   if(el.dataset.f==='pts'){v=String(v).split(/[,\s]+/).filter(x=>x!=='').map(Number).filter(x=>!isNaN(x));if(!v.length){toast('Enter points like 5, 3, 1');rerender();return}}
   if(el.dataset.f==='name'&&!String(v).trim()){toast('Name cannot be empty');rerender();return}
-  setPath(it,el.dataset.f,v);save();if(el.dataset.re)rerender()}
+  setPath(it,el.dataset.f,v);if(el.dataset.col==='events'&&(el.dataset.f==='dayId'||el.dataset.f==='time')&&/schedule/.test(location.hash))it.pin=true;save();if(el.dataset.re)rerender()}
 });
 $('#sessSel').addEventListener('change',e=>{DB.active=e.target.value;ui.sel=null;ui.draft=null;save();if(isLive())subSession(DB.active);render();toast('Opened '+S().year)});
 $('#liveBox').addEventListener('click',()=>{if(SY.state==='off'||SY.state==='error')liveStart(true);else location.hash='#sessions'});
