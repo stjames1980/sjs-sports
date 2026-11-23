@@ -72,6 +72,10 @@ a{color:inherit}
 .palres button.on,.palres button:hover{background:var(--soft);outline:1px solid var(--line)}
 .palres .none{padding:22px;text-align:center;color:var(--mut)}
 .stdc tr.off td:not(:first-child){opacity:.5}.stdtabs .chip{font-size:13.5px}.stdc select[data-std=g]{min-width:150px}.stdc select[data-std=type]{min-width:170px}.stdc input[data-std=name]{min-width:190px}@media(max-width:700px){.chips.stdtabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px}.stdtabs .chip{flex:none}.stdc select,.stdc input[data-std=name]{min-width:0!important}}
+.rolechip{display:inline-block;font-weight:700;font-size:13px;border-radius:99px;padding:4px 11px;background:var(--soft);border:1px solid var(--line)}.r-admin{background:#1f3a8a;color:#fff;border-color:#1f3a8a}.r-incharge{background:#0f7b4d;color:#fff;border-color:#0f7b4d}.r-scorer,.r-teacher{background:#fff4d6;color:#6b4a00;border-color:#f0d58a}
+.perm td.c{text-align:center}.perm .yes{color:#0f7b4d;font-weight:800;font-size:17px}.perm .no{color:var(--mut)}.perm th{font-size:13px}
+.rulepre{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12.5px;white-space:pre-wrap;overflow:auto;max-height:340px}
+.robar{margin:0 0 14px}.btn:disabled,.btn[disabled]{opacity:.42;cursor:not-allowed;filter:grayscale(.6)}main input:disabled,main select:disabled,main textarea:disabled{opacity:.6;cursor:not-allowed}
 .palft{font-size:12px;color:var(--mut);padding:8px 14px;border-top:1px solid var(--line)}
 .top{display:flex;align-items:center;gap:10px 16px;flex-wrap:wrap;padding:10px max(3vw,16px);border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5}
 .top .sess{display:flex;align-items:center;gap:8px;font-weight:600}
@@ -344,7 +348,44 @@ $('#pcss').textContent=PCSS.replace(/\.p-doc\{/,'.p-doc{');
 /* ---------- live sharing: same Firebase project as SJS App (sjs-timetable) ---------- */
 const FB_CFG={apiKey:"AIzaSyD5nDjNVJrb9ePPq5SIC7tiqAdhYXogbOo",authDomain:"sjs-timetable.firebaseapp.com",projectId:"sjs-timetable",storageBucket:"sjs-timetable.firebasestorage.app",messagingSenderId:"352312773603",appId:"1:352312773603:web:ab84f9b0019c03c39e6ed6"};
 const LIVE_KEY='sjs_sports_live';
-const SY={state:'off',user:null,fs:null,unsub:[],sesUnsub:[],subSid:null,last:{},ready:{},applying:false,timer:null,readonly:false,err:'',pending:0,remoteActive:null,pendingRender:false};
+/* ---------- user control: the same Admin Gmail as isAdmin() in the Firebase rules ---------- */
+const SP_ADMINS=['ramalengman@gmail.com'];
+const ROLE_L={admin:'Admin',incharge:'Sports In-charge',scorer:'Result recorder',teacher:'Teacher · results',viewer:'View only'};
+const RULES_TXT=`    // ===== SJS Sports App (Annual Sports Meet) — user control =====
+    // Admin (isAdmin above) : everything, gives every role.
+    // Sports In-charge      : everything in the Sports app; adds or removes Result recorders.
+    // Result recorder       : enters results only (not after results are locked).
+    // Other teachers        : view only, unless "All SJS App teachers can enter results" is on.
+    // Roles are given in the Sports app -> Users & roles (stored in sports_roles/{gmail}).
+    function spEmail() { return request.auth.token.email.lower(); }
+    function spRole() {
+      return signedIn() && request.auth.token.email is string
+          && exists(/databases/$(database)/documents/sports_roles/$(spEmail()))
+        ? get(/databases/$(database)/documents/sports_roles/$(spEmail())).data.role : 'none';
+    }
+    function spManager() { return isAdmin() || spRole() == 'incharge'; }
+    function spRecorder() {
+      return spRole() == 'scorer'
+        || (isStaff() && get(/databases/$(database)/documents/sports/main).data.get('app', {}).get('teachersScore', false) == true);
+    }
+    function spOpen(sid) {
+      return get(/databases/$(database)/documents/sports/main/s/$(sid)).data.get('locked', false) != true;
+    }
+    match /sports_roles/{email} {
+      allow get: if signedIn() && (spManager() || spEmail() == email);
+      allow list: if spManager();
+      allow create, update: if (isAdmin() && request.resource.data.role in ['incharge', 'scorer'])
+        || (spRole() == 'incharge' && request.resource.data.role == 'scorer'
+            && (resource == null || resource.data.role == 'scorer'));
+      allow delete: if isAdmin() || (spRole() == 'incharge' && resource.data.role == 'scorer');
+    }
+    match /sports/main { allow read: if signedIn(); allow write: if spManager(); }
+    match /sports/main/s/{sid} { allow read: if signedIn(); allow write: if spManager(); }
+    match /sports/main/s/{sid}/{coll}/{doc} {
+      allow read: if signedIn();
+      allow write: if spManager() || (coll == 'r' && spRecorder() && spOpen(sid));
+    }`;
+const SY={myRole:null,isStaff:false,roleList:null,roleErr:'',roleUnsub:[],state:'off',user:null,fs:null,unsub:[],sesUnsub:[],subSid:null,last:{},ready:{},applying:false,timer:null,readonly:false,err:'',pending:0,remoteActive:null,pendingRender:false};
 const CFG_FIELDS=['id','year','title','date','venue','created','demo','houses','cats','types','events','maxEntry','days','locked','maxPerStudent'];
 const SJ=o=>{const f=x=>Array.isArray(x)?x.map(f):x&&typeof x==='object'?Object.keys(x).sort().reduce((a,k)=>(x[k]!==undefined&&(a[k]=f(x[k])),a),{}):x;return JSON.stringify(f(o===undefined?null:o))};
 const clean=o=>JSON.parse(JSON.stringify(o));
@@ -360,12 +401,27 @@ async function fbInit(){
  SY.fs=firebase.firestore();return true;
 }
 const mainRef=()=>SY.fs.collection('sports').doc('main');
+const myEmail=()=>String(SY.user&&SY.user.email||'').toLowerCase();
+function spRole(){if(!SY.user)return'viewer';if(SP_ADMINS.includes(myEmail()))return'admin';if(SY.myRole==='incharge'||SY.myRole==='scorer')return SY.myRole;if(DB.app.teachersScore&&SY.isStaff)return'teacher';return'viewer'}
+const isMgr=()=>['admin','incharge'].includes(spRole());
+const canManage=()=>!isLive()||isMgr();
+const canScore=()=>!isLive()||['admin','incharge','scorer','teacher'].includes(spRole());
+const NOPERM_M='Only the Admin or the Sports In-charge can change this.';
+const NOPERM_S='View only — ask the Admin or Sports In-charge to make you a Result recorder.';
+async function roleInit(u){SY.myRole=null;SY.isStaff=false;SY.roleList=null;SY.roleErr='';roleStop();if(!u)return;const em=String(u.email||'').toLowerCase();
+ try{const d=await SY.fs.collection('sports_roles').doc(em).get();SY.myRole=d.exists?d.data().role:null}catch(e){}
+ try{const st=await SY.fs.collection('att_staff').doc(u.uid).get();SY.isStaff=st.exists}catch(e){}
+ try{SY.roleUnsub.push(SY.fs.collection('sports_roles').doc(em).onSnapshot(d=>{const was=spRole();SY.myRole=d.exists?d.data().role:null;if(spRole()!==was){roleWatchList();paintLive();rerender();toast('Your access is now: '+ROLE_L[spRole()])}},()=>{}))}catch(e){}
+ roleWatchList()}
+function roleStop(){SY.roleUnsub.forEach(f=>{try{f()}catch(e){}});SY.roleUnsub=[];if(SY.listUnsub){try{SY.listUnsub()}catch(e){}SY.listUnsub=null}}
+function roleWatchList(){if(SY.listUnsub){try{SY.listUnsub()}catch(e){}SY.listUnsub=null}SY.roleList=null;if(!SY.fs||!SY.user||!isMgr())return;
+ SY.listUnsub=SY.fs.collection('sports_roles').onSnapshot(qs=>{SY.roleErr='';SY.roleList=qs.docs.map(d=>({email:d.id,...d.data()}));if(ui.page==='users')softRender()},e=>{SY.roleErr=e&&e.code==='permission-denied'?'rules':String(e&&e.message||e);SY.roleList=[];if(ui.page==='users')softRender()})}
 const sesRef=sid=>mainRef().collection('s').doc(sid);
 const isLive=()=>SY.state==='live';
 function mainPayload(){const idx={};Object.values(DB.sessions).forEach(s=>idx[s.id]={year:s.year||'',title:s.title||'',created:s.created||0});return clean({app:DB.app,sessions:idx,active:SY.remoteActive&&DB.sessions[SY.remoteActive]?SY.remoteActive:DB.active})}
 function liveFail(e){
  const denied=e&&e.code==='permission-denied';
- if(denied&&SY.state==='live'&&e._write){SY.readonly=true;paintLive();toast('View only: this Gmail is not confirmed as staff in SJS App, so results are not shared.');return}
+ if(denied&&SY.state==='live'&&e._write){if(!isMgr())SY.readonly=true;paintLive();toast(isMgr()?'Firebase refused this change — the Admin must update the Firebase rules (see Users & roles).':'Not saved for everyone: '+(spRole()==='viewer'?NOPERM_S:NOPERM_M));return}
  SY.state='error';SY.err=denied?'This Gmail is not allowed yet. The Admin must add the sports rule in Firebase (see Sessions & backup) and confirm you as staff in SJS App → Teachers.':'Live sharing problem: '+((e&&e.message)||e);
  paintLive();toast(SY.err);
 }
@@ -378,14 +434,17 @@ async function liveStart(interactive){
   const pv=new firebase.auth.GoogleAuthProvider();
   try{u=(await auth.signInWithPopup(pv)).user}catch(e){if(e&&/popup-blocked|operation-not-supported/.test(e.code||'')){try{await auth.signInWithRedirect(pv);return}catch(e2){}}SY.state='off';SY.err='Sign-in was cancelled.';paintLive();return}}
  SY.user=u;SY.readonly=false;try{localStorage.setItem(LIVE_KEY,'1')}catch(e){}
+ await roleInit(u);
  let snap;try{snap=await mainRef().get()}catch(e){liveFail(e);return}
+ if(!snap.exists&&!isMgr()){liveStop(false);toast('Live sharing has not been started yet. The Admin or Sports In-charge must start it first.');return}
  if(!snap.exists){
   if(!await ask('Start live sharing?','No shared sports data exists yet. Upload the data on this device so every staff phone sees the same points?','Upload and share')){liveStop(false);return}
   try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}
  }else{try{localStorage.setItem(KEY+'_before_live',JSON.stringify(DB))}catch(e){}}
- SY.state='live';subscribe();paintLive();if(interactive)toast('Live sharing is on — results now appear on every signed-in device');
+ SY.state='live';subscribe();paintLive();rerender();if(interactive)toast('Live sharing is on · your access: '+ROLE_L[spRole()]);
 }
 function liveStop(signOut){
+ roleStop();SY.myRole=null;SY.isStaff=false;SY.roleList=null;
  SY.unsub.forEach(f=>{try{f()}catch(e){}});SY.sesUnsub.forEach(f=>{try{f()}catch(e){}});SY.unsub=[];SY.sesUnsub=[];SY.subSid=null;SY.last={};SY.ready={};
  SY.state='off';try{localStorage.removeItem(LIVE_KEY)}catch(e){}
  if(signOut&&window.firebase&&firebase.apps.length)firebase.auth().signOut().catch(()=>{});
@@ -402,13 +461,14 @@ function subscribe(){
  SY.unsub.push(mainRef().onSnapshot(snap=>{
   if(!snap.exists)return;const d=snap.data();SY.last.main=SJ({app:d.app,sessions:d.sessions,active:d.active});
   const activeChanged=d.active&&d.active!==SY.remoteActive;SY.remoteActive=d.active||null;
+  const tsWas=spRole();
   apply(()=>{if(d.app)DB.app=d.app;const idx=d.sessions||{};
    for(const [sid,m] of Object.entries(idx)){if(!DB.sessions[sid])DB.sessions[sid]={id:sid,year:m.year,title:m.title,created:m.created,houses:[],cats:[],types:[],events:[],athletes:[],results:{},bonus:[],entries:{},stub:true};else{DB.sessions[sid].year=m.year;DB.sessions[sid].title=m.title}}
    for(const sid of Object.keys(DB.sessions))if(!idx[sid])delete DB.sessions[sid];
    if(activeChanged&&DB.sessions[d.active])DB.active=d.active;
    if(!DB.sessions[DB.active])DB.active=Object.keys(DB.sessions)[0];
   });
-  subSession(DB.active);
+  subSession(DB.active);if(spRole()!==tsWas){roleWatchList();paintLive();rerender();toast('Your access is now: '+ROLE_L[spRole()])}
  },e=>liveFail(e)));
 }
 function subSession(sid){
@@ -417,9 +477,10 @@ function subSession(sid){
  SY.sesUnsub.push(ref.onSnapshot(snap=>{if(!snap.exists){mark('s');return}const d=snap.data();SY.last['s/'+sid]=SJ(pickCfg(d));
   apply(()=>{const s=DB.sessions[sid]||(DB.sessions[sid]={id:sid,athletes:[],results:{},bonus:[],entries:{}});CFG_FIELDS.forEach(k=>{if(k in d)s[k]=d[k]});if(!('demo' in d))delete s.demo;delete s.stub});mark('s')},e=>liveFail(e)));
  const coll=(c,put,del,reset)=>SY.sesUnsub.push(ref.collection(c).onSnapshot(qs=>{const first=!got[c];
+  const foreign=!first&&c==='r'&&ui.draft&&qs.docChanges().some(ch=>ch.doc.id===ui.draft.eid&&(ch.type==='removed'?'null':SJ(ch.doc.data()))!==SY.last['r/'+sid+'/'+ch.doc.id]);
   apply(()=>{const s=DB.sessions[sid];if(!s)return;if(first){reset(s);Object.keys(SY.last).forEach(k=>{if(k.startsWith(c+'/'+sid+'/'))delete SY.last[k]})}
    qs.docChanges().forEach(ch=>{const id=ch.doc.id,k=c+'/'+sid+'/'+id;if(ch.type==='removed'){del(s,id);delete SY.last[k]}else{const v=ch.doc.data();SY.last[k]=SJ(v);put(s,id,v)}})});
-  mark(c);if(!first&&ui.page==='results'&&c==='r'&&ui.draft&&qs.docChanges().some(ch=>ch.doc.id===ui.draft.eid))toast('Another device just changed this event');
+  mark(c);if(foreign&&ui.page==='results')toast('Another device just changed this event');
  },e=>liveFail(e)));
  coll('r',(s,id,v)=>{s.results[id]=v},(s,id)=>{delete s.results[id]},s=>{s.results={}});
  const arr=key=>[(s,id,v)=>{const i=s[key].findIndex(x=>x.id===id);v.id=id;if(i<0)s[key].push(v);else s[key][i]=v},(s,id)=>{s[key]=s[key].filter(x=>x.id!==id)},s=>{s[key]=[]}];
@@ -434,17 +495,33 @@ function sessionOps(ops,sid){const s=DB.sessions[sid];if(!s||s.stub)return;
  const cfg=pickCfg(s),cj=SJ(cfg);if(cj!==SY.last['s/'+sid]){ops.push(['set',sesRef(sid),cfg]);SY.last['s/'+sid]=cj}
  diffColl(ops,sid,'r',Object.entries(s.results||{}));diffColl(ops,sid,'a',(s.athletes||[]).map(a=>[a.id,a]));diffColl(ops,sid,'b',(s.bonus||[]).map(b=>[b.id,b]));diffColl(ops,sid,'e',Object.entries(s.entries||{}).filter(([,v])=>v&&v.length).map(([id,ids])=>[id,{ids}]))}
 async function commit(ops,wait){
- if(!ops.length)return;const all=[];
- for(let i=0;i<ops.length;i+=400){const b=SY.fs.batch();ops.slice(i,i+400).forEach(([t,ref,data])=>t==='del'?b.delete(ref):b.set(ref,data));SY.pending++;paintLive();
+ if(!ops.length)return;const all=[];const r=spRole();const cap=r==='admin'?400:r==='incharge'?9:2;
+ for(let i=0;i<ops.length;i+=cap){const b=SY.fs.batch();ops.slice(i,i+cap).forEach(([t,ref,data])=>t==='del'?b.delete(ref):b.set(ref,data));SY.pending++;paintLive();
   all.push(b.commit().then(()=>{SY.pending--;paintLive()},e=>{SY.pending--;e._write=true;liveFail(e)}))}
  if(wait)await Promise.all(all);
 }
 function pushDiff(){
  if(!isLive()||SY.readonly)return;const ops=[];
+ if(!isMgr()){const sid=DB.active,s=DB.sessions[sid];if(!SY.ready[sid]||!s)return;
+  const scorer=canScore()&&!s.locked;const back=revertLocal(sid,!scorer);
+  if(scorer)diffColl(ops,sid,'r',Object.entries(s.results||{}));
+  if(back){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}toast(spRole()==='viewer'?NOPERM_S:NOPERM_M+' Your change was undone.');softRender()}
+  commit(ops);return}
  const mp=mainPayload(),mj=SJ(mp);if(mj!==SY.last.main){ops.push(['set',mainRef(),mp]);SY.last.main=mj}
  if(SY.ready[DB.active])sessionOps(ops,DB.active);
  commit(ops);
 }
+/* put back the shared copy of everything this user may not change */
+function revertLocal(sid,alsoResults){const s=DB.sessions[sid];let ch=false;
+ if(SY.last.main&&SJ(mainPayload())!==SY.last.main){try{const m=JSON.parse(SY.last.main);if(m.app)DB.app=m.app;Object.entries(m.sessions||{}).forEach(([id,x])=>{if(DB.sessions[id]){DB.sessions[id].year=x.year;DB.sessions[id].title=x.title}})}catch(e){}ch=true}
+ const ck='s/'+sid;if(SY.last[ck]&&SJ(pickCfg(s))!==SY.last[ck]){try{const c=JSON.parse(SY.last[ck]);CFG_FIELDS.forEach(k=>{if(k in c)s[k]=c[k];else if(k!=='id')delete s[k]})}catch(e){}ch=true}
+ const shared=c=>{const pre=c+'/'+sid+'/';return Object.keys(SY.last).filter(k=>k.startsWith(pre)).map(k=>[k.slice(pre.length),JSON.parse(SY.last[k])])};
+ const same=(c,items)=>{const pre=c+'/'+sid+'/';const keys=Object.keys(SY.last).filter(k=>k.startsWith(pre));return keys.length===items.length&&items.every(([id,v])=>SY.last[pre+id]===SJ(v))};
+ if(!same('a',(s.athletes||[]).map(a=>[a.id,a]))){s.athletes=shared('a').map(([id,v])=>({...v,id}));ch=true}
+ if(!same('b',(s.bonus||[]).map(b=>[b.id,b]))){s.bonus=shared('b').map(([id,v])=>({...v,id}));ch=true}
+ if(!same('e',Object.entries(s.entries||{}).filter(([,v])=>v&&v.length).map(([id,ids])=>[id,{ids}]))){s.entries={};shared('e').forEach(([id,v])=>s.entries[id]=v.ids||[]);ch=true}
+ if(alsoResults&&!same('r',Object.entries(s.results||{}))){s.results={};shared('r').forEach(([id,v])=>s.results[id]=v);ch=true}
+ return ch}
 async function pushAll(sids,wait){const ops=[];SY.last.main=null;const mp=mainPayload();ops.push(['set',mainRef(),mp]);SY.last.main=SJ(mp);sids.forEach(sid=>sessionOps(ops,sid));await commit(ops,wait)}
 async function liveDeleteSession(sid){const ref=sesRef(sid);for(const c of['r','a','b','e']){const qs=await ref.collection(c).get();const ops=qs.docs.map(d=>['del',d.ref]);await commit(ops,true)}await ref.delete();Object.keys(SY.last).forEach(k=>{if(k.includes('/'+sid))delete SY.last[k]})}
 function paintLive(){
@@ -452,7 +529,7 @@ function paintLive(){
  if(SY.state==='connecting'){cls='lv-wait';txt='Connecting…'}
  else if(SY.state==='error'){cls='lv-err';txt='Live sharing: problem'}
  else if(isLive()){const who=SY.user?(SY.user.displayName||SY.user.email||'').split(' ')[0]:'';
-  if(off){cls='lv-wait';txt='Offline — saved, will share when online'}else if(SY.pending){cls='lv-wait';txt='Sharing…'}else{cls='lv-on';txt=(SY.readonly?'View only · ':'Live · ')+who}}
+  if(off){cls='lv-wait';txt='Offline — saved, will share when online'}else if(SY.pending){cls='lv-wait';txt='Sharing…'}else{cls='lv-on';const rl=spRole();txt=(SY.readonly||rl==='viewer'?'View only · ':'Live · ')+who+(rl!=='viewer'?' · '+ROLE_L[rl]:'')}}
  b.className='livebox '+cls;b.textContent=txt;b.title=SY.err||'';
  $('#saveState').textContent=isLive()?'':(canStore?'Saved on this device · works offline':'This browser is not keeping data — download a backup often');
 }
@@ -1738,7 +1815,7 @@ function resultsWorkbook(){
 
 /* ---------- accuracy: who saved, history, checks, lock, clashes ---------- */
 const ME_KEY='sjs_sports_me';
-const whoAmI=()=>{try{const n=localStorage.getItem(ME_KEY);if(n)return n}catch(e){}return SY.user?(SY.user.displayName||SY.user.email):'this device'};
+const whoAmI=()=>{if(isLive()&&SY.user)return SY.user.displayName||SY.user.email;try{const n=localStorage.getItem(ME_KEY);if(n)return n}catch(e){}return SY.user?(SY.user.displayName||SY.user.email):'this device'};
 const fmtWhen=t=>t?new Date(t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
 function isLocked(){if(S().locked){toast('Results are locked as final. Unlock in Sessions & backup to change them.');return true}return false}
 function rowsSummary(rows,s=S()){return(rows||[]).slice().sort((a,b)=>a.pos-b.pos).map(x=>`${ord(x.pos)} ${x.name?x.name+' ':''}(${(Hs(x.houseId,s)||{}).name||'?'})${x.perf?' '+x.perf:''}`).join(' · ')||'cleared'}
@@ -1769,6 +1846,8 @@ async function fbUser(interactive){if(!await fbInit()){toast(SY.err||'Needs the 
  SY.user=u;return u}
 async function sjsFetch(){ui.sjsBusy='Signing in…';rerender();
  try{const u=await fbUser(true);if(!u){ui.sjsBusy='';rerender();return}
+  if(!isLive())await roleInit(u);
+  if(!isMgr()){ui.sjsBusy='';rerender();toast('Only the Admin or the Sports In-charge can import students from SJS App. You are signed in as '+(u.email||'')+'.');return}
   ui.sjsBusy='Reading classes…';rerender();const cq=await SY.fs.collection('classes').get();
   const classes=cq.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(classNum(a.cls)??99)-(classNum(b.cls)??99)||(a.order||0)-(b.order||0)||String(a.section||'').localeCompare(String(b.section||'')));
   if(!classes.length){ui.sjsBusy='';rerender();toast('No classes found in SJS App');return}
@@ -1874,19 +1953,48 @@ function pReports(){
  <div class="paper ${k==='certs'?'certs':''}" id="paper">${repHTML(k,cat)}</div>`;
 }
 
+/* ---------- Users & roles ---------- */
+function pUsers(){const live=isLive();const r=spRole();const mgr=live&&isMgr();const adm=r==='admin';
+ const Y='<span class="yes">✓</span>',N='<span class="no">—</span>';
+ const rows=[['View dashboard, scoreboard, champions, records',Y,Y,Y,Y,Y],['Download Excel, print reports and certificates',Y,Y,Y,Y,Y],['Enter and correct results',Y,Y,Y,'<span class="tiny">only if allowed below</span>',N],
+  ['Event entries and replacements',Y,Y,N,N,N],['Import students from SJS App; add, edit, delete members',Y,Y,N,N,N],['Assign houses',Y,Y,N,N,N],['Houses, categories, events, schedule, points rules, special points',Y,Y,N,N,N],
+  ['Lock results, sessions, backup restore, school details, certificate design',Y,Y,N,N,N],['Give or remove Result recorders',Y,Y,N,N,N],['Make someone Sports In-charge',Y,N,N,N,N]];
+ const can=x=>x==='admin'||x==='incharge'?'do everything in the Sports app':x==='scorer'||x==='teacher'?'enter and correct results, and view everything':'view, download and print';
+ const you=!live?`<p style="margin-top:0">Live sharing is <b>off</b> on this device, so you are working on this device's own copy. Roles apply to the <b>shared</b> data — turn on live sharing in <a href="#sessions">Sessions &amp; backup</a> to see your access.</p>`
+  :`<p style="margin-top:0">Signed in as <b>${esc(SY.user&&SY.user.email||'')}</b></p><div class="row" style="align-items:center"><span class="rolechip r-${r}">${ROLE_L[r]}</span><span>You can ${can(r)}.</span></div>${r==='viewer'?`<p class="tiny" style="margin-bottom:0">To enter results, ask the Admin or the Sports In-charge to add <b>${esc(SY.user&&SY.user.email||'')}</b> as a Result recorder.</p>`:''}`;
+ const list=(SY.roleList||[]).slice().sort((a,b)=>(a.role===b.role?0:a.role==='incharge'?-1:1)||String(a.name||a.email).localeCompare(String(b.name||b.email)));
+ const manage=!mgr?'':`<div class="card" style="margin-top:16px"><h3>Give access</h3>
+  <p class="tiny" style="margin-top:0">Type the teacher's Gmail — the one they use to sign in. ${adm?'You can make <b>Sports In-charge</b> and <b>Result recorders</b>.':'As Sports In-charge you can add and remove <b>Result recorders</b>.'}</p>
+  <div class="row" style="align-items:end"><label style="flex:2 1 240px">Gmail<input id="ruEmail" type="email" placeholder="teacher@gmail.com" autocomplete="off"></label><label style="flex:2 1 200px">Name<input id="ruName" placeholder="e.g. Sir Lalramenga"></label>
+  <label style="flex:1 1 170px">Role<select id="ruRole">${adm?opt('incharge','Sports In-charge','scorer'):''}${opt('scorer','Result recorder','scorer')}</select></label><button class="btn pri" data-act="roleAdd">Give access</button></div>
+  ${SY.roleErr==='rules'?`<div class="banner" style="margin-top:12px"><b>Firebase rules not updated yet</b><span class="mut">Roles cannot be saved until the Admin pastes the new Sports rules in Firebase — see the last box on this page.</span></div>`:SY.roleErr?`<p class="tiny">${esc(SY.roleErr)}</p>`:''}
+  <div class="scroll" style="margin-top:14px"><table class="t stack"><thead><tr><th>Name</th><th>Gmail</th><th>Role</th><th>Given by</th><th></th></tr></thead><tbody>
+  <tr><td><b>Admin</b></td><td>${SP_ADMINS.map(esc).join('<br>')}</td><td><span class="rolechip r-admin">Admin</span></td><td class="tiny">Set in Firebase rules</td><td></td></tr>
+  ${SY.roleList===null?'<tr><td colspan="5" class="tiny">Loading…</td></tr>':list.map(u=>{const mine=adm||u.role==='scorer';return`<tr><td>${esc(u.name||'—')}</td><td>${esc(u.email)}</td>
+   <td>${adm?`<select data-urole="${esc(u.email)}" aria-label="Role">${opt('incharge','Sports In-charge',u.role)}${opt('scorer','Result recorder',u.role)}</select>`:`<span class="rolechip r-${esc(u.role)}">${esc(ROLE_L[u.role]||u.role)}</span>`}</td>
+   <td class="tiny">${esc(u.by||'')}${u.at?'<br>'+esc(fmtWhen(u.at)):''}</td><td>${mine?`<button class="x" data-act="roleDel" data-id="${esc(u.email)}" aria-label="Remove access">×</button>`:''}</td></tr>`}).join('')||''}
+  ${SY.roleList&&!list.length?'<tr><td colspan="5"><div class="empty">No Sports In-charge or Result recorders yet.</div></td></tr>':''}
+  </tbody></table></div></div>
+ <div class="card" style="margin-top:16px"><h3>Other teachers</h3><label class="row" style="align-items:center;gap:10px;cursor:pointer"><input type="checkbox" data-tsc="1" ${DB.app.teachersScore?'checked':''} style="width:22px;height:22px"><span><b>Let every teacher confirmed in SJS App enter results</b><br><span class="tiny">Off (recommended): only the people listed above can enter results; other teachers can only view.</span></span></label></div>`;
+ const rules=adm||!live?`<div class="card" style="margin-top:16px"><h3>Firebase rules for user control <span class="tiny">(Admin, one time)</span></h3>
+  <ol style="margin:0 0 8px;padding-left:20px;line-height:1.7"><li>Open <b>console.firebase.google.com</b> → <b>sjs-timetable</b> → <b>Firestore Database</b> → <b>Rules</b>.</li><li><b>Delete</b> the old Sports line: <code>match /sports/{path=**} { … }</code></li><li>In its place (just before the last two <code>}</code> lines) paste this block, then press <b>Publish</b>.</li></ol>
+  <pre class="rulepre" id="ruleTxt">${esc(RULES_TXT)}</pre><div class="row"><button class="btn sm" data-act="copyRule">Copy rules</button></div></div>`:'';
+ return`<h2>Users &amp; roles</h2><p class="lead">Who can change what in the Sports app. The Firebase rules check every change, so nobody can get around this from another phone or browser.</p>
+ <div class="card"><h3>Your access</h3>${you}</div>${manage}
+ <div class="card" style="margin-top:16px"><h3>Who can do what</h3><div class="scroll"><table class="t perm"><thead><tr><th></th><th>Admin</th><th>Sports In-charge</th><th>Result recorder</th><th>Other SJS teachers</th><th>Anyone else signed in</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${x[0]}</td>${x.slice(1).map(c=>`<td class="c">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+ <p class="tiny" style="margin-bottom:0">When live sharing is off, a device works on its own copy only — nothing reaches other devices, and only the Admin or Sports In-charge can import students from SJS App.</p></div>${rules}`}
 function pSessions(){
  const ss=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0));
  const cur=S();const ny=(()=>{const m=String(cur.year).match(/(\d{4})\D+(\d{2,4})/);if(!m)return'';const a=+m[1]+1,b=String(+m[2].slice(-2)+1).padStart(2,'0');return a+'-'+b.slice(-2)})();
  const lv=SY.state;const who=SY.user?esc(SY.user.email||''):'';
  const liveCard=`<div class="card" style="margin-bottom:16px"><h3>Live sharing — all staff phones</h3>
-  <p style="margin-top:0">${isLive()?`<span class="tag ok">On</span> Signed in as <b>${who}</b>${SY.readonly?' — <b>view only</b> (this Gmail is not confirmed as staff)':''}. Results saved on any signed-in phone or laptop appear everywhere within seconds. If the internet drops, results are kept and shared when it returns.`:lv==='error'?`<span class="tag rec">Problem</span> ${esc(SY.err)}`:'Off. Each device keeps its own results. Turn this on to share one live scoreboard across all staff phones, using the same Gmail sign-in and staff list as SJS App.'}</p>
+  <p style="margin-top:0">${isLive()?`<span class="tag ok">On</span> Signed in as <b>${who}</b>${' — <b>'+ROLE_L[spRole()]+'</b> (<a href="#users">who can do what</a>)'}. Results saved on any signed-in phone or laptop appear everywhere within seconds. If the internet drops, results are kept and shared when it returns.`:lv==='error'?`<span class="tag rec">Problem</span> ${esc(SY.err)}`:'Off. Each device keeps its own results. Turn this on to share one live scoreboard across all staff phones, using the same Gmail sign-in and staff list as SJS App.'}</p>
   <div class="row">${isLive()?`<button class="btn" data-act="liveOff">Stop sharing on this device</button><button class="btn" data-act="liveSignOut">Sign out</button>`:`<button class="btn pri" data-act="liveOn">Sign in with Google and share live</button>`}</div>
   <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:600">One-time Firebase setup (Admin only)</summary>
-  <ol style="margin:8px 0 0;padding-left:20px;line-height:1.7"><li>Open <b>console.firebase.google.com</b> → project <b>sjs-timetable</b> → <b>Firestore Database</b> → <b>Rules</b>.</li><li>Find the line that starts with <code>match /sjs_tt_adj/</code> and paste this new line just below it — do not delete anything else:</li></ol>
-  <pre style="background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px;white-space:pre-wrap" id="ruleTxt">    // ===== SJS Sports App: confirmed staff enter results, everyone signed in can watch =====
-    match /sports/{path=**} { allow read: if signedIn(); allow write: if isStaff(); }</pre>
-  <div class="row"><button class="btn sm" data-act="copyRule">Copy rule</button></div>
-  <ol start="3" style="margin:8px 0 0;padding-left:20px;line-height:1.7"><li>Press <b>Publish</b>.</li><li>Here, press <b>Sign in with Google and share live</b> with the Admin Gmail. The first time, it uploads this device's data for everyone.</li><li>Teachers confirmed in SJS App → Teachers can enter results. Anyone else who signs in can only watch.</li></ol>
+  <ol style="margin:8px 0 0;padding-left:20px;line-height:1.7"><li>Open <b>console.firebase.google.com</b> → project <b>sjs-timetable</b> → <b>Firestore Database</b> → <b>Rules</b>.</li><li>Delete any old Sports line (<code>match /sports/{path=**} …</code>) and paste this block just before the last two <code>}</code> lines:</li></ol>
+  <pre class="rulepre" id="ruleTxt">${esc(RULES_TXT)}</pre>
+  <div class="row"><button class="btn sm" data-act="copyRule">Copy rules</button></div>
+  <ol start="3" style="margin:8px 0 0;padding-left:20px;line-height:1.7"><li>Press <b>Publish</b>.</li><li>Here, press <b>Sign in with Google and share live</b> with the Admin Gmail. The first time, it uploads this device's data for everyone.</li><li>Give the Sports In-charge and Result recorders their access in <a href="#users">Users &amp; roles</a>. Everyone else who signs in can only watch.</li></ol>
   <p class="tiny">Live sharing works on the website (stjames1980.github.io/sjs-sports). The downloaded offline file always keeps its own data.</p></details></div>`;
  const lockCard=`<div class="card" style="margin-bottom:16px"><h3>Final results lock ${cur.locked?'<span class="tag rec">Locked</span>':'<span class="tag ok">Open</span>'}</h3><p style="margin-top:0">${cur.locked?'Results, entries and special points of '+esc(cur.year)+' cannot be changed on any device. Reports and certificates still work.':'Lock when the meet is over and the Principal has approved the results, so nobody changes them by mistake.'}</p><div class="row"><button class="btn ${cur.locked?'':'pri'}" data-act="toggleLock">${cur.locked?'Unlock results':'Lock results as final'}</button><label style="flex:1 1 240px">Your name on this device (shown in the Change Log)<input id="meName" value="${esc((()=>{try{return localStorage.getItem(ME_KEY)||''}catch(e){return''}})())}" placeholder="e.g. Sir Lalramenga"></label></div></div>`;
  return`<h2>Sessions &amp; backup</h2>${liveCard}${lockCard}<p class="lead">Each academic year is its own session. Start a new one and keep the houses, categories, rules, events and meet records — results start empty.</p>
@@ -1908,18 +2016,18 @@ function pSetup(){
  <div class="card" style="margin-top:16px"><h3>Clean up</h3><div class="row">${s.demo?'<button class="btn" data-act="clearDemo">Clear demo data</button>':''}<button class="btn danger" data-act="clearResults">Clear all results of ${esc(s.year)}</button><button class="btn danger" data-act="resetAll">Erase everything and start fresh</button></div></div>`;
 }
 
-const PAGES={home:pHome,scoreboard:pScoreboard,results:pResults,events:pEvents,athletes:pAthletes,houses:pHouses,categories:pCategories,points:pPoints,bonus:pBonus,champions:pChampions,records:pRecords,reports:pReports,housing:pHousing,schedule:pSchedule,entries:pEntries,certificate:pCertDesign,sessions:pSessions,setup:pSetup};
+const PAGES={users:()=>pUsers(),home:pHome,scoreboard:pScoreboard,results:pResults,events:pEvents,athletes:pAthletes,houses:pHouses,categories:pCategories,points:pPoints,bonus:pBonus,champions:pChampions,records:pRecords,reports:pReports,housing:pHousing,schedule:pSchedule,entries:pEntries,certificate:pCertDesign,sessions:pSessions,setup:pSetup};
 function paintSess(){$('#sessSel').innerHTML=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0)).map(s=>opt(s.id,s.year+' · '+s.title,DB.active)).join('')}
 /* ---------- navigation: sidebar, phone menu, quick search ---------- */
 const ICO={home:'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10',results:'M4 20h4L19 9l-4-4L4 16zM14 6l4 4',scoreboard:'M5 20V11M12 20V5M19 20v-6M3 20h18',champions:'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M10 17h4v4h-4z',records:'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z',
  houses:'M5 21V4M5 4h11l-2 4 2 4H5',categories:'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',athletes:'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 20c0-3.5 3-6 7-6s7 2.5 7 6M16 4.5a3.5 3.5 0 0 1 0 6.5M18 14c2.4.6 4 2.8 4 6',housing:'M3 7h4l10 10h4M3 17h4l3-3M14 10l3-3h4M18 4l3 3-3 3M18 14l3 3-3 3',events:'M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01',schedule:'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4M8 14h3',entries:'M4 5h10M4 10h10M4 15h6M14 17l3 3 5-6',points:'M5 9h14M5 15h14M10 4L8 20M16 4l-2 16',bonus:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v8M8 12h8',
- reports:'M7 8V3h10v5M7 17H4v-7h16v7h-3M7 14h10v7H7z',certificate:'M12 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM8.5 13 7 21l5-3 5 3-1.5-8',sessions:'M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6',setup:'M3 21h18M5 21V9l7-5 7 5v12M10 21v-5h4v5',back:'M15 18l-6-6 6-6',menu:'M4 7h16M4 12h16M4 17h16',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.5-4.5',student:'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7',chev:'M6 9l6 6 6-6'};
+ reports:'M7 8V3h10v5M7 17H4v-7h16v7h-3M7 14h10v7H7z',certificate:'M12 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM8.5 13 7 21l5-3 5 3-1.5-8',sessions:'M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6',users:'M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6zM9 12l2 2 4-4',setup:'M3 21h18M5 21V9l7-5 7 5v12M10 21v-5h4v5',back:'M15 18l-6-6 6-6',menu:'M4 7h16M4 12h16M4 17h16',search:'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.5-4.5',student:'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 3.6-7 8-7s8 3 8 7',chev:'M6 9l6 6 6-6'};
 const svgI=k=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${ICO[k]||ICO.events}"/></svg>`;
 const NAV=[
  {id:'meet',g:'Meet day',items:[['home','Dashboard','dashboard home overview'],['results','Enter results','points marks winner position first second third result'],['scoreboard','Live scoreboard','score board tv projector standings'],['champions','Champions','champion house runner up best boy best girl individual winner'],['records','Meet records','record best ever']]},
  {id:'ready',g:'Get ready',steps:true,items:[['houses','Houses','house colour color name david moses joseph daniel'],['categories','Categories','category sub minor junior senior age group class'],['athletes','Athletes / participants','students members list upload excel import sjs app delete'],['housing','Assign houses','house assign automatic manual'],['events','Events / items','event item race game cultural add copy standard list'],['schedule','Schedule (day-wise)','day 1 day 2 time programme timetable'],['entries','Event entries','participants entries names replace'],['points','Points rules','points rule 5 3 1 relay team'],['bonus','Special points','march past discipline bonus penalty']]},
  {id:'print',g:'Print & share',items:[['reports','Reports & certificates','print report certificate excel download results sheet'],['certificate','Certificate design','certificate design layout signature logo']]},
- {id:'manage',g:'Manage',items:[['sessions','Sessions & backup','session year backup restore live sharing clear new'],['setup','School details','school name logo motto address signature']]}];
+ {id:'manage',g:'Manage',items:[['sessions','Sessions & backup','session year backup restore live sharing clear new'],['users','Users & roles','user users role roles access permission in-charge incharge recorder teacher admin who can'],['setup','School details','school name logo motto address signature']]}];
 const NAVL=Object.fromEntries(NAV.flatMap(g=>g.items.map(([k,l])=>[k,l])));
 const NAVK='sjs_sports_nav';let NAVS={};try{NAVS=JSON.parse(localStorage.getItem(NAVK)||'{}')}catch(e){}
 const navSave=()=>{try{localStorage.setItem(NAVK,JSON.stringify(NAVS))}catch(e){}};
@@ -1965,7 +2073,7 @@ function render(){
  paintNav(p);
  $('#schoolName').textContent=DB.app.school;const bl=$('#brandLogo');if(DB.app.logo){bl.src=DB.app.logo;bl.hidden=false}else bl.hidden=true;
  paintSess();if(0)$('#sessSel').innerHTML=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0)).map(s=>opt(s.id,s.year+' · '+s.title,DB.active)).join('');
- const y=window.scrollY;main.innerHTML=PAGES[p]();
+ const y=window.scrollY;main.innerHTML=PAGES[p]();roPaint(p);
  if(ui.keepScroll){window.scrollTo(0,y);ui.keepScroll=false}
  stamp();
 }
@@ -1995,7 +2103,7 @@ const ACT={
   rows.forEach(r=>{if(!t.team&&r.name&&!r.athId){const a=matchAth(r.name,e,r.houseId);if(a&&a.houseId===r.houseId)r.athId=a.id}});
   rows.sort((a,b)=>a.pos-b.pos);const warn=checkResult(e,rows);if(warn.length&&!await ask('Please check this result',warn.join('  •  '),'Save anyway'))return;
   let added=0;if(!t.team)rows.forEach(r=>{if(!r.name){r.athId='';return}const a=(r.athId&&s.athletes.find(z=>z.id===r.athId&&norm(z.name)===norm(r.name)))||matchAth(r.name,e,r.houseId);
-   if(a&&a.houseId===r.houseId)r.athId=a.id;else{const n={id:uid(),name:r.name,cls:'',gender:e.gender==='Boys'?'B':e.gender==='Girls'?'G':'',houseId:r.houseId,catId:e.catId||'',chest:''};s.athletes.push(n);r.athId=n.id;added++}});
+   if(a&&a.houseId===r.houseId)r.athId=a.id;else if(!canManage()){r.athId=''}else{const n={id:uid(),name:r.name,cls:'',gender:e.gender==='Boys'?'B':e.gender==='Girls'?'G':'',houseId:r.houseId,catId:e.catId||'',chest:''};s.athletes.push(n);r.athId=n.id;added++}});
   const prev=s.results[e.id];const hist=prev&&prev.rows&&prev.rows.length?[{rows:prev.rows,at:prev.at,by:prev.by||''},...(prev.hist||[])]:(prev&&prev.hist)||[];
   s.results[e.id]={rows,at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();ui.draft=null;
   const rec=calc().recs.find(x=>x.e.id===e.id&&x.old&&x.old.val);
@@ -2008,6 +2116,16 @@ const ACT={
  addEvent:()=>{const s=S();const name=val('neName');if(!name){toast('Type the event name');$('#neName').focus();return}
   const cats=chk('neAllCat')?s.cats.map(c=>c.id):[$('#neCat').value];const gens=chk('neBoth')?['Boys','Girls']:[$('#neGen').value];let n=0;
   cats.forEach(cid=>gens.forEach(g=>{s.events.push({id:uid(),name,catId:cid,gender:g,typeId:$('#neType').value,measure:$('#neMeas').value,rec:blankRec()});n++}));ui.preset=null;save();rerender();toast(`${n} event${n>1?'s':''} added`)},
+ roleAdd:async()=>{if(!isLive()){toast('Turn on live sharing first');return}const em=val('ruEmail').toLowerCase(),name=val('ruName'),role=$('#ruRole').value;
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){toast('Type a full Gmail address');$('#ruEmail').focus();return}
+  if(SP_ADMINS.includes(em)){toast('That Gmail is already the Admin');return}
+  if(role==='incharge'&&spRole()!=='admin'){toast('Only the Admin can make a Sports In-charge');return}
+  const ex=(SY.roleList||[]).find(u=>u.email===em);if(ex&&ex.role==='incharge'&&spRole()!=='admin'){toast('Only the Admin can change a Sports In-charge');return}
+  try{await SY.fs.collection('sports_roles').doc(em).set({role,name:name||(ex&&ex.name)||'',by:SY.user.displayName||SY.user.email,at:Date.now()});toast(`${name||em} is now ${ROLE_L[role]}`);$('#ruEmail').value='';$('#ruName').value=''}
+  catch(e){toast(e&&e.code==='permission-denied'?'Firebase refused — paste the new Sports rules in Firebase first (box at the bottom).':'Could not save: '+(e.message||e))}},
+ roleDel:async el=>{const em=el.dataset.id;const u=(SY.roleList||[]).find(x=>x.email===em);if(!u)return;
+  if(!await ask(`Remove ${u.name||em}?`,`${ROLE_L[u.role]||u.role} access is removed. Results they already entered stay.`,'Remove'))return;
+  try{await SY.fs.collection('sports_roles').doc(em).delete();toast('Access removed')}catch(e){toast(e&&e.code==='permission-denied'?NOPERM_M:'Could not remove: '+(e.message||e))}},
  stdToggle:()=>{ui.stdOpen=!ui.stdOpen;rerender()},
  stdTab:el=>{ui.stdG=el.dataset.id;rerender()},
  stdDel:el=>{const L=stdEdit();const g=L.find(x=>x.id===el.dataset.gi);if(!g)return;g.items=g.items.filter(i=>i.id!==el.dataset.id);save();rerender()},
@@ -2076,7 +2194,7 @@ const ACT={
  useSchoolLogo:()=>{DB.app.logo=DEF_LOGO;save();render();toast('School logo restored')},
  toCerts:()=>{ui.report='certs';location.hash='#reports'},
  liveOn:()=>liveStart(true),liveOff:()=>liveStop(false),liveSignOut:()=>liveStop(true),
- copyRule:async()=>{try{await navigator.clipboard.writeText($('#ruleTxt').textContent);toast('Rule copied')}catch(e){toast('Select the rule text and copy it')}},
+ copyRule:async()=>{try{await navigator.clipboard.writeText($('#ruleTxt').textContent);toast('Rules copied')}catch(e){toast('Select the rule text and copy it')}},
  preset:el=>{const t=ensureType(el.dataset.t);ui.preset={name:el.dataset.n,typeId:t.id,measure:el.dataset.m||'none',gender:el.dataset.g||''};save();rerender();const n=$('#neName');if(n){n.focus();n.select()}},
  addCatQuick:el=>{const s=S();if(s.cats.some(c=>norm(c.name)===norm(el.dataset.n))){toast(el.dataset.n+' already exists');return}const pos=el.dataset.n==='Sub-Minor'?0:s.cats.length;s.cats.splice(pos,0,{id:uid(),name:el.dataset.n,desc:el.dataset.d||''});save();rerender();toast(el.dataset.n+' added')},
  xlsBlank:el=>{const k=el.dataset.id;saveFile(xlsName(k==='members'?'House_Members_Template':'Event_Entries_Template'),k==='members'?memberTemplate(false):entryTemplate(false))},
@@ -2156,14 +2274,29 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  if(isLive()){SY.last={};SY.ready={};SY.subSid=null;SY.remoteActive=DB.active;try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}subscribe()}
  save();location.hash='#home';render();toast('Backup restored')}
 
-main.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='SELECT')return;const f=ACT[el.dataset.act];if(f){e.preventDefault();f(el)}});
-main.addEventListener('input',e=>{const el=e.target;
+const MANAGE_ACTS=new Set('mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
+const SCORE_ACTS=new Set(['saveRes','clearRes','restoreVer']);
+const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn';
+function blockAct(a){if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
+function blockField(el){if(!el.matches||!el.matches(WRITE_SEL)||canManage())return false;toast(NOPERM_M);rerender();return true}
+/* read-only look for people who may not change a page */
+let roMO=null;function roWatch(){if(roMO)return;roMO=new MutationObserver(()=>{clearTimeout(roWatch.t);roWatch.t=setTimeout(()=>roPaint(ui.page),30)});roMO.observe(main,{childList:true,subtree:true})}
+function roPaint(p){main.querySelectorAll('.robar').forEach(x=>{if(!isLive()||isMgr()&&canScore())x.remove()});if(!isLive())return;roWatch();const mgr=isMgr(),sc=canScore();
+ if(!mgr){main.querySelectorAll(WRITE_SEL).forEach(x=>{x.disabled=true});main.querySelectorAll('label.btn').forEach(l=>{if(l.querySelector('input:disabled')){l.setAttribute('aria-disabled','true');l.style.opacity='.42';l.style.pointerEvents='none'}});main.querySelectorAll('button[data-act]').forEach(b=>{if(MANAGE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_M}})}
+ if(!sc)main.querySelectorAll('button[data-act]').forEach(b=>{if(SCORE_ACTS.has(b.dataset.act)){b.disabled=true;b.title=NOPERM_S}});
+ const editPages=['houses','categories','athletes','housing','events','schedule','entries','points','bonus','certificate','setup'];
+ if((!mgr&&editPages.includes(p)||!sc&&p==='results')&&!main.querySelector('.robar')){const h=main.querySelector('h2');if(h)h.insertAdjacentHTML('afterend',`<div class="banner robar"><b>${ROLE_L[spRole()]}</b><span class="mut">${p==='results'?NOPERM_S:'You can look, download and print, but only the Admin or the Sports In-charge can make changes here.'} <a href="#users">Who can do what ›</a></span></div>`)}}
+main.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='SELECT')return;const f=ACT[el.dataset.act];if(f){e.preventDefault();if(blockAct(el.dataset.act))return;f(el)}});
+main.addEventListener('input',e=>{const el=e.target;if(isLive()&&!canManage()&&el.matches&&el.matches(WRITE_SEL))return;
  if(el.dataset.r!=null&&ui.draft){const r=ui.draft.rows[+el.dataset.r];if(r){r[el.dataset.k]=el.value;if(el.dataset.k==='pos')paintRow(el.closest('.rrow'),r,S().events.find(x=>x.id===ui.sel))}return}
  if(el.dataset.uf==='q'){ui.evf.q=el.value;$('#evList').innerHTML=evListHTML();return}
  if(el.dataset.ef==='q'){ui.enf.q=el.value;$('#enList2').innerHTML=enListHTML();return}
  if(el.dataset.af==='q'){ui.af.q=el.value;ui.aPage=0;clearTimeout(ui.at);ui.at=setTimeout(()=>{rerender();const q=main.querySelector('[data-af=q]');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},350)}
 });
-main.addEventListener('change',e=>{const el=e.target,s=S();
+main.addEventListener('change',e=>{const el=e.target,s=S();if(blockField(el))return;
+ if(el.dataset.urole){if(spRole()!=='admin'){toast('Only the Admin can change roles');rerender();return}const em=el.dataset.urole;
+  SY.fs.collection('sports_roles').doc(em).set({role:el.value,by:SY.user.displayName||SY.user.email,at:Date.now()},{merge:true}).then(()=>toast('Role changed'),e2=>{toast('Could not change: '+(e2.message||e2));rerender()});return}
+ if(el.dataset.tsc){if(!canManage()){toast(NOPERM_M);rerender();return}DB.app.teachersScore=el.checked;save();toast(el.checked?'Every confirmed SJS App teacher can now enter results':'Only Result recorders, the Sports In-charge and the Admin can enter results');rerender();return}
  if(el.dataset.std){const k=el.dataset.std;
   if(k==='gcat'){const L=stdList();const g=L.find(x=>x.id===el.dataset.gi);if(!g||el.value==='_x')return;ui.stdMap=ui.stdMap||{};ui.stdMap[g.id]=el.value;const E=stdEdit().find(x=>x.id===g.id);if(E){E.cat=el.value?catName(el.value):'';delete ui.stdMap[g.id]}save();rerender();return}
   const L=stdEdit();const g=L.find(x=>x.id===el.dataset.gi);if(!g)return;
