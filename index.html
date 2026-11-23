@@ -253,6 +253,12 @@ table.t{width:100%;border-collapse:collapse;font-size:15px}
 <nav class="tabbar" id="tabbar" aria-label="Quick menu"></nav>
 <div class="pal" id="pal" role="dialog" aria-modal="true" aria-label="Search"><div class="palbox"><div class="palin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.5-4.5"/></svg><input id="palQ" type="search" placeholder="Go to a page, find a student or an event…" autocomplete="off" aria-label="Search"><button class="btn sm" id="palX" type="button">Esc</button></div><div class="palres" id="palRes" role="listbox"></div><div class="palft">↑ ↓ to move · Enter to open · Esc to close</div></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="loginDlg" role="dialog" aria-modal="true" aria-labelledby="lgT"><div class="card" style="max-width:420px"><h3 id="lgT" style="margin-top:0">Sign in with your SJS App login</h3>
+ <p class="tiny" style="margin-top:0">Use the same <b>Staff ID</b> (or email) and <b>password</b> you use in SJS App.</p>
+ <label>Staff ID or email<input id="lgId" autocomplete="username" placeholder="e.g. SJS012 or name@gmail.com"></label>
+ <label style="margin-top:8px">Password<input id="lgPw" type="password" autocomplete="current-password"></label>
+ <p id="lgErr" class="tiny" style="color:#c0392b;min-height:1.2em;margin:8px 0"></p>
+ <div class="row" style="justify-content:space-between;align-items:center"><button class="btn sm" id="lgForgot" type="button">Forgot password?</button><span class="row"><button class="btn" id="lgNo" type="button">Cancel</button><button class="btn pri" id="lgGo" type="button">Sign in</button></span></div></div></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="card"><h3 id="mTitle">Are you sure?</h3><p id="mText" class="mut"></p><div class="row" style="justify-content:flex-end"><button class="btn" id="mNo">Cancel</button><button class="btn pri" id="mYes">Yes, continue</button></div></div></div>
 <input type="file" id="fileIn" accept=".json,application/json" hidden>
 
@@ -417,11 +423,11 @@ const canScore=()=>!isLive()||['admin','incharge','scorer','teacher'].includes(s
 const VO_KEY='sjs_sports_vo';
 function isVO(){if(isLive())return spRole()==='viewer';try{return localStorage.getItem(VO_KEY)==='1'}catch(e){return false}}
 const NOSHARE_ACTS=new Set(['copyDuty','printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
-const NOPERM_V='View only: downloading, printing and copying are turned off for your Gmail.';
+const NOPERM_V='View only: downloading, printing and copying are turned off for your login.';
 function voPaint(){const on=isVO();document.body.classList.toggle('vo',on);
  if(isLive()){try{on?localStorage.setItem(VO_KEY,'1'):localStorage.removeItem(VO_KEY)}catch(e){}}
  let m=document.getElementById('voMark');if(!on){if(m)m.remove();return}
- const who=(SY.user&&(SY.user.email||SY.user.displayName))||'View only';const d=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+ const who=(SY.user&&(loginName(SY.user.email)||SY.user.displayName))||'View only';const d=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
  const txt=(who+' · '+d+' · SJS Sports').replace(/[<&>"]/g,'');
  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="420" height="220"><text x="20" y="130" transform="rotate(-24 210 110)" font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#000">${txt}</text></svg>`;
  if(!m){m=document.createElement('div');m.id='voMark';m.setAttribute('aria-hidden','true');document.body.appendChild(m)}
@@ -442,7 +448,7 @@ function mainPayload(){const idx={};Object.values(DB.sessions).forEach(s=>idx[s.
 function liveFail(e){
  const denied=e&&e.code==='permission-denied';
  if(denied&&SY.state==='live'&&e._write){if(!isMgr())SY.readonly=true;paintLive();toast(isMgr()?'Firebase refused this change — the Admin must update the Firebase rules (see Users & roles).':'Not saved for everyone: '+(spRole()==='viewer'?NOPERM_S:NOPERM_M));return}
- SY.state='error';SY.err=denied?'This Gmail is not allowed yet. The Admin must add the sports rule in Firebase (see Sessions & backup) and confirm you as staff in SJS App → Teachers.':'Live sharing problem: '+((e&&e.message)||e);
+ SY.state='error';SY.err=denied?'This login is not allowed yet. The Admin must check the Firebase rules (see Users & roles).':'Live sharing problem: '+((e&&e.message)||e);
  paintLive();toast(SY.err);
 }
 const inAppBrowser=()=>/FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Line\/|; wv\)|MicroMessenger|Snapchat|Telegram/i.test(navigator.userAgent||'');
@@ -456,17 +462,34 @@ function signErr(e){const c=String(e&&e.code||'');const m={
  'auth/operation-not-supported-in-this-environment':'Sign-in does not work inside this app. Open stjames1980.github.io/sjs-sports in Chrome.',
  'auth/internal-error':'Google sign-in failed. Open the app in Chrome (not inside WhatsApp) and try again.',
  'auth/too-many-requests':'Too many tries. Wait a few minutes and try again.',
- 'auth/user-disabled':'This Google account is disabled.'}[c];return m||('Sign-in failed'+(c?' ('+c+')':'')+'. Open stjames1980.github.io/sjs-sports in Chrome and try again.')}
-async function googleSignIn(auth){const pv=new firebase.auth.GoogleAuthProvider();if(pv.setCustomParameters)pv.setCustomParameters({prompt:'select_account'});
+ 'auth/user-disabled':'This Google account is disabled.',
+ 'sjs/timeout':'The Google window closed without signing in. This browser is blocking cookies for sign-in. In Chrome: Settings → Privacy and security → Third-party cookies → “Sites allowed to use third-party cookies” → Add  [*.]firebaseapp.com  — then try again (or use a normal Chrome tab, not the installed app window).'}[c];return m||('Sign-in failed'+(c?' ('+c+')':'')+'. Open stjames1980.github.io/sjs-sports in Chrome and try again.')}
+/* SJS App logins: a Staff ID is stored as <id>@staff.<authDomain>, or the teacher's own email */
+const staffEmail=id=>String(id).trim().toLowerCase().replace(/[^a-z0-9._-]/g,'')+'@staff.'+FB_CFG.authDomain;
+const idToEmail=v=>String(v||'').includes('@')?String(v).trim().toLowerCase():staffEmail(v);
+const isStaffLogin=e=>/@staff\./.test(e||'');
+const staffIdOf=e=>isStaffLogin(e)?String(e).split('@')[0].toUpperCase():'';
+const loginName=e=>staffIdOf(e)||e||'';
+function pwErr(e){const c=String(e&&e.code||'');return({'auth/wrong-password':'Wrong password.','auth/invalid-credential':'Wrong Staff ID / email or password.','auth/invalid-login-credentials':'Wrong Staff ID / email or password.','auth/user-not-found':'No SJS App login with that Staff ID / email.','auth/invalid-email':'Type a Staff ID or a full email.','auth/too-many-requests':'Too many tries. Wait a few minutes and try again.','auth/network-request-failed':'No internet connection.','auth/user-disabled':'This login is disabled.'})[c]||('Could not sign in'+(c?' ('+c+')':'')+'.')}
+function loginDialog(auth){return new Promise(res=>{const d=$('#loginDlg');const id=$('#lgId'),pw=$('#lgPw'),er=$('#lgErr'),go=$('#lgGo');er.textContent='';pw.value='';d.classList.add('on');setTimeout(()=>(id.value?pw:id).focus(),30);
+ const done=u=>{d.classList.remove('on');go.onclick=$('#lgNo').onclick=$('#lgForgot').onclick=pw.onkeydown=id.onkeydown=null;res(u)};
+ const tryIt=async()=>{const v=id.value.trim(),p=pw.value;if(!v||!p){er.textContent='Type your Staff ID (or email) and password.';return}go.disabled=true;er.textContent='Signing in…';
+  try{const r=await auth.signInWithEmailAndPassword(idToEmail(v),p);done(r.user)}catch(e){er.textContent=pwErr(e)}finally{go.disabled=false}};
+ go.onclick=tryIt;pw.onkeydown=id.onkeydown=e=>{if(e.key==='Enter')tryIt()};$('#lgNo').onclick=()=>done(null);
+ $('#lgForgot').onclick=async()=>{const v=id.value.trim();if(!v||!v.includes('@')){er.textContent='For a Staff ID, ask the Admin to reset your password in SJS App → Teachers. For an email login, type your email first.';return}try{await auth.sendPasswordResetEmail(v);er.textContent='A reset link was sent to '+v+'.'}catch(e){er.textContent=pwErr(e)}}})}
+async function googleSignIn(auth){return loginDialog(auth)}
+async function googleSignInOld(auth){const pv=new firebase.auth.GoogleAuthProvider();if(pv.setCustomParameters)pv.setCustomParameters({prompt:'select_account'});
  if(inAppBrowser())throw{code:'auth/operation-not-supported-in-this-environment'};
- try{return(await auth.signInWithPopup(pv)).user}catch(e){if(e&&/popup-blocked|operation-not-supported/.test(e.code||'')){try{sessionStorage.setItem('sjs_live_redirect','1')}catch(x){}await auth.signInWithRedirect(pv);return null}throw e}}
+ const viaState=new Promise(r=>{const un=auth.onAuthStateChanged(x=>{if(x){un();r(x)}})});
+ const late=new Promise((_,rej)=>setTimeout(()=>rej({code:'sjs/timeout'}),45000));
+ try{return await Promise.race([auth.signInWithPopup(pv).then(r=>r.user),viaState,late])}catch(e){if(e&&/popup-blocked|operation-not-supported/.test(e.code||'')){try{sessionStorage.setItem('sjs_live_redirect','1')}catch(x){}await auth.signInWithRedirect(pv);return null}throw e}}
 async function liveStart(interactive){
  SY.state='connecting';SY.err='';paintLive();
  if(!await fbInit()){SY.state='off';paintLive();if(interactive)toast(SY.err);return}
  const auth=firebase.auth();
  let u=auth.currentUser||await new Promise(r=>{const un=auth.onAuthStateChanged(x=>{un();r(x)})});
  if(!u){if(!interactive){SY.state='off';paintLive();return}
-  try{u=await googleSignIn(auth);if(!u)return}catch(e){SY.state='error';SY.err=signErr(e);paintLive();toast(SY.err);if(ui.page==='sessions')rerender();return}}
+  try{u=await googleSignIn(auth);if(!u){SY.state='off';SY.err='';paintLive();return}}catch(e){SY.state='error';SY.err=signErr(e);paintLive();toast(SY.err);if(ui.page==='sessions')rerender();return}}
  SY.user=u;SY.readonly=false;try{localStorage.setItem(LIVE_KEY,'1')}catch(e){}
  await roleInit(u);
  let snap;try{snap=await mainRef().get()}catch(e){liveFail(e);return}
@@ -475,7 +498,7 @@ async function liveStart(interactive){
   if(!await ask('Start live sharing?','No shared sports data exists yet. Upload the data on this device so every staff phone sees the same points?','Upload and share')){liveStop(false);return}
   try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}
  }else{try{localStorage.setItem(KEY+'_before_live',JSON.stringify(DB))}catch(e){}}
- SY.state='live';subscribe();paintLive();rerender();if(interactive)toast(spRole()==='viewer'?`Signed in as ${u.email} — View only. If you were given a role, you may have chosen a different Gmail: Sessions & backup → Sign out, then sign in again.`:'Live sharing is on · your access: '+ROLE_L[spRole()]);
+ SY.state='live';subscribe();paintLive();rerender();if(interactive)toast(spRole()==='viewer'?`Signed in as ${loginName(u.email)} — View only. If you were given a role, ask the Admin to check the login in Users & roles.`:'Live sharing is on · your access: '+ROLE_L[spRole()]);
 }
 function liveStop(signOut){
  roleStop();SY.myRole=null;SY.isStaff=false;SY.roleList=null;
@@ -498,7 +521,7 @@ function subscribe(){
   const tsWas=spRole();
   apply(()=>{if(d.app)DB.app=d.app;const idx=d.sessions||{};
    for(const [sid,m] of Object.entries(idx)){if(!DB.sessions[sid])DB.sessions[sid]={id:sid,year:m.year,title:m.title,created:m.created,houses:[],cats:[],types:[],events:[],athletes:[],results:{},bonus:[],entries:{},stub:true};else{DB.sessions[sid].year=m.year;DB.sessions[sid].title=m.title}}
-   for(const sid of Object.keys(DB.sessions))if(!idx[sid])delete DB.sessions[sid];
+   if(Object.keys(idx).length)for(const sid of Object.keys(DB.sessions))if(!idx[sid])delete DB.sessions[sid];
    if(activeChanged&&DB.sessions[d.active])DB.active=d.active;
    if(!DB.sessions[DB.active])DB.active=Object.keys(DB.sessions)[0];
   });
@@ -562,7 +585,7 @@ function paintLive(){
  const b=$('#liveBox');if(!b)return;const off=!navigator.onLine;let cls='lv-off',txt='Live sharing: off';
  if(SY.state==='connecting'){cls='lv-wait';txt='Connecting…'}
  else if(SY.state==='error'){cls='lv-err';txt='Live sharing: problem'}
- else if(isLive()){const who=SY.user?(SY.user.displayName||SY.user.email||'').split(' ')[0]:'';
+ else if(isLive()){const who=SY.user?(SY.user.displayName?SY.user.displayName.split(' ')[0]:loginName(SY.user.email)):'';
   if(off){cls='lv-wait';txt='Offline — saved, will share when online'}else if(SY.pending){cls='lv-wait';txt='Sharing…'}else{cls='lv-on';const rl=spRole();txt=(SY.readonly||rl==='viewer'?'View only · ':'Live · ')+who+(rl!=='viewer'?' · '+ROLE_L[rl]:'')}}
  b.className='livebox '+cls;b.textContent=txt;b.title=SY.err||'';voPaint();
  $('#saveState').textContent=isLive()?'':(canStore?'Saved on this device · works offline':'This browser is not keeping data — download a backup often');
@@ -1759,8 +1782,9 @@ function dayProgressHTML(){const s=S();if(!(s.days||[]).length)return'';const ro
  ${nxt?`<p style="margin:10px 0 0"><span class="tag">Next up</span> <b>${nxt.time?fmtTime(nxt.time)+' · ':''}${esc(nxt.name)}</b> <span class="tiny">${esc(nxt.gender)} · ${esc(catName(nxt.catId))} · ${esc((dayById(nxt.dayId)||{}).name||'')}${nxt.venue?' · '+esc(nxt.venue):''}</span></p>`:''}</div>`}
 /* ---------- In-charge / organiser of each event ---------- */
 const orgNames=v=>String(v||'').split(/\s*(?:,|;|\/|&|\band\b|\n)\s*/i).map(x=>x.trim()).filter(Boolean);
-let STAFF=null;
-async function loadStaff(){if(STAFF||!SY.fs||!SY.user)return;STAFF=[];try{const q=await SY.fs.collection('att_teachers').get();STAFF=q.docs.map(d=>String(d.data().name||'').trim()).filter(Boolean);if(['schedule','events','reports'].includes(ui.page))softRender()}catch(e){STAFF=[]}}
+let STAFF=null,STAFFX=[];
+async function loadStaff(){if(STAFF||!SY.fs||!SY.user)return;STAFF=[];try{const q=await SY.fs.collection('att_teachers').get();const L=q.docs.map(d=>d.data());STAFF=L.map(x=>String(x.name||'').trim()).filter(Boolean);
+ STAFFX=L.filter(x=>x.email&&x.name&&x.active!==false).map(x=>({name:String(x.name).trim(),email:String(x.email).toLowerCase()})).sort((a,b)=>a.name.localeCompare(b.name));if(['schedule','events','reports','users'].includes(ui.page))softRender()}catch(e){STAFF=[]}}
 function staffList(){const s=S();const used=s.events.flatMap(e=>orgNames(e.org));return[...new Set([...used,...(STAFF||[])])].sort((a,b)=>a.localeCompare(b))}
 const staffDL=()=>`<datalist id="staffList">${staffList().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
 function clashCard(D){const s=S();const all=clashList('',s);const l=D&&D!=='_none'?clashList(D,s):all;const g=restGap(s);const nt=s.events.filter(e=>e.dayId&&dayById(e.dayId)&&!e.time&&(s.entries||{})[e.id]&&s.entries[e.id].length).length;
@@ -1943,7 +1967,7 @@ async function sjsFetch(){ui.sjsBusy='Signing in…';rerender();
   let done=0;const lists=await Promise.all(classes.map(async k=>{const q=await SY.fs.collection('c/'+k.id+'/students').get();done++;ui.sjsBusy=`Reading students… ${done} of ${classes.length} classes`;const b=$('#sjsBusy');if(b)b.textContent=ui.sjsBusy;
    return q.docs.map(d=>{const x=d.data();return{sjs:k.id+'/'+(x.roll??d.id),cid:k.id,cls:String(k.cls||'').trim(),sec:String(k.section||'').trim(),roll:x.roll!=null?String(x.roll):'',adm:String(x.adm||'').trim(),name:String(x.name||'').trim(),gender:x.gender==='M'?'B':x.gender==='F'?'G':''}}).filter(x=>x.name)}));
   ui.sjsBusy='';ui.imp=planSjs(classes,lists);ui.impFile='SJS App';rerender()}
- catch(e){ui.sjsBusy='';rerender();toast(e&&e.code==='permission-denied'?'This Gmail cannot read SJS App classes — sign in with the Admin or a confirmed staff Gmail':'Could not read SJS App: '+((e&&e.code)||e.message||e))}}
+ catch(e){ui.sjsBusy='';rerender();toast(e&&e.code==='permission-denied'?'This login cannot read SJS App classes — sign in with the Admin or a confirmed staff Gmail':'Could not read SJS App: '+((e&&e.code)||e.message||e))}}
 function planSjs(classes,lists){const s=S();const all=lists.flat();
  const bySjs={},byAdm={},byNC={},byN={};s.athletes.forEach(a=>{if(a.sjs)bySjs[a.sjs]=a;if(a.adm)(byAdm[norm(a.adm)]=byAdm[norm(a.adm)]||[]).push(a);(byNC[norm(a.name)+'|'+norm(a.cls)]=byNC[norm(a.name)+'|'+norm(a.cls)]||[]).push(a);(byN[norm(a.name)]=byN[norm(a.name)]||[]).push(a)});
  const used=new Set(),rows=[];let add=0,upd=0,same=0;const perClass=classes.map((k,i)=>({k,n:lists[i].length,add:0,upd:0}));
@@ -2043,23 +2067,24 @@ function pReports(){
 }
 
 /* ---------- Users & roles ---------- */
-function pUsers(){const live=isLive();const r=spRole();const mgr=live&&isMgr();const adm=r==='admin';
+function pUsers(){if(isLive())loadStaff();const live=isLive();const r=spRole();const mgr=live&&isMgr();const adm=r==='admin';
  const Y='<span class="yes">✓</span>',N='<span class="no">—</span>';
  const rows=[['View dashboard, scoreboard, champions, records',Y,Y,Y,Y,Y],['Download Excel, print reports and certificates, copy text',Y,Y,Y,'<span class="tiny">only if allowed below</span>',N],['Enter and correct results',Y,Y,Y,'<span class="tiny">only if allowed below</span>',N],
   ['Event entries and replacements',Y,Y,N,N,N],['Import students from SJS App; add, edit, delete members',Y,Y,N,N,N],['Assign houses',Y,Y,N,N,N],['Houses, categories, events, schedule, points rules, special points',Y,Y,N,N,N],
   ['Lock results, sessions, backup restore, school details, certificate design',Y,Y,N,N,N],['Give or remove Result recorders',Y,Y,N,N,N],['Make someone Sports In-charge',Y,N,N,N,N]];
  const can=x=>x==='admin'||x==='incharge'?'do everything in the Sports app':x==='scorer'||x==='teacher'?'enter and correct results, and view everything':'only view — downloading, printing and copying are turned off';
  const you=!live?`<p style="margin-top:0">Live sharing is <b>off</b> on this device, so you are working on this device's own copy. Roles apply to the <b>shared</b> data — turn on live sharing in <a href="#sessions">Sessions &amp; backup</a> to see your access.</p>`
-  :`<p style="margin-top:0">Signed in as <b>${esc(SY.user&&SY.user.email||'')}</b></p><div class="row" style="align-items:center"><span class="rolechip r-${r}">${ROLE_L[r]}</span><span>You can ${can(r)}.</span></div>${r==='viewer'?`<p class="tiny" style="margin-bottom:0">To enter results, ask the Admin or the Sports In-charge to add <b>${esc(SY.user&&SY.user.email||'')}</b> as a Result recorder.</p>`:''}`;
+  :`<p style="margin-top:0">Signed in as <b>${esc(loginName(SY.user&&SY.user.email))}</b></p><div class="row" style="align-items:center"><span class="rolechip r-${r}">${ROLE_L[r]}</span><span>You can ${can(r)}.</span></div>${r==='viewer'?`<p class="tiny" style="margin-bottom:0">To enter results, ask the Admin or the Sports In-charge to add <b>${esc(loginName(SY.user&&SY.user.email))}</b> as a Result recorder.</p>`:''}`;
  const list=(SY.roleList||[]).slice().sort((a,b)=>(a.role===b.role?0:a.role==='incharge'?-1:1)||String(a.name||a.email).localeCompare(String(b.name||b.email)));
  const manage=!mgr?'':`<div class="card" style="margin-top:16px"><h3>Give access</h3>
-  <p class="tiny" style="margin-top:0">Type the teacher's Gmail — the one they use to sign in. ${adm?'You can make <b>Sports In-charge</b> and <b>Result recorders</b>.':'As Sports In-charge you can add and remove <b>Result recorders</b>.'}</p>
-  <div class="row" style="align-items:end"><label style="flex:2 1 240px">Gmail<input id="ruEmail" type="email" placeholder="teacher@gmail.com" autocomplete="off"></label><label style="flex:2 1 200px">Name<input id="ruName" placeholder="e.g. Sir Lalramenga"></label>
+  <p class="tiny" style="margin-top:0">Pick the teacher from SJS App, or type their <b>SJS App login</b> — Staff ID (e.g. SJS012) or email. ${adm?'You can make <b>Sports In-charge</b> and <b>Result recorders</b>.':'As Sports In-charge you can add and remove <b>Result recorders</b>.'}</p>
+  ${STAFFX.length?`<label style="margin-bottom:8px">Pick a teacher from SJS App<select id="ruPick"><option value="">— choose —</option>${STAFFX.map(x=>`<option value="${esc(x.email)}" data-n="${esc(x.name)}">${esc(x.name)} · ${esc(loginName(x.email))}</option>`).join('')}</select></label>`:''}
+  <div class="row" style="align-items:end"><label style="flex:2 1 240px">Staff ID or email (SJS App login)<input id="ruEmail" placeholder="SJS012 or teacher@gmail.com" autocomplete="off"></label><label style="flex:2 1 200px">Name<input id="ruName" placeholder="e.g. Sir Lalramenga"></label>
   <label style="flex:1 1 170px">Role<select id="ruRole">${adm?opt('incharge','Sports In-charge','scorer'):''}${opt('scorer','Result recorder','scorer')}</select></label><button class="btn pri" data-act="roleAdd">Give access</button></div>
   ${SY.roleErr==='rules'?`<div class="banner" style="margin-top:12px"><b>Firebase rules not updated yet</b><span class="mut">Roles cannot be saved until the Admin pastes the new Sports rules in Firebase — see the last box on this page.</span></div>`:SY.roleErr?`<p class="tiny">${esc(SY.roleErr)}</p>`:''}
-  <div class="scroll" style="margin-top:14px"><table class="t stack"><thead><tr><th>Name</th><th>Gmail</th><th>Role</th><th>Given by</th><th></th></tr></thead><tbody>
+  <div class="scroll" style="margin-top:14px"><table class="t stack"><thead><tr><th>Name</th><th>Login</th><th>Role</th><th>Given by</th><th></th></tr></thead><tbody>
   <tr><td><b>Admin</b></td><td>${SP_ADMINS.map(esc).join('<br>')}</td><td><span class="rolechip r-admin">Admin</span></td><td class="tiny">Set in Firebase rules</td><td></td></tr>
-  ${SY.roleList===null?'<tr><td colspan="5" class="tiny">Loading…</td></tr>':list.map(u=>{const mine=adm||u.role==='scorer';return`<tr><td>${esc(u.name||'—')}</td><td>${esc(u.email)}</td>
+  ${SY.roleList===null?'<tr><td colspan="5" class="tiny">Loading…</td></tr>':list.map(u=>{const mine=adm||u.role==='scorer';const sx=STAFFX.find(x=>x.email===u.email);return`<tr><td>${esc(u.name||(sx&&sx.name)||'—')}</td><td>${esc(loginName(u.email))}${STAFFX.length&&!sx?'<br><span class="tiny" style="color:#b45309">Not an SJS App login — this person cannot sign in</span>':''}</td>
    <td>${adm?`<select data-urole="${esc(u.email)}" aria-label="Role">${opt('incharge','Sports In-charge',u.role)}${opt('scorer','Result recorder',u.role)}</select>`:`<span class="rolechip r-${esc(u.role)}">${esc(ROLE_L[u.role]||u.role)}</span>`}</td>
    <td class="tiny">${esc(u.by||'')}${u.at?'<br>'+esc(fmtWhen(u.at)):''}</td><td>${mine?`<button class="x" data-act="roleDel" data-id="${esc(u.email)}" aria-label="Remove access">×</button>`:''}</td></tr>`}).join('')||''}
   ${SY.roleList&&!list.length?'<tr><td colspan="5"><div class="empty">No Sports In-charge or Result recorders yet.</div></td></tr>':''}
@@ -2070,26 +2095,29 @@ function pUsers(){const live=isLive();const r=spRole();const mgr=live&&isMgr();c
   <pre class="rulepre" id="ruleTxt">${esc(RULES_TXT)}</pre><div class="row"><button class="btn sm" data-act="copyRule">Copy rules</button></div></div>`:'';
  return`<h2>Users &amp; roles</h2><p class="lead">Who can change what in the Sports app. The Firebase rules check every change, so nobody can get around this from another phone or browser.</p>
  <div class="card"><h3>Your access</h3>${you}</div>${manage}
- <div class="card" style="margin-top:16px"><h3>Who can do what</h3><div class="scroll"><table class="t perm"><thead><tr><th></th><th>Admin</th><th>Sports In-charge</th><th>Result recorder</th><th>Other SJS teachers</th><th>Anyone else signed in</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${x[0]}</td>${x.slice(1).map(c=>`<td class="c">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
- <p class="tiny">View-only users cannot download, print, copy, right-click or save. Their Gmail and the date are shown faintly across every screen, and the page blurs when they switch away. No website can fully stop a phone screenshot, but the name on it shows who took it.</p>
+ <div class="card" style="margin-top:16px"><h3>Who can do what</h3><div class="scroll"><table class="t perm"><thead><tr><th></th><th>Admin</th><th>Sports In-charge</th><th>Result recorder</th><th>Other SJS teachers</th><th>Anyone else</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${x[0]}</td>${x.slice(1).map(c=>`<td class="c">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+ <p class="tiny">View-only users cannot download, print, copy, right-click or save. Their login and the date are shown faintly across every screen, and the page blurs when they switch away. No website can fully stop a phone screenshot, but the name on it shows who took it.</p>
  <p class="tiny" style="margin-bottom:0">When live sharing is off, a device works on its own copy only — nothing reaches other devices, and only the Admin or Sports In-charge can import students from SJS App.</p></div>${rules}`}
 function pSessions(){
  const ss=Object.values(DB.sessions).sort((a,b)=>(b.created||0)-(a.created||0));
  const cur=S();const ny=(()=>{const m=String(cur.year).match(/(\d{4})\D+(\d{2,4})/);if(!m)return'';const a=+m[1]+1,b=String(+m[2].slice(-2)+1).padStart(2,'0');return a+'-'+b.slice(-2)})();
- const lv=SY.state;const who=SY.user?esc(SY.user.email||''):'';
+ const lv=SY.state;const who=SY.user?esc(loginName(SY.user.email)):'';
  const liveCard=`<div class="card" style="margin-bottom:16px"><h3>Live sharing — all staff phones</h3>
-  <p style="margin-top:0">${isLive()?`<span class="tag ok">On</span> Signed in as <b>${who}</b>${' — <b>'+ROLE_L[spRole()]+'</b> (<a href="#users">who can do what</a>)'}. Results saved on any signed-in phone or laptop appear everywhere within seconds. If the internet drops, results are kept and shared when it returns.`:lv==='error'?`<span class="tag rec">Problem</span> ${esc(SY.err)}`:'Off. Each device keeps its own results. Turn this on to share one live scoreboard across all staff phones, using the same Gmail sign-in and staff list as SJS App.'}</p>
-  <div class="row">${isLive()?`<button class="btn" data-act="liveOff">Stop sharing on this device</button><button class="btn" data-act="liveSignOut">Sign out</button>`:`<button class="btn pri" data-act="liveOn">Sign in with Google and share live</button>`}</div>
+  <p style="margin-top:0">${isLive()?`<span class="tag ok">On</span> Signed in as <b>${who}</b>${' — <b>'+ROLE_L[spRole()]+'</b> (<a href="#users">who can do what</a>)'}. Results saved on any signed-in phone or laptop appear everywhere within seconds. If the internet drops, results are kept and shared when it returns.`:lv==='error'?`<span class="tag rec">Problem</span> ${esc(SY.err)}`:'Off. Each device keeps its own results. Turn this on to share one live scoreboard across all staff phones, using the same Staff ID login and staff list as SJS App.'}</p>
+  <div class="row">${isLive()?`<button class="btn" data-act="liveOff">Stop sharing on this device</button><button class="btn" data-act="liveSignOut">Sign out</button>`:`<button class="btn pri" data-act="liveOn">Sign in with SJS App login and share live</button>`}</div>
   <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:600">One-time Firebase setup (Admin only)</summary>
   <ol style="margin:8px 0 0;padding-left:20px;line-height:1.7"><li>Open <b>console.firebase.google.com</b> → project <b>sjs-timetable</b> → <b>Firestore Database</b> → <b>Rules</b>.</li><li>Delete any old Sports line (<code>match /sports/{path=**} …</code>) and paste this block just before the last two <code>}</code> lines:</li></ol>
   <pre class="rulepre" id="ruleTxt">${esc(RULES_TXT)}</pre>
   <div class="row"><button class="btn sm" data-act="copyRule">Copy rules</button></div>
-  <ol start="3" style="margin:8px 0 0;padding-left:20px;line-height:1.7"><li>Press <b>Publish</b>.</li><li>Here, press <b>Sign in with Google and share live</b> with the Admin Gmail. The first time, it uploads this device's data for everyone.</li><li>Give the Sports In-charge and Result recorders their access in <a href="#users">Users &amp; roles</a>. Everyone else who signs in can only watch.</li></ol>
+  <ol start="3" style="margin:8px 0 0;padding-left:20px;line-height:1.7"><li>Press <b>Publish</b>.</li><li>Here, press <b>Sign in with SJS App login and share live</b> with the Admin Gmail. The first time, it uploads this device's data for everyone.</li><li>Give the Sports In-charge and Result recorders their access in <a href="#users">Users &amp; roles</a>. Everyone else who signs in can only watch.</li></ol>
   <p class="tiny">Live sharing works on the website (stjames1980.github.io/sjs-sports). The downloaded offline file always keeps its own data.</p></details>
   <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Cannot sign in?</summary><ol style="margin:8px 0 0;padding-left:20px;line-height:1.7">
-  <li>Open <b>stjames1980.github.io/sjs-sports</b> in <b>Chrome</b>. A link opened from WhatsApp opens <i>inside</i> WhatsApp, where Google blocks sign-in — tap ⋮ → <b>Open in Chrome</b>.</li>
+  <li>Use your <b>SJS App login</b> — the same Staff ID (or email) and password as SJS App. If you are already signed in to SJS App in this browser, the Sports app signs you in by itself.</li>
+  <li>Forgot the password? For a Staff ID, the Admin resets it in SJS App → Teachers.</li>
+  <li>Open <b>stjames1980.github.io/sjs-sports</b> in Chrome (not inside WhatsApp).</li>
   <li>If nothing happens when you tap, allow <b>pop-ups</b> for this site (Chrome ⋮ → Settings → Site settings → Pop-ups) and try again.</li>
-  <li>Choose the Gmail the Admin gave access to. Signed in with the wrong one? Tap <b>Sign out</b> above and sign in again.</li>
+  <li>If the Google window <b>flashes white and closes</b> (stays “Connecting…”), the browser is blocking sign-in cookies: Chrome ⋮ → Settings → Privacy and security → Third-party cookies → <b>Sites allowed to use third-party cookies → Add</b> → type <code>[*.]firebaseapp.com</code>. Also turn off ad-blockers for this site, and do not use Incognito.</li>
+  <li>Signed in with the wrong login? Tap <b>Sign out</b> above and sign in again.</li>
   <li>Still stuck? Update Chrome, or try on another phone or laptop. The message shown at the top tells the Admin what went wrong.</li></ol></details></div>`;
  const lockCard=`<div class="card" style="margin-bottom:16px"><h3>Final results lock ${cur.locked?'<span class="tag rec">Locked</span>':'<span class="tag ok">Open</span>'}</h3><p style="margin-top:0">${cur.locked?'Results, entries and special points of '+esc(cur.year)+' cannot be changed on any device. Reports and certificates still work.':'Lock when the meet is over and the Principal has approved the results, so nobody changes them by mistake.'}</p><div class="row"><button class="btn ${cur.locked?'':'pri'}" data-act="toggleLock">${cur.locked?'Unlock results':'Lock results as final'}</button><label style="flex:1 1 240px">Your name on this device (shown in the Change Log)<input id="meName" value="${esc((()=>{try{return localStorage.getItem(ME_KEY)||''}catch(e){return''}})())}" placeholder="e.g. Sir Lalramenga"></label></div></div>`;
  return`<h2>Sessions &amp; backup</h2>${liveCard}${lockCard}<p class="lead">Each academic year is its own session. Start a new one and keep the houses, categories, rules, events and meet records — results start empty.</p>
@@ -2211,15 +2239,15 @@ const ACT={
  addEvent:()=>{const s=S();const name=val('neName');if(!name){toast('Type the event name');$('#neName').focus();return}
   const cats=chk('neAllCat')?s.cats.map(c=>c.id):[$('#neCat').value];const gens=chk('neBoth')?['Boys','Girls']:[$('#neGen').value];let n=0;
   cats.forEach(cid=>gens.forEach(g=>{s.events.push({id:uid(),name,catId:cid,gender:g,typeId:$('#neType').value,measure:$('#neMeas').value,rec:blankRec()});n++}));ui.preset=null;save();rerender();toast(`${n} event${n>1?'s':''} added`)},
- roleAdd:async()=>{if(!isLive()){toast('Turn on live sharing first');return}const em=val('ruEmail').toLowerCase(),name=val('ruName'),role=$('#ruRole').value;
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){toast('Type a full Gmail address');$('#ruEmail').focus();return}
-  if(SP_ADMINS.includes(em)){toast('That Gmail is already the Admin');return}
+ roleAdd:async()=>{if(!isLive()){toast('Turn on live sharing first');return}const raw=val('ruEmail');const em=raw?idToEmail(raw):'',name=val('ruName'),role=$('#ruRole').value;
+  if(!raw||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){toast('Pick a teacher or type a Staff ID / email');$('#ruEmail').focus();return}
+  if(SP_ADMINS.includes(em)){toast('That login is already the Admin');return}
   if(role==='incharge'&&spRole()!=='admin'){toast('Only the Admin can make a Sports In-charge');return}
   const ex=(SY.roleList||[]).find(u=>u.email===em);if(ex&&ex.role==='incharge'&&spRole()!=='admin'){toast('Only the Admin can change a Sports In-charge');return}
-  try{await SY.fs.collection('sports_roles').doc(em).set({role,name:name||(ex&&ex.name)||'',by:SY.user.displayName||SY.user.email,at:Date.now()});toast(`${name||em} is now ${ROLE_L[role]}`);$('#ruEmail').value='';$('#ruName').value=''}
+  try{await SY.fs.collection('sports_roles').doc(em).set({role,name:name||(ex&&ex.name)||'',by:SY.user.displayName||SY.user.email,at:Date.now()});toast(`${name||loginName(em)} is now ${ROLE_L[role]}`);$('#ruEmail').value='';$('#ruName').value=''}
   catch(e){toast(e&&e.code==='permission-denied'?'Firebase refused — paste the new Sports rules in Firebase first (box at the bottom).':'Could not save: '+(e.message||e))}},
  roleDel:async el=>{const em=el.dataset.id;const u=(SY.roleList||[]).find(x=>x.email===em);if(!u)return;
-  if(!await ask(`Remove ${u.name||em}?`,`${ROLE_L[u.role]||u.role} access is removed. Results they already entered stay.`,'Remove'))return;
+  if(!await ask(`Remove ${u.name||loginName(em)}?`,`${ROLE_L[u.role]||u.role} access is removed. Results they already entered stay.`,'Remove'))return;
   try{await SY.fs.collection('sports_roles').doc(em).delete();toast('Access removed')}catch(e){toast(e&&e.code==='permission-denied'?NOPERM_M:'Could not remove: '+(e.message||e))}},
  arrangeDay:async()=>{const s=S(),D=ui.sday;if(!D||D==='_none')return;const st=val('arStart')||'09:00',mins=Math.max(1,parseInt(val('arGap'))||10);ui.atStart=st;ui.atGap=mins;
   const before=clashList(D,s).length;const plan=planArrange(D,st,mins,s);if(!plan.length){toast('No events on this day');return}
@@ -2404,6 +2432,7 @@ main.addEventListener('input',e=>{const el=e.target;if(isLive()&&!canManage()&&e
  if(el.dataset.af==='q'){ui.af.q=el.value;ui.aPage=0;clearTimeout(ui.at);ui.at=setTimeout(()=>{rerender();const q=main.querySelector('[data-af=q]');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},350)}
 });
 main.addEventListener('change',e=>{const el=e.target,s=S();if(blockField(el))return;
+ if(el.id==='ruPick'){const o=el.selectedOptions[0];if(o&&o.value){$('#ruEmail').value=loginName(o.value);$('#ruName').value=o.dataset.n||''}return}
  if(el.dataset.urole){if(spRole()!=='admin'){toast('Only the Admin can change roles');rerender();return}const em=el.dataset.urole;
   SY.fs.collection('sports_roles').doc(em).set({role:el.value,by:SY.user.displayName||SY.user.email,at:Date.now()},{merge:true}).then(()=>toast('Role changed'),e2=>{toast('Could not change: '+(e2.message||e2));rerender()});return}
  if(el.dataset.tsc){if(!canManage()){toast(NOPERM_M);rerender();return}DB.app.teachersScore=el.checked;save();toast(el.checked?'Every confirmed SJS App teacher can now enter results':'Only Result recorders, the Sports In-charge and the Admin can enter results');rerender();return}
@@ -2456,7 +2485,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal').classLi
 {const field=el=>el&&el.closest&&el.closest('input,textarea,select,[contenteditable=true]');
  ['copy','cut','contextmenu','dragstart','selectstart'].forEach(ev=>document.addEventListener(ev,e=>{if(!isVO()||field(e.target))return;e.preventDefault();if(ev==='copy'||ev==='cut'||ev==='contextmenu')toast(NOPERM_V)},true));
  document.addEventListener('keydown',e=>{if(!isVO())return;const k=(e.key||'').toLowerCase();
-  if(k==='printscreen'||(e.ctrlKey||e.metaKey)&&['p','s','c','x','u'].includes(k)&&!(['c','x'].includes(k)&&field(e.target))||(e.metaKey&&e.shiftKey&&['3','4','5','s'].includes(k))){e.preventDefault();toast(k==='printscreen'||e.shiftKey?'Screenshots are not allowed for view-only users — your Gmail is printed on every screen.':NOPERM_V)}},true);
+  if(k==='printscreen'||(e.ctrlKey||e.metaKey)&&['p','s','c','x','u'].includes(k)&&!(['c','x'].includes(k)&&field(e.target))||(e.metaKey&&e.shiftKey&&['3','4','5','s'].includes(k))){e.preventDefault();toast(k==='printscreen'||e.shiftKey?'Screenshots are not allowed for view-only users — your login is printed on every screen.':NOPERM_V)}},true);
  document.addEventListener('keyup',e=>{if(isVO()&&(e.key||'').toLowerCase()==='printscreen'){try{navigator.clipboard.writeText('Screenshots of the SJS Sports App are not allowed.')}catch(x){}}},true);
  const hide=on=>document.body.classList.toggle('vo-hide',on&&isVO());
  document.addEventListener('visibilitychange',()=>hide(document.hidden));window.addEventListener('blur',()=>hide(true));window.addEventListener('focus',()=>hide(false));
