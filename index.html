@@ -267,7 +267,7 @@ table.t{width:100%;border-collapse:collapse;font-size:15px}
 @media print{.paper.certs{padding:0;background:none}.paper .cs{zoom:1;margin:0;box-shadow:none}.side,.top,.noprint,.toast,.modal,.tabbar,.scrim,.pal{display:none!important}.app{display:block}main{padding:0;max-width:none}.paper{box-shadow:none;padding:0;margin:0;max-width:none;border-radius:0}body{background:#fff}}
 .chip.qpe{display:inline-flex;align-items:center;gap:4px;padding-right:4px;cursor:default}.chip.qpe .x{width:22px;height:22px;min-height:0;font-size:15px;line-height:1}.chip.qpplus{border-style:dashed;color:var(--acc,#2a8);font-weight:600}.qpadd{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}.qpadd input{width:190px;padding:6px 8px}
 .bibwr{width:70%;flex:1;margin:6mm 0;border:.6mm dashed #9aa3ad;border-radius:4mm;display:flex;align-items:flex-end;justify-content:center;font:600 5mm/1 Barlow,Arial,sans-serif!important;color:#9aa3ad;letter-spacing:.08em;text-transform:uppercase;padding-bottom:3mm}
-.bibs.bsm{grid-template-columns:1fr 1fr;gap:5mm}.bsm .bib{height:64mm;border-width:.9mm;border-radius:4mm}.bsm .bibtop{padding:2mm 4mm;font-size:3mm}.bsm .bibtop b{font-size:4.5mm}.bsm .bibno{font-size:28mm}.bsm .bibnm{font-size:5.5mm;padding:0 3mm}.bsm .bibft{font-size:2.8mm;padding:0 3mm 2.5mm}.bsm .bibwr{font-size:3mm!important;margin:3mm 0;padding-bottom:2mm}
+.bibs.bsm{grid-template-columns:1fr;gap:5mm}.bsm .bib{height:64mm;border-width:.9mm;border-radius:4mm}.bsm .bibtop{padding:2mm 4mm;font-size:3mm}.bsm .bibtop b{font-size:4.5mm}.bsm .bibno{font-size:32mm}.bsm .bibnm{font-size:5.5mm;padding:0 3mm}.bsm .bibft{font-size:2.8mm;padding:0 3mm 2.5mm}.bsm .bibwr{font-size:3mm!important;margin:3mm 0;padding-bottom:2mm}
 @media print{.bibs.bsm .bib{height:64mm}}
 </style>
 <style id="pcss"></style>
@@ -466,7 +466,7 @@ const canScore=()=>!isLive()||['admin','incharge','scorer','teacher'].includes(s
 /* view-only teachers: look only — no download, print, copy; screenshots are discouraged with a name watermark */
 const VO_KEY='sjs_sports_vo';
 function isVO(){if(isLive())return spRole()==='viewer';try{return localStorage.getItem(VO_KEY)==='1'}catch(e){return false}}
-const NOSHARE_ACTS=new Set(['copyDay','copyDuty','printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
+const NOSHARE_ACTS=new Set(['bibPdf','copyDay','copyDuty','printRep','dlRep','dayXls','xlsRes','xlsCurrent','xlsBlank','xlsProg','csv','backup','copyBackup']);
 const NOPERM_V='View only: downloading, printing and copying are turned off for your login.';
 function voPaint(){const on=isVO();document.body.classList.toggle('vo',on);
  if(isLive()){try{on?localStorage.setItem(VO_KEY,'1'):localStorage.removeItem(VO_KEY)}catch(e){}}
@@ -1093,11 +1093,43 @@ function fieldReport(cat,head,sign,foot,sw){const s=S(),E=s.entries||{};const ev
  if(!evs.length)return`<div class="p-doc">${head}<p>No jumps or throws (events with “Result by: distance / height”).</p>${foot}</div>`;
  return`<div class="p-doc">${head}${evs.map(e=>{const l=(E[e.id]||[]).map(id=>s.athletes.find(a=>a.id===id)).filter(Boolean).sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||''));const rows=l.length?l:Array.from({length:8},()=>null);
   return`<div style="break-inside:avoid;page-break-inside:avoid"><h3>${e.dayId&&dayById(e.dayId)?esc(dayById(e.dayId).name)+(e.time?' · '+fmtTime(e.time):'')+' · ':''}${esc(e.name)} — ${esc(e.gender)} · ${esc(catName(e.catId))}${e.org?` <span style="font-weight:400;font-size:12px">· In-charge: ${esc(e.org)}</span>`:''}</h3><table><thead><tr><th style="width:26px">Sl</th><th style="width:48px">Chest</th><th>Name</th><th style="width:80px">House</th><th style="width:58px">1st try</th><th style="width:58px">2nd try</th><th style="width:58px">3rd try</th><th style="width:60px">Best</th><th style="width:50px">Place</th></tr></thead><tbody>${rows.map((a,i)=>`<tr><td>${i+1}</td><td>${a?esc(a.chest||''):''}</td><td>${a?esc(a.name):''}</td><td>${a?sw(Hs(a.houseId)):''}</td><td></td><td></td><td></td><td></td><td></td></tr>`).join('')}</tbody></table><p style="font-size:11px;margin:2px 0 10px">Write the mark in metres for each try (X = foul, — = pass). Best of the three tries counts.</p></div>`}).join('')}<div class="p-sign"><div>Judge / Official</div><div>${esc(DB.app.sign2||'')}</div></div>${foot}</div>`}
-function bibsReport(cat){const s=S();const E=s.entries||{};const ent=new Set(Object.values(E).flat());
- let l=s.athletes.filter(a=>(!cat||a.catId===cat)&&(!ui.bibHouse||a.houseId===ui.bibHouse)&&(ui.bibAll||!ent.size||ent.has(a.id)));
- l.sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||'')||(parseInt(a.chest)||1e9)-(parseInt(b.chest)||1e9)||norm(a.name).localeCompare(norm(b.name)));
+function bibList(cat,all){const s=S();const E=s.entries||{};const ent=new Set(Object.values(E).flat());if(all===undefined)all=!!ui.bibAll;
+ const l=s.athletes.filter(a=>(!cat||a.catId===cat)&&(!ui.bibHouse||a.houseId===ui.bibHouse)&&(all||ent.has(a.id)));
+ return l.sort((a,b)=>((Hs(a.houseId)||{}).name||'').localeCompare((Hs(b.houseId)||{}).name||'')||(parseInt(a.chest)||1e9)-(parseInt(b.chest)||1e9)||norm(a.name).localeCompare(norm(b.name)))}
+/* ---------- Chest numbers as a real PDF file (built in, works offline) ---------- */
+const HB_W=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
+const HR_W=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+const pdfTxt=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,'-').replace(/[^\x20-\x7e]/g,'?');
+const pdfW=(t,sz,bold)=>{const W=bold?HB_W:HR_W;let w=0;for(const ch of t)w+=W[ch.charCodeAt(0)-32]||556;return w*sz/1000};
+const pdfEsc=t=>t.replace(/[\\()]/g,m=>'\\'+m);
+const pdfRGB=c=>{c=(c||'#888888').replace('#','');if(c.length===3)c=c.split('').map(x=>x+x).join('');return[0,2,4].map(i=>(parseInt(c.slice(i,i+2),16)/255).toFixed(3)).join(' ')};
+function pdfRound(x,y,w,h,r){const k=r*0.5523;return`${x+r} ${y} m ${x+w-r} ${y} l ${x+w-r+k} ${y} ${x+w} ${y+r-k} ${x+w} ${y+r} c ${x+w} ${y+h-r} l ${x+w} ${y+h-r+k} ${x+w-r+k} ${y+h} ${x+w-r} ${y+h} c ${x+r} ${y+h} l ${x+r-k} ${y+h} ${x} ${y+h-r+k} ${x} ${y+h-r} c ${x} ${y+r} l ${x} ${y+r-k} ${x+r-k} ${y} ${x+r} ${y} c h`}
+function pdfFit(t,sz,max,bold){t=pdfTxt(t);let f=sz;while(f>5&&pdfW(t,f,bold)>max)f-=0.5;return[t,f]}
+function pdfCenter(t,f,cx,y,bold,col){return`BT /${bold?'F1':'F2'} ${f} Tf ${col} rg ${(cx-pdfW(t,f,bold)/2).toFixed(2)} ${y.toFixed(2)} Td (${pdfEsc(t)}) Tj ET\n`}
+function bibCard(a,x,y,w,h){const s=S(),h0=Hs(a.houseId)||{name:'No house',color:'#888888'};const hc=pdfRGB(h0.color),ht=pdfRGB(txtOn(h0.color));const r=Math.min(18,h*0.08),bw=Math.max(2.5,h*0.012),band=h*0.16;let o='';
+ o+=`q ${hc} rg ${pdfRound(x,y,w,h,r)} f Q\n`;
+ o+=`q 1 1 1 rg ${pdfRound(x+bw,y+bw,w-2*bw,h-band-bw,Math.max(2,r-bw))} f Q\n`;
+ const sz=band*0.34;const [sc,sf]=pdfFit((DB.app.school||'').toUpperCase(),sz,w*0.55,true);o+=`BT /F1 ${sf} Tf ${ht} rg ${(x+w*0.04).toFixed(2)} ${(y+h-band*0.62).toFixed(2)} Td (${pdfEsc(sc)}) Tj ET\n`;
+ const [hn,hf]=pdfFit(h0.name.toUpperCase(),band*0.56,w*0.36,true);o+=`BT /F1 ${hf} Tf ${ht} rg ${(x+w*0.96-pdfW(hn,hf,true)).toFixed(2)} ${(y+h-band*0.68).toFixed(2)} Td (${pdfEsc(hn)}) Tj ET\n`;
+ const body=h-band,cx=x+w/2,foot=body*0.1,nmH=body*0.17;
+ const ft=[a.cls?'Class '+a.cls+(a.sec?' '+a.sec:''):'',(Cs(a.catId)||{}).name,s.title+' '+s.year].filter(Boolean).join('  ·  ').replace(/·/g,'-');
+ const [fs,ff]=pdfFit(ft,body*0.05,w*0.9,false);o+=pdfCenter(fs,ff,cx,y+foot*0.55,false,'0.27 0.27 0.27');
+ const [ns,nf]=pdfFit(a.name,body*0.11,w*0.9,true);o+=pdfCenter(ns,nf,cx,y+foot+nmH*0.3,true,'0.07 0.07 0.07');
+ const top=y+body-body*0.06,bot=y+foot+nmH+body*0.02,avail=top-bot;
+ if(a.chest){const [cs,cf]=pdfFit(String(a.chest),avail*1.3,w*0.86,true);o+=pdfCenter(cs,cf,cx,bot+(avail-cf*0.72)/2,true,'0.07 0.07 0.07')}
+ else{const bxw=w*0.6;o+=`q 0.6 0.64 0.68 RG 1.4 w [5 4] 0 d ${pdfRound(cx-bxw/2,bot+avail*0.06,bxw,avail*0.88,10)} S Q\n`;o+=pdfCenter('CHEST NO.',Math.min(13,avail*0.09),cx,bot+avail*0.12,true,'0.6 0.64 0.68')}
+ return o}
+function bibPDF(list,small){const PW=595.28,PH=841.89,M=28,G=14;const per=small?4:2;const cw=PW-2*M,ch=(PH-2*M-G*(per-1))/per;const pages=[];
+ for(let i=0;i<list.length;i+=per){let c='';list.slice(i,i+per).forEach((a,j)=>{c+=bibCard(a,M,PH-M-(j+1)*ch-j*G,cw,ch)});pages.push(c)}
+ const objs=['<< /Type /Catalog /Pages 2 0 R >>',null,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>','<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'];const kids=[];
+ pages.forEach(c=>{const pn=objs.length+1;kids.push(pn+' 0 R');objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${pn+1} 0 R >>`);objs.push(`<< /Length ${c.length} >>\nstream\n${c}\nendstream`)});
+ objs[1]=`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${kids.length} >>`;
+ let out='%PDF-1.4\n';const off=[];objs.forEach((o,i)=>{off.push(out.length);out+=`${i+1} 0 obj\n${o}\nendobj\n`});const xr=out.length;
+ out+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+off.map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objs.length+1} /Root 1 0 R /Info << /Title (${pdfEsc(pdfTxt(DB.app.school+' - Chest numbers'))}) >> >>\nstartxref\n${xr}\n%%EOF`;
+ const b=new Uint8Array(out.length);for(let i=0;i<out.length;i++)b[i]=out.charCodeAt(i)&255;return b}
+function bibsReport(cat){const s=S();const l=bibList(cat);
  const noChest=l.filter(a=>!a.chest).length;
- if(!l.length)return`<div class="p-doc"><p>No students to print. ${ui.bibAll?'':'Only students entered in events are printed — tick “All members” above, or add entries first.'}</p></div>`;
+ if(!l.length)return`<div class="p-doc"><p>No students to print. ${ui.bibAll?'':'No students are entered in events yet (for this choice) — add them on Event entries, or choose “All members” above.'}</p></div>`;
  return`<div class="bibs${ui.bibSm?' bsm':''}">${noChest?`<p class="noprint tiny" style="color:#b45309;grid-column:1/-1;margin:0">${noChest} student${noChest>1?'s have':' has'} no chest number yet — use “Number chest nos” on Athletes / participants, or print and write by hand.</p>`:''}${l.map(a=>{const h=Hs(a.houseId)||{name:'No house',color:'#888'};return`<div class="bib" style="--hc:${h.color};--ht:${txtOn(h.color)}"><div class="bibtop"><span>${esc(DB.app.school)}</span><b>${esc(h.name)}</b></div>${a.chest?`<div class="bibno">${esc(a.chest)}</div>`:'<div class="bibno bibwr"><span>Chest No.</span></div>'}<div class="bibnm">${esc(a.name)}</div><div class="bibft">${[a.cls?'Class '+a.cls+(a.sec?' '+a.sec:''):'',(Cs(a.catId)||{}).name,esc(S().title)+' '+esc(S().year)].filter(Boolean).map(esc).join(' · ')}</div></div>`}).join('')}</div>`}
 function heatsReport(cat,head,sign,foot,sw){const s=S();const evs=repEvents(cat).filter(e=>{const r=s.results[e.id];return r&&r.heats&&r.heats.list&&r.heats.list.length}).filter(e=>!ui.heatEv||e.id===ui.heatEv);
  if(!evs.length)return`<div class="p-doc">${head}<p>No heats yet. Open an event in Enter results and use “Heats”.</p>${foot}</div>`;
@@ -2403,7 +2435,7 @@ function pReports(){
  <div class="repg">${REPG.map(([g,ks])=>`<div><span class="tiny repgl">${esc(g)}</span><div class="row">${ks.map(v=>`<button class="btn sm ${k===v?'pri':''}" data-act="rep" data-id="${v}">${REPS[v]}</button>`).join('')}</div></div>`).join('')}</div>
  <div class="row" style="margin-top:12px"><label style="flex:0 1 220px">Day<select data-act2="repDay">${opt('','All days',ui.repDay)}${(s.days||[]).map(d=>opt(d.id,dayLabel(d.id),ui.repDay)).join('')}${opt('_none','Not scheduled',ui.repDay)}</select></label><label style="flex:0 1 260px">Category<select data-act2="repCat">${opt('','All categories',cat)}${s.cats.map(c=>opt(c.id,c.name,cat)).join('')}${opt('_open','Open',cat)}</select></label>
  ${k==='certs'?`<label style="flex:0 1 260px">Certificates for<select data-act2="certSel">${opt('all','All winners + Best Boy/Girl',ui.certSel)}${opt('first','1st place only',ui.certSel)}${opt('best','Best Boy & Best Girl only',ui.certSel)}${opt('part','Participation — every student who took part',ui.certSel)}${opt('blank','Blank certificate (fill by hand)',ui.certSel)}</select></label>${ui.certSel==='part'?`<label style="flex:0 1 180px">House<select data-act2="certHouse">${opt('','All houses',ui.certHouse||'')}${S().houses.map(h=>opt(h.id,h.name,ui.certHouse||'')).join('')}</select></label>`:''}${ui.certSel==='blank'?`<label style="flex:0 1 220px">Sport picture<select data-act2="blankSport">${SPORTS.filter(x=>x[0]!=='auto').map(x=>opt(x[0],x[1],ui.blankSport||'trophy')).join('')}</select></label>`:''}`:''}
- ${k==='bibs'?`<label style="flex:0 1 180px">House<select data-act2="bibHouse">${opt('','All houses',ui.bibHouse||'')}${S().houses.map(h=>opt(h.id,h.name,ui.bibHouse||'')).join('')}</select></label><label style="flex:0 1 200px">Size<select data-act2="bibSm">${opt('','Large — 2 on one A4',ui.bibSm?'1':'')}${opt('1','Small — 4 on one A4',ui.bibSm?'1':'')}</select></label><label class="chk"><input type="checkbox" data-act="bibAll" ${ui.bibAll?'checked':''}> All members (not only students in events)</label>`:''}${k==='duties'?'<button class="btn pri" data-act="copyDuty">Copy for WhatsApp</button>':''}<button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
+ ${k==='bibs'?`<label style="flex:0 1 270px">Who<select data-act2="bibWho">${opt('in',`Participants — students in events (${bibList(ui.repCat,false).length})`,ui.bibAll?'all':'in')}${opt('all',`All members (${bibList(ui.repCat,true).length})`,ui.bibAll?'all':'in')}</select></label><label style="flex:0 1 180px">House<select data-act2="bibHouse">${opt('','All houses',ui.bibHouse||'')}${S().houses.map(h=>opt(h.id,h.name,ui.bibHouse||'')).join('')}</select></label><label style="flex:0 1 200px">Size<select data-act2="bibSm">${opt('','Large — 2 on one A4',ui.bibSm?'1':'')}${opt('1','Small — 4 on one A4',ui.bibSm?'1':'')}</select></label><button class="btn pri" data-act="bibPdf">⬇ Download PDF (${bibList(ui.repCat).length})</button>`:''}${k==='duties'?'<button class="btn pri" data-act="copyDuty">Copy for WhatsApp</button>':''}<button class="btn pri" data-act="printRep">Print</button><button class="btn pri" data-act="xlsRes">Download all results (Excel)</button><button class="btn" data-act="dlRep">Download as page (.html)</button><button class="btn" data-act="csv">CSV</button></div>
  ${isVO()?'':`<p class="tiny">${k==='certs'?'Click any text on a certificate below to correct it before printing. Change colours, wording and pictures in <a href="#certificate">Certificate design</a>. In the print window choose Paper: A4, Layout: Landscape, Margins: None, and tick Background graphics. ':''}If Print does nothing here, download the page and print it from your browser — or use the offline copy of the app, where printing works directly.</p>`}</div>
  <div class="paper ${k==='certs'?'certs':''}" id="paper">${repHTML(k,cat)}</div>`;
 }
@@ -2732,6 +2764,9 @@ const ACT={
   s.results[eid]={...(prev&&prev.heats?{heats:prev.heats}:{}),...(prev&&prev.fx?{fx:prev.fx}:{}),jm:J,rows:keep.map(x=>({pos:x.rank,houseId:x.r.houseId,name:x.r.name||'',athId:x.r.athId||'',perf:String(x.t)})),at:Date.now(),by:whoAmI(),hist:hist.slice(0,6)};save();rerender();toast('Saved — house points updated')},
  jmPrint:()=>{ui.report='judges';ui.jmEv=null;ui.repDay='';ui.repCat=ui.jmCat||'';location.hash='#reports'},
  attToggle:()=>{ui.att=!ui.att;$('#editor').innerHTML=editorHTML()},
+ bibPdf:async()=>{const l=bibList(ui.repCat);if(!l.length){toast(ui.bibAll?'No students to put in the PDF':'No students are entered in events yet — add them on Event entries, or choose All members');return}
+  const nm=['Chest_numbers',ui.bibAll?'all_members':'participants',ui.repCat?(Cs(ui.repCat)||{}).name:'',ui.bibHouse?(Hs(ui.bibHouse)||{}).name:'',ui.bibSm?'small':''].filter(Boolean).join('_').replace(/[^A-Za-z0-9_-]+/g,'-')+'.pdf';
+  toast(`Making the PDF — ${l.length} cards…`);await new Promise(r=>setTimeout(r,30));await saveFile(nm,bibPDF(l,!!ui.bibSm))},
  bibAll:()=>{ui.bibAll=!ui.bibAll;rerender()},
  annDay:el=>{ui.annDay=el.dataset.id;rerender()},
  annCalled:el=>{const a=annGet();if(!a.called.includes(el.dataset.id))a.called.push(el.dataset.id);annSet(a);rerender()},
@@ -2925,6 +2960,7 @@ main.addEventListener('change',e=>{const el=e.target,s=S();if(blockField(el))ret
  if(el.dataset.act2==='repDay'){ui.repDay=el.value;rerender();return}
  if(el.dataset.act2==='certSel'){ui.certSel=el.value;rerender();return}
  if(el.dataset.act2==='certHouse'){ui.certHouse=el.value;rerender();return}
+ if(el.dataset.act2==='bibWho'){ui.bibAll=el.value==='all';rerender();return}
  if(el.dataset.act2==='bibSm'){ui.bibSm=!!el.value;rerender();return}
  if(el.dataset.act2==='bibHouse'){ui.bibHouse=el.value;rerender();return}
  if(el.dataset.msel){if(el.dataset.msel==='all'){(ui.mShown||[]).forEach(id=>el.checked?ui.msel.add(id):ui.msel.delete(id))}else{el.checked?ui.msel.add(el.dataset.msel):ui.msel.delete(el.dataset.msel)}rerender();return}
