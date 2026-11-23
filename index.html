@@ -393,7 +393,7 @@ const RULES_TXT=`    // ===== SJS Sports App (Annual Sports Meet) — user contr
       allow write: if spManager() || (coll == 'r' && spRecorder() && spOpen(sid));
     }`;
 const SY={myRole:null,isStaff:false,roleList:null,roleErr:'',roleUnsub:[],state:'off',user:null,fs:null,unsub:[],sesUnsub:[],subSid:null,last:{},ready:{},applying:false,timer:null,readonly:false,err:'',pending:0,remoteActive:null,pendingRender:false};
-const CFG_FIELDS=['id','year','title','date','venue','created','demo','houses','cats','types','events','maxEntry','days','locked','maxPerStudent'];
+const CFG_FIELDS=['id','year','title','date','venue','created','demo','houses','cats','types','events','maxEntry','days','locked','maxPerStudent','restGap'];
 const SJ=o=>{const f=x=>Array.isArray(x)?x.map(f):x&&typeof x==='object'?Object.keys(x).sort().reduce((a,k)=>(x[k]!==undefined&&(a[k]=f(x[k])),a),{}):x;return JSON.stringify(f(o===undefined?null:o))};
 const clean=o=>JSON.parse(JSON.stringify(o));
 const pickCfg=s=>{const o={};CFG_FIELDS.forEach(k=>{if(s[k]!==undefined)o[k]=s[k]});return clean(o)};
@@ -445,14 +445,28 @@ function liveFail(e){
  SY.state='error';SY.err=denied?'This Gmail is not allowed yet. The Admin must add the sports rule in Firebase (see Sessions & backup) and confirm you as staff in SJS App → Teachers.':'Live sharing problem: '+((e&&e.message)||e);
  paintLive();toast(SY.err);
 }
+const inAppBrowser=()=>/FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Line\/|; wv\)|MicroMessenger|Snapchat|Telegram/i.test(navigator.userAgent||'');
+const notSite=()=>!/(^|\.)stjames1980\.github\.io$/i.test(location.hostname)&&!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)&&location.protocol!=='file:';
+function signErr(e){const c=String(e&&e.code||'');const m={
+ 'auth/unauthorized-domain':'Google sign-in only works on stjames1980.github.io/sjs-sports. Open that address in Chrome.',
+ 'auth/popup-closed-by-user':'The Google window was closed before signing in. Tap Live sharing and try again.',
+ 'auth/cancelled-popup-request':'Sign-in was interrupted. Tap Live sharing once and wait.',
+ 'auth/network-request-failed':'No internet connection. Connect and try again.',
+ 'auth/web-storage-unsupported':'This browser blocks sign-in storage. Open the app in Chrome (not inside WhatsApp), and allow cookies.',
+ 'auth/operation-not-supported-in-this-environment':'Sign-in does not work inside this app. Open stjames1980.github.io/sjs-sports in Chrome.',
+ 'auth/internal-error':'Google sign-in failed. Open the app in Chrome (not inside WhatsApp) and try again.',
+ 'auth/too-many-requests':'Too many tries. Wait a few minutes and try again.',
+ 'auth/user-disabled':'This Google account is disabled.'}[c];return m||('Sign-in failed'+(c?' ('+c+')':'')+'. Open stjames1980.github.io/sjs-sports in Chrome and try again.')}
+async function googleSignIn(auth){const pv=new firebase.auth.GoogleAuthProvider();if(pv.setCustomParameters)pv.setCustomParameters({prompt:'select_account'});
+ if(inAppBrowser())throw{code:'auth/operation-not-supported-in-this-environment'};
+ try{return(await auth.signInWithPopup(pv)).user}catch(e){if(e&&/popup-blocked|operation-not-supported/.test(e.code||'')){try{sessionStorage.setItem('sjs_live_redirect','1')}catch(x){}await auth.signInWithRedirect(pv);return null}throw e}}
 async function liveStart(interactive){
  SY.state='connecting';SY.err='';paintLive();
  if(!await fbInit()){SY.state='off';paintLive();if(interactive)toast(SY.err);return}
  const auth=firebase.auth();
  let u=auth.currentUser||await new Promise(r=>{const un=auth.onAuthStateChanged(x=>{un();r(x)})});
  if(!u){if(!interactive){SY.state='off';paintLive();return}
-  const pv=new firebase.auth.GoogleAuthProvider();
-  try{u=(await auth.signInWithPopup(pv)).user}catch(e){if(e&&/popup-blocked|operation-not-supported/.test(e.code||'')){try{await auth.signInWithRedirect(pv);return}catch(e2){}}SY.state='off';SY.err='Sign-in was cancelled.';paintLive();return}}
+  try{u=await googleSignIn(auth);if(!u)return}catch(e){SY.state='error';SY.err=signErr(e);paintLive();toast(SY.err);if(ui.page==='sessions')rerender();return}}
  SY.user=u;SY.readonly=false;try{localStorage.setItem(LIVE_KEY,'1')}catch(e){}
  await roleInit(u);
  let snap;try{snap=await mainRef().get()}catch(e){liveFail(e);return}
@@ -461,7 +475,7 @@ async function liveStart(interactive){
   if(!await ask('Start live sharing?','No shared sports data exists yet. Upload the data on this device so every staff phone sees the same points?','Upload and share')){liveStop(false);return}
   try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}
  }else{try{localStorage.setItem(KEY+'_before_live',JSON.stringify(DB))}catch(e){}}
- SY.state='live';subscribe();paintLive();rerender();if(interactive)toast('Live sharing is on · your access: '+ROLE_L[spRole()]);
+ SY.state='live';subscribe();paintLive();rerender();if(interactive)toast(spRole()==='viewer'?`Signed in as ${u.email} — View only. If you were given a role, you may have chosen a different Gmail: Sessions & backup → Sign out, then sign in again.`:'Live sharing is on · your access: '+ROLE_L[spRole()]);
 }
 function liveStop(signOut){
  roleStop();SY.myRole=null;SY.isStaff=false;SY.roleList=null;
@@ -1749,8 +1763,17 @@ let STAFF=null;
 async function loadStaff(){if(STAFF||!SY.fs||!SY.user)return;STAFF=[];try{const q=await SY.fs.collection('att_teachers').get();STAFF=q.docs.map(d=>String(d.data().name||'').trim()).filter(Boolean);if(['schedule','events','reports'].includes(ui.page))softRender()}catch(e){STAFF=[]}}
 function staffList(){const s=S();const used=s.events.flatMap(e=>orgNames(e.org));return[...new Set([...used,...(STAFF||[])])].sort((a,b)=>a.localeCompare(b))}
 const staffDL=()=>`<datalist id="staffList">${staffList().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`;
+function clashCard(D){const s=S();const all=clashList('',s);const l=D&&D!=='_none'?clashList(D,s):all;const g=restGap(s);const nt=s.events.filter(e=>e.dayId&&dayById(e.dayId)&&!e.time&&(s.entries||{})[e.id]&&s.entries[e.id].length).length;
+ const byDay={};all.forEach(c=>{const k=c.e1.dayId;byDay[k]=(byDay[k]||0)+1});
+ return`<div class="card" style="margin-top:16px"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">Participant clash check ${all.length?`<span class="tag rec">${all.length} clash${all.length>1?'es':''}</span>`:'<span class="tag ok">No clashes</span>'}</h3>
+  <label class="row" style="align-items:center;gap:8px;margin:0">A student's events must be at least<input type="number" min="0" max="240" data-ses="restGap" value="${g}" style="width:80px" aria-label="Minutes between a student's events"> minutes apart</label></div>
+  <p class="tiny" style="margin:6px 0 0">Checks every student entered in two or more events on the same day. ${Object.keys(byDay).length>1?Object.entries(byDay).map(([k,v])=>`${esc((dayById(k)||{}).name||'')}: ${v}`).join(' · '):''}${nt?` · <b>${nt}</b> event${nt>1?'s':''} with entries have no time yet, so they cannot be checked.`:''}</p>
+  ${l.length?`<div class="scroll" style="margin-top:10px;max-height:320px;overflow:auto"><table class="t stack"><thead><tr><th>Student</th><th>House</th><th>First event</th><th>Second event</th><th class="n">Gap</th></tr></thead><tbody>${l.slice(0,200).map(c=>`<tr><td><b>${esc(c.a.name)}</b>${c.a.cls?` <span class="tiny">${esc(c.a.cls)}${c.a.sec?'-'+esc(c.a.sec):''}</span>`:''}</td><td>${esc((Hs(c.a.houseId)||{}).name||'')}</td><td>${fmtTime(c.e1.time)} · ${esc(c.e1.name)} <span class="tiny">${esc(c.e1.gender)}, ${esc(catName(c.e1.catId))}</span></td><td>${fmtTime(c.e2.time)} · ${esc(c.e2.name)} <span class="tiny">${esc(c.e2.gender)}, ${esc(catName(c.e2.catId))}</span></td><td class="n">${c.mins?c.mins+' min':'<b>same time</b>'}</td></tr>`).join('')}</tbody></table></div>${l.length>200?`<p class="tiny">Showing 200 of ${l.length}.</p>`:''}`:''}
+  ${D&&D!=='_none'?`<div class="row" style="margin-top:12px;align-items:end;border-top:1px solid var(--line);padding-top:12px"><label style="flex:0 1 140px">Start time<input type="time" id="arStart" value="${esc(ui.atStart||'09:00')}"></label><label style="flex:0 1 160px">Minutes per event<input type="number" min="1" id="arGap" value="${esc(ui.atGap||10)}"></label>
+   <button class="btn pri" data-act="arrangeDay">Arrange ${esc((dayById(D)||{}).name||'this day')} to avoid clashes</button>${ui.arrUndo&&ui.arrUndo.day===D?'<button class="btn" data-act="arrangeUndo">Undo arrange</button>':''}
+   <span class="tiny" style="flex:1 1 260px">Puts the events of this day in an order where no student has two events within ${g} minutes (where possible), then fills the times one after another. You see the result before anything changes.</span></div>`:`<p class="tiny" style="margin:10px 0 0">To fix clashes automatically, choose a day above (Day 1, Day 2 …) and use <b>Arrange to avoid clashes</b>, or change times by hand.</p>`}</div>`}
 function pSchedule(){if(isLive())loadStaff();
- const s=S();s.days=s.days||[];const D=ui.sday||'';const list=dayEvents(D);const all=s.events.length;const none=s.events.filter(e=>inDay(e,'_none')).length;
+ const s=S();s.days=s.days||[];const D=ui.sday||'';const list=dayEvents(D);const clashN={};clashList('',s).forEach(c=>{clashN[c.e1.id]=(clashN[c.e1.id]||0)+1;clashN[c.e2.id]=(clashN[c.e2.id]||0)+1});const all=s.events.length;const none=s.events.filter(e=>inDay(e,'_none')).length;
  const dsel=(e)=>`<select data-col="events" data-id="${e.id}" data-f="dayId" data-re="1" aria-label="Day">${opt('','— Not scheduled',e.dayId&&dayById(e.dayId)?e.dayId:'')}${s.days.map(d=>opt(d.id,d.name,e.dayId)).join('')}</select>`;
  const chips=[['','All events',all],...s.days.map(d=>[d.id,d.name,s.events.filter(e=>e.dayId===d.id).length]),['_none','Not scheduled',none]];
  return`<h2>Schedule</h2><p class="lead">Plan the meet day by day: give every event a day, a time and a venue. Then print each day's programme, the participant lists for the officials, and the result sheets.</p>
@@ -1775,6 +1798,7 @@ function pSchedule(){if(isLive())loadStaff();
   <label style="flex:1 1 150px">Event name has<input id="boHas" placeholder="e.g. Jump, Relay, Race"></label></div>
   <label class="chk"><input type="checkbox" id="boOnly" checked> Only events that have no in-charge yet</label>
   <div class="row"><button class="btn pri" data-act="bulkOrg">Set in-charge</button><button class="btn" data-act="dayRep" data-id="duties">Print teacher duty list</button></div></div>
+ ${clashCard(D)}
  <div style="margin-top:16px">${progBar()}</div>
  <div class="card" style="margin-top:16px">
   <div class="chips">${chips.map(([id,n,k])=>`<button class="chip ${D===id?'on':''}" data-act="sDay" data-id="${id}">${esc(n)} <span class="mut">${k}</span></button>`).join('')}</div>
@@ -1783,7 +1807,7 @@ function pSchedule(){if(isLive())loadStaff();
   ${D&&D!=='_none'?`<div class="row" style="margin-top:10px;align-items:end"><label style="flex:0 1 140px">Start time<input type="time" id="atStart" value="${esc(ui.atStart||'09:00')}"></label><label style="flex:0 1 160px">Minutes per event<input type="number" min="1" id="atGap" value="${esc(ui.atGap||10)}"></label><button class="btn sm" data-act="autoTime">Fill times in this order</button><span class="tiny">Sets times one after another for the events below. Use ↑ ↓ to change the order first.</span></div>`:''}
   <div class="scroll" style="margin-top:10px"><table class="t stack"><thead><tr><th>Time</th><th>Event / item</th><th>Day</th><th>Venue</th><th>In-charge / organiser</th><th>Per house</th><th class="n">Entries</th><th>Status</th>${D&&D!=='_none'?'<th>Order</th>':''}</tr></thead><tbody>
   ${list.map((e,i)=>`<tr><td><input type="time" data-col="events" data-id="${e.id}" data-f="time" data-re="1" value="${esc(e.time||'')}" style="width:150px" aria-label="Time"></td>
-   <td><b>${esc(e.name)}</b><br><span class="tiny">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc((Ts(e.typeId)||{}).name||'')}</span></td>
+   <td><b>${esc(e.name)}</b>${(()=>{const n=clashN[e.id];return n?` <span class="tag rec" title="${n} student clash${n>1?'es':''} — see Participant clash check">⚠ ${n}</span>`:''})()}<br><span class="tiny">${esc(e.gender)} · ${esc(catName(e.catId))} · ${esc((Ts(e.typeId)||{}).name||'')}</span></td>
    <td>${dsel(e)}</td><td><input data-col="events" data-id="${e.id}" data-f="venue" list="venueList" value="${esc(e.venue||'')}" placeholder="e.g. Main field" style="min-width:120px" aria-label="Venue"></td>
    <td><input data-col="events" data-id="${e.id}" data-f="org" list="staffList" value="${esc(e.org||'')}" placeholder="Teacher name(s)" style="min-width:170px" aria-label="In-charge or organiser"></td>
    <td><input type="number" min="1" data-col="events" data-id="${e.id}" data-f="slots" value="${esc(slotsFor(e))}" style="width:70px" aria-label="Participants per house"></td>
@@ -1874,9 +1898,29 @@ function checkResult(e,rows){const s=S(),t=Ts(e.typeId)||{},w=[];const E=(s.entr
   const ok=rows.filter(r=>!isNaN(parsePerf(r.perf))).sort((a,b)=>a.pos-b.pos);for(let i=1;i<ok.length;i++){const a=parsePerf(ok[i-1].perf),b=parsePerf(ok[i].perf);if(ok[i].pos>ok[i-1].pos&&(e.measure==='time'?b<a:b>a)){w.push(`${ord(ok[i].pos)} place has a ${e.measure==='time'?'faster time':'better mark'} than ${ord(ok[i-1].pos)} — check the order.`);break}}}
  return[...new Set(w)]}
 function maxPer(s=S()){return +s.maxPerStudent||0}
+/* ---------- participant clash check: a student's events on the same day must be restGap minutes apart ---------- */
+const hm=t=>{const m=String(t||'').match(/^(\d{1,2}):(\d{2})/);return m?(+m[1])*60+(+m[2]):null};
+const restGap=(s=S())=>Math.max(0,parseInt(s.restGap??20)||0);
+function clashList(day,s=S()){const E=s.entries||{};const g=restGap(s);const by={};
+ s.events.forEach(e=>{if(!e.dayId||!dayById(e.dayId)||(day&&day!=='_none'&&e.dayId!==day))return;const tm=hm(e.time);if(tm===null)return;(E[e.id]||[]).forEach(id=>(by[id]=by[id]||[]).push([e,tm]))});
+ const out=[];Object.entries(by).forEach(([id,l])=>{if(l.length<2)return;const a=s.athletes.find(z=>z.id===id);if(!a)return;
+  for(let i=0;i<l.length;i++)for(let j=i+1;j<l.length;j++){const[x,tx]=l[i],[y,ty]=l[j];if(x.dayId!==y.dayId)continue;const d=Math.abs(tx-ty);if(d<Math.max(g,1)||d===0){const[e1,e2]=tx<=ty?[x,y]:[y,x];out.push({a,e1,e2,mins:d})}}});
+ return out.sort((p,q)=>(hm(p.e1.time)-hm(q.e1.time))||norm(p.a.name).localeCompare(norm(q.a.name)))}
+function clashCount(s=S()){return clashList('',s).length}
+/* re-order one day so students get rest between events, then fill times */
+function planArrange(day,start,mins,s=S()){const E=s.entries||{};const L=dayEvents(day,s);const g=Math.max(1,restGap(s));const need=Math.ceil(g/mins);
+ const set=e=>new Set(E[e.id]||[]);const S2=new Map(L.map(e=>[e.id,set(e)]));const share=(a,b)=>{const x=S2.get(a.id),y=S2.get(b.id);if(!x.size||!y.size)return 0;let n=0;x.forEach(v=>{if(y.has(v))n++});return n};
+ let best=null;const tries=[L.slice(),L.slice().reverse(),L.slice().sort((a,b)=>S2.get(b.id).size-S2.get(a.id).size)];
+ for(const base of tries){const rem=base.slice(),out=[];let bad=0;
+  while(rem.length){const recent=out.slice(-Math.max(0,need-1));let pick=-1,pc=1e9;
+   for(let i=0;i<rem.length;i++){const c=recent.reduce((n,r)=>n+share(r,rem[i]),0);if(c===0){pick=i;pc=0;break}if(c<pc){pc=c;pick=i}}
+   bad+=pc;out.push(rem.splice(pick,1)[0])}
+  if(!best||bad<best.bad)best={order:out,bad}}
+ const[h,m]=String(start||'09:00').split(':').map(Number);let tm=h*60+m;
+ const plan=best.order.map((e,i)=>{const time=String(Math.floor(tm/60)%24).padStart(2,'0')+':'+String(tm%60).padStart(2,'0');tm+=mins;return{e,ord:i,time}});return plan}
 function studentWarn(aid,s=S()){const E=s.entries||{};const evs=s.events.filter(e=>(E[e.id]||[]).includes(aid));const w=[];
  const ind=evs.filter(e=>!(Ts(e.typeId,s)||{}).team).length;if(maxPer(s)&&ind>maxPer(s))w.push(`${ind} individual events (limit ${maxPer(s)})`);
- for(let i=0;i<evs.length;i++)for(let j=i+1;j<evs.length;j++){const a=evs[i],b=evs[j];if(a.dayId&&a.dayId===b.dayId&&a.time&&a.time===b.time)w.push(`time clash: ${a.name} and ${b.name} at ${fmtTime(a.time)}`)}
+ const g=restGap(s);for(let i=0;i<evs.length;i++)for(let j=i+1;j<evs.length;j++){const a=evs[i],b=evs[j];const ta=hm(a.time),tb=hm(b.time);if(a.dayId&&a.dayId===b.dayId&&ta!==null&&tb!==null){const d=Math.abs(ta-tb);if(d===0)w.push(`time clash: ${a.name} and ${b.name} both at ${fmtTime(a.time)}`);else if(d<g)w.push(`only ${d} min between ${a.name} (${fmtTime(a.time)}) and ${b.name} (${fmtTime(b.time)})`)}}
  return w}
 function entryProblems(s=S()){const E=s.entries||{};const seen=new Set(),out=[];Object.values(E).forEach(l=>l.forEach(id=>{if(seen.has(id))return;seen.add(id);const w=studentWarn(id,s);if(w.length){const a=s.athletes.find(z=>z.id===id);if(a)out.push({a,w})}}));return out}
 function logReport(head,sign,foot){const s=S();const items=[];
@@ -1887,7 +1931,7 @@ function logReport(head,sign,foot){const s=S();const items=[];
 /* ---------- import students from SJS App (same Firebase project) ---------- */
 async function fbUser(interactive){if(!await fbInit()){toast(SY.err||'Needs the internet');return null}const auth=firebase.auth();
  let u=auth.currentUser||await new Promise(r=>{const un=auth.onAuthStateChanged(x=>{un();r(x)})});
- if(!u&&interactive){const pv=new firebase.auth.GoogleAuthProvider();try{u=(await auth.signInWithPopup(pv)).user}catch(e){if(e&&/popup-blocked|operation-not-supported/.test(e.code||'')){try{await auth.signInWithRedirect(pv)}catch(e2){}}toast('Sign-in was cancelled');return null}}
+ if(!u&&interactive){try{u=await googleSignIn(auth);if(!u)return null}catch(e){toast(signErr(e));return null}}
  SY.user=u;return u}
 async function sjsFetch(){ui.sjsBusy='Signing in…';rerender();
  try{const u=await fbUser(true);if(!u){ui.sjsBusy='';rerender();return}
@@ -2041,7 +2085,12 @@ function pSessions(){
   <pre class="rulepre" id="ruleTxt">${esc(RULES_TXT)}</pre>
   <div class="row"><button class="btn sm" data-act="copyRule">Copy rules</button></div>
   <ol start="3" style="margin:8px 0 0;padding-left:20px;line-height:1.7"><li>Press <b>Publish</b>.</li><li>Here, press <b>Sign in with Google and share live</b> with the Admin Gmail. The first time, it uploads this device's data for everyone.</li><li>Give the Sports In-charge and Result recorders their access in <a href="#users">Users &amp; roles</a>. Everyone else who signs in can only watch.</li></ol>
-  <p class="tiny">Live sharing works on the website (stjames1980.github.io/sjs-sports). The downloaded offline file always keeps its own data.</p></details></div>`;
+  <p class="tiny">Live sharing works on the website (stjames1980.github.io/sjs-sports). The downloaded offline file always keeps its own data.</p></details>
+  <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600">Cannot sign in?</summary><ol style="margin:8px 0 0;padding-left:20px;line-height:1.7">
+  <li>Open <b>stjames1980.github.io/sjs-sports</b> in <b>Chrome</b>. A link opened from WhatsApp opens <i>inside</i> WhatsApp, where Google blocks sign-in — tap ⋮ → <b>Open in Chrome</b>.</li>
+  <li>If nothing happens when you tap, allow <b>pop-ups</b> for this site (Chrome ⋮ → Settings → Site settings → Pop-ups) and try again.</li>
+  <li>Choose the Gmail the Admin gave access to. Signed in with the wrong one? Tap <b>Sign out</b> above and sign in again.</li>
+  <li>Still stuck? Update Chrome, or try on another phone or laptop. The message shown at the top tells the Admin what went wrong.</li></ol></details></div>`;
  const lockCard=`<div class="card" style="margin-bottom:16px"><h3>Final results lock ${cur.locked?'<span class="tag rec">Locked</span>':'<span class="tag ok">Open</span>'}</h3><p style="margin-top:0">${cur.locked?'Results, entries and special points of '+esc(cur.year)+' cannot be changed on any device. Reports and certificates still work.':'Lock when the meet is over and the Principal has approved the results, so nobody changes them by mistake.'}</p><div class="row"><button class="btn ${cur.locked?'':'pri'}" data-act="toggleLock">${cur.locked?'Unlock results':'Lock results as final'}</button><label style="flex:1 1 240px">Your name on this device (shown in the Change Log)<input id="meName" value="${esc((()=>{try{return localStorage.getItem(ME_KEY)||''}catch(e){return''}})())}" placeholder="e.g. Sir Lalramenga"></label></div></div>`;
  return`<h2>Sessions &amp; backup</h2>${liveCard}${lockCard}<p class="lead">Each academic year is its own session. Start a new one and keep the houses, categories, rules, events and meet records — results start empty.</p>
  <div class="g2"><div class="card"><h3>Start a new academic session</h3><div class="row"><label>Session<input id="nsYear" value="${esc(ny)}" placeholder="2027-28"></label><label>Meet title<input id="nsTitle" value="${esc(cur.title)}"></label><label>Date<input id="nsDate" type="date"></label></div>
@@ -2084,7 +2133,7 @@ function navStatus(){const s=S();const noH=s.athletes.filter(a=>!a.houseId||!Hs(
   athletes:s.athletes.length?{t:'',v:s.athletes.length,h:s.athletes.length+' members',done:1}:null,
   housing:s.athletes.length?(noH?{t:'warn',v:noH,h:noH+' students without a house'}:ok):null,
   events:s.events.length?{t:'',v:s.events.length,h:s.events.length+' events',done:1}:null,
-  schedule:days.length?(unsch?{t:'warn',v:unsch,h:unsch+' events not on any day'}:ok):null,
+  schedule:(()=>{const cl=clashCount(s);if(cl)return{t:'warn',v:cl,h:cl+' participant time clash'+(cl>1?'es':'')};return days.length?(unsch?{t:'warn',v:unsch,h:unsch+' events not on any day'}:ok):null})(),
   entries:hasEn?ok:null,points:s.types.length?ok:null}}
 function paintNav(p){const st=navStatus();const b=x=>x?`<span class="nb ${x.t}"${x.h?` title="${esc(x.h)}"`:''}>${x.v}</span>`:'';
  const steps=NAV.find(g=>g.steps).items.filter(([k])=>k!=='bonus');const done=steps.filter(([k])=>st[k]&&(st[k].t==='ok'||st[k].done)).length;
@@ -2172,6 +2221,14 @@ const ACT={
  roleDel:async el=>{const em=el.dataset.id;const u=(SY.roleList||[]).find(x=>x.email===em);if(!u)return;
   if(!await ask(`Remove ${u.name||em}?`,`${ROLE_L[u.role]||u.role} access is removed. Results they already entered stay.`,'Remove'))return;
   try{await SY.fs.collection('sports_roles').doc(em).delete();toast('Access removed')}catch(e){toast(e&&e.code==='permission-denied'?NOPERM_M:'Could not remove: '+(e.message||e))}},
+ arrangeDay:async()=>{const s=S(),D=ui.sday;if(!D||D==='_none')return;const st=val('arStart')||'09:00',mins=Math.max(1,parseInt(val('arGap'))||10);ui.atStart=st;ui.atGap=mins;
+  const before=clashList(D,s).length;const plan=planArrange(D,st,mins,s);if(!plan.length){toast('No events on this day');return}
+  const old=plan.map(({e})=>({id:e.id,ord:e.ord,time:e.time}));plan.forEach(({e,ord,time})=>{e.ord=ord;e.time=time});const after=clashList(D,s).length;
+  old.forEach(o=>{const e=s.events.find(x=>x.id===o.id);e.ord=o.ord;e.time=o.time});
+  const last=plan[plan.length-1].time;
+  if(!await ask(`Arrange ${(dayById(D)||{}).name}?`,`${plan.length} events from ${fmtTime(st)} to ${fmtTime(last)}, ${mins} min each. Clashes: ${before} now → ${after} after.${after?' Some students are in too many events close together — check the list after arranging, or increase “Minutes per event”.':''} You can undo this.`,'Arrange'))return;
+  ui.arrUndo={day:D,old};plan.forEach(({e,ord,time})=>{e.ord=ord;e.time=time});save();rerender();toast(after?`Arranged — ${after} clash${after>1?'es':''} left`:'Arranged — no clashes on this day')},
+ arrangeUndo:()=>{const s=S(),u=ui.arrUndo;if(!u)return;u.old.forEach(o=>{const e=s.events.find(x=>x.id===o.id);if(e){e.ord=o.ord;e.time=o.time}});ui.arrUndo=null;save();rerender();toast('Arrange undone')},
  bulkOrg:async()=>{const s=S();const name=orgNames(val('boName')).join(', ');const d=$('#boDay').value,c=$('#boCat').value,g=$('#boGen').value,has=norm(val('boHas')),only=$('#boOnly').checked;
   const l=s.events.filter(e=>(!d||e.dayId===d)&&(!c||(e.catId||'_open')===c)&&(!g||e.gender===g)&&(!has||norm(e.name).includes(has))&&(!only||!String(e.org||'').trim()));
   if(!l.length){toast('No events match — change the choices'+(only?' or untick “Only events that have no in-charge yet”':''));return}
@@ -2291,7 +2348,7 @@ const ACT={
   let a=s.athletes.find(x=>x.chest&&norm(x.chest)===norm(q)&&x.houseId===old.houseId)||s.athletes.find(x=>norm(x.name)===norm(q)&&x.houseId===old.houseId);
   if(!a){a={id:uid(),name:q,cls:'',sec:'',roll:'',gender:e.gender==='Boys'?'B':e.gender==='Girls'?'G':'',houseId:old.houseId,catId:e.catId||'',chest:'',adm:'',remarks:''};s.athletes.push(a)}
   const gBad=e.gender==='Boys'?a.gender==='G':e.gender==='Girls'?a.gender==='B':false;if(gBad){toast(`${a.name} is a ${a.gender==='G'?'girl':'boy'} — this is a ${e.gender} event`);return}
-  const l=s.entries[e.id]||[];if(l.includes(a.id)){toast(a.name+' is already entered');return}const i=l.indexOf(old.id);l[i]=a.id;ui.swap=null;save();$('#enList2').innerHTML=enListHTML();$('#enEditor').innerHTML=enEditorHTML();toast(`${old.name} replaced by ${a.name}`)},
+  const l=s.entries[e.id]||[];if(l.includes(a.id)){toast(a.name+' is already entered');return}const i=l.indexOf(old.id);l[i]=a.id;ui.swap=null;save();$('#enList2').innerHTML=enListHTML();$('#enEditor').innerHTML=enEditorHTML();toast(`${old.name} replaced by ${a.name}`);{const w=studentWarn(a.id);if(w.length)setTimeout(()=>toast(`Note: ${a.name} — ${w.join('; ')}`),2600)}},
  toggleLock:async()=>{const s=S();if(!await ask(s.locked?'Unlock the results?':'Lock the results as final?',s.locked?'Results can then be changed again on every device.':'Nobody will be able to change results, entries or special points until you unlock.',s.locked?'Unlock':'Lock'))return;s.locked=!s.locked;save();rerender();toast(s.locked?'Results locked':'Results unlocked')},
  sjsImport:()=>sjsFetch(),
  sjsGo:()=>{const p=ui.imp;if(!p)return;const rm=!!($('#sjsGone')&&$('#sjsGone').checked);applySjs(p,rm);ui.imp=null;rerender();toast(`Imported from SJS App: ${p.add} new, ${p.upd} updated${rm?`, ${p.goneFree.length} removed`:''}`)},
@@ -2326,7 +2383,7 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  if(isLive()){SY.last={};SY.ready={};SY.subSid=null;SY.remoteActive=DB.active;try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}subscribe()}
  save();location.hash='#home';render();toast('Backup restored')}
 
-const MANAGE_ACTS=new Set('bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
+const MANAGE_ACTS=new Set('arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
 const SCORE_ACTS=new Set(['saveRes','clearRes','restoreVer']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn';
 function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
@@ -2419,7 +2476,11 @@ document.addEventListener('keydown',e=>{const typing=/^(INPUT|TEXTAREA|SELECT)$/
  else if(e.key==='/'&&!typing&&!$('#pal').classList.contains('on')){e.preventDefault();openPal()}
  else if(e.key==='Escape'&&$('.app').classList.contains('open'))drawer(false)});
 go();
-try{if(localStorage.getItem(LIVE_KEY)==='1')liveStart(false)}catch(e){}
+try{let rd=false;try{rd=sessionStorage.getItem('sjs_live_redirect')==='1';sessionStorage.removeItem('sjs_live_redirect')}catch(x){}
+ if(rd){fbInit().then(ok=>{if(!ok)return;firebase.auth().getRedirectResult().then(r=>{if(r&&r.user)liveStart(false);else liveStart(false)},e=>{SY.state='error';SY.err=signErr(e);paintLive();toast(SY.err)})})}
+ else if(localStorage.getItem(LIVE_KEY)==='1')liveStart(false)}catch(e){}
+/* warn when opened inside WhatsApp / Facebook, or not on the real website */
+setTimeout(()=>{if(inAppBrowser())toast('Opened inside another app — Google sign-in will not work here. Tap ⋮ and choose “Open in Chrome”.');else if(notSite()&&!localStorage.getItem(LIVE_KEY))0},1200);
 /* offline app: only on the real website (GitHub Pages), never inside a preview frame */
 try{if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)&&window.top===window.self)navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
 }
