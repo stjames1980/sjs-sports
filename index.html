@@ -1274,7 +1274,8 @@ function planCard(){const s=S(),P=planCfg();const days=s.days||[];const mgr=canM
  <div class="row">${used.map(t=>`<label style="flex:0 1 150px">${esc(t.name)}<input type="number" min="1" data-pldur="${t.id}" value="${esc(+P.dur[t.id]>0?P.dur[t.id]:typeDur(t))}"></label>`).join('')}</div>
  <label class="chk"><input type="checkbox" id="plVen" ${P.venues?'checked':''}> Fill empty venues automatically (Track, Jumping pit, Throwing area, courts, Stage, School hall …)</label>
  <div class="row" style="align-items:center">${mgr?'<button class="btn pri" data-act="planGo">⚡ Plan the meet</button>':''}<span class="tiny" style="flex:1 1 300px">${planSummary(s)}</span></div>
- ${ui.planMsg?`<div class="planmsg">${ui.planMsg}</div>`:''}</div>`}
+ ${ui.planMsg?`<div class="planmsg">${ui.planMsg}</div>`:''}
+ ${mgr?`<div class="row resetrow" style="align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)"><button class="btn danger" data-act="schReset">↺ Reset the schedule</button><label class="chk" style="margin:0"><input type="checkbox" id="rsPin"> Also clear 📌 fixed events</label><label class="chk" style="margin:0"><input type="checkbox" id="rsVen" checked> Clear venues the app filled in</label><span class="tiny" style="flex:1 1 260px">Removes the days and times so you can plan again. Events that already have results always stay.</span></div>`:''}</div>`}
 function planRead(){const P=planCfg();const v=id=>{const el=$('#'+id);return el?el.value:''};
  P.scope=v('plScope')||P.scope;P.ath=v('plAth')||P.ath;P.games=v('plGames')||P.games;P.cult=v('plCult')||P.cult;P.start=v('plStart')||P.start;P.end=v('plEnd')||P.end;P.lunch=v('plLunch');P.lunchMin=+v('plLunchMin')||0;
  const vc=$('#plVen');if(vc)P.venues=vc.checked;document.querySelectorAll('[data-pldur]').forEach(i=>{const n=+i.value;if(n>0)P.dur[i.dataset.pldur]=n});return P}
@@ -3117,12 +3118,18 @@ const ACT={
   const nt=s.events.filter(e=>!hasRes(e)&&e.dayId&&dayById(e.dayId)&&hm(e.time)===null).length;
   if(!n&&!nt){save();toast('Every event already has a day — choose “Re-plan all events” to plan again');rerender();return}
   if(!await ask('Plan the meet?',`${n} event${n===1?'':'s'} will get a day, a time${P.venues?' and a venue (where empty)':''}${nt&&P.scope==='unsched'?`, and ${nt} event${nt===1?'':'s'} already on a day will get a time`:''}. Events marked 📌 and events with results stay as they are. You can undo this.`,'Plan the meet'))return;
-  ui.planUndo=s.events.map(e=>({id:e.id,dayId:e.dayId||'',time:e.time||'',venue:e.venue||'',ord:e.ord}));
-  const r=autoPlan(P);r.out.forEach(({e,d,t,v})=>{e.dayId=d;e.time=hhmm(t);if(!e.venue&&P.venues)e.venue=v});
+  ui.planUndo=s.events.map(e=>({id:e.id,dayId:e.dayId||'',time:e.time||'',venue:e.venue||'',ord:e.ord,vAuto:!!e.vAuto,pin:!!e.pin}));
+  const r=autoPlan(P);r.out.forEach(({e,d,t,v})=>{e.dayId=d;e.time=hhmm(t);if(!e.venue&&P.venues){e.venue=v;e.vAuto=true}});
   (s.days||[]).forEach(d=>dayEvents(d.id,s).forEach((e,i)=>e.ord=i));
   const cl=clashCount(s);ui.planMsg=`✓ ${r.out.length} events planned. ${cl?`<b>${cl} clash${cl>1?'es':''} could not be avoided</b> — see the clash check below.`:'No student clashes.'}${r.late?` <b>${r.late} event${r.late>1?'s':''} go past ${fmtTime(P.end)}</b> — add a day, start earlier, end later, or shorten the minutes.`:''}`;
   save();rerender();toast('Meet planned — check each day below')},
- planUndo:()=>{const s=S(),u=ui.planUndo;if(!u)return;u.forEach(o=>{const e=s.events.find(x=>x.id===o.id);if(e){e.dayId=o.dayId;e.time=o.time;e.venue=o.venue;e.ord=o.ord}});ui.planUndo=null;ui.planMsg='';save();rerender();toast('Auto-plan undone')},
+ schReset:async()=>{if(isLocked())return;const s=S();const pin=$('#rsPin')&&$('#rsPin').checked,ven=!$('#rsVen')||$('#rsVen').checked;
+  const L=s.events.filter(e=>!hasRes(e)&&(pin||!e.pin)&&(e.dayId||e.time||(ven&&e.vAuto)));const kept=s.events.filter(e=>!hasRes(e)&&e.pin&&!pin).length,fin=s.events.filter(e=>hasRes(e)).length;
+  if(!L.length){toast('Nothing to reset — no planned events without results');return}
+  if(!await ask('Reset the schedule?',`${L.length} event${L.length>1?'s':''} will lose their day and time${ven?' (and the venues the app filled in)':''}.${kept?` ${kept} 📌 fixed event${kept>1?'s':''} stay.`:''}${fin?` ${fin} event${fin>1?'s':''} with results stay.`:''} You can undo this.`,'Reset'))return;
+  ui.planUndo=s.events.map(e=>({id:e.id,dayId:e.dayId||'',time:e.time||'',venue:e.venue||'',ord:e.ord,vAuto:!!e.vAuto,pin:!!e.pin}));
+  L.forEach(e=>{e.dayId='';e.time='';e.ord=0;if(pin)delete e.pin;if(ven&&e.vAuto){e.venue='';delete e.vAuto}});ui.planMsg=`↺ ${L.length} events reset — they have no day or time now. Choose your settings and tap <b>Plan the meet</b> again.`;save();rerender();toast('Schedule reset')},
+ planUndo:()=>{const s=S(),u=ui.planUndo;if(!u)return;u.forEach(o=>{const e=s.events.find(x=>x.id===o.id);if(e){e.dayId=o.dayId;e.time=o.time;e.venue=o.venue;e.ord=o.ord;if(o.vAuto)e.vAuto=true;else delete e.vAuto;if(o.pin)e.pin=true;else delete e.pin}});ui.planUndo=null;ui.planMsg='';save();rerender();toast('Undone — the schedule is back as it was')},
  bibPdf:async()=>{const l=bibList(ui.repCat);if(!l.length){toast(ui.bibAll?'No students to put in the PDF':'No students are entered in events yet — add them on Event entries, or choose All members');return}
   const nm=['Chest_numbers',ui.bibAll?'all_members':'participants',ui.repCat?(Cs(ui.repCat)||{}).name:'',ui.bibHouse?(Hs(ui.bibHouse)||{}).name:'',ui.bibSm?'small':''].filter(Boolean).join('_').replace(/[^A-Za-z0-9_-]+/g,'-')+'.pdf';
   toast(`Making the PDF — ${l.length} cards…`);await new Promise(r=>setTimeout(r,30));await saveFile(nm,bibPDF(l,!!ui.bibSm))},
@@ -3258,7 +3265,7 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  if(isLive()){SY.last={};SY.ready={};SY.subSid=null;SY.remoteActive=DB.active;try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}subscribe()}
  save();location.hash='#home';render();toast('Backup restored')}
 
-const MANAGE_ACTS=new Set('jaAdd callSub approveRes approveAll needOk pinEv planDays planGo planUndo brDel brAdd brReset qpSave qpDel qpGroup qpReset pubToggle practiceStart practiceEnd hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
+const MANAGE_ACTS=new Set('jaAdd schReset callSub approveRes approveAll needOk pinEv planDays planGo planUndo brDel brAdd brReset qpSave qpDel qpGroup qpReset pubToggle practiceStart practiceEnd hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
 const SCORE_ACTS=new Set(['callMark','callAll','callClr','jmClear','jmUnsave','jmOn','jmAdd','jmDel','jmFill','jmHouses','jmSave','fxSaveRes','fxCreate','fxOff','fxAdd','fxDelM','fxUse','saveRes','clearRes','restoreVer','heatOn','heatOff','heatAdd','heatDel','heatRowAdd','heatRowDel','heatMake','heatMarkQ']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn';
 function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
@@ -3343,7 +3350,7 @@ main.addEventListener('change',e=>{const el=e.target,s=S();if(blockField(el))ret
  if(el.dataset.col){const it=s[el.dataset.col].find(x=>x.id===el.dataset.id);if(!it)return;let v=el.type==='checkbox'?el.checked:el.value;
   if(el.dataset.f==='pts'){v=String(v).split(/[,\s]+/).filter(x=>x!=='').map(Number).filter(x=>!isNaN(x));if(!v.length){toast('Enter points like 5, 3, 1');rerender();return}}
   if(el.dataset.f==='name'&&!String(v).trim()){toast('Name cannot be empty');rerender();return}
-  setPath(it,el.dataset.f,v);if(el.dataset.col==='events'&&(el.dataset.f==='dayId'||el.dataset.f==='time')&&/schedule/.test(location.hash))it.pin=true;save();if(el.dataset.re)rerender()}
+  setPath(it,el.dataset.f,v);if(el.dataset.col==='events'&&(el.dataset.f==='dayId'||el.dataset.f==='time')&&/schedule/.test(location.hash))it.pin=true;if(el.dataset.col==='events'&&el.dataset.f==='venue')delete it.vAuto;save();if(el.dataset.re)rerender()}
 });
 $('#sessSel').addEventListener('change',e=>{DB.active=e.target.value;ui.sel=null;ui.draft=null;save();if(isLive())subSession(DB.active);render();toast('Opened '+S().year)});
 $('#liveBox').addEventListener('click',()=>{if(SY.state==='off'||SY.state==='error')liveStart(true);else location.hash='#sessions'});
