@@ -138,7 +138,7 @@ h3{font-size:22px;margin-bottom:10px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
 .stackv>*+*{margin-top:16px}
 .g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.g4 .pod{padding:16px 14px}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
 .row>label{flex:1 1 160px}
 label{display:block;font-size:13px;color:var(--mut);font-weight:600}
@@ -191,7 +191,7 @@ table.t{width:100%;border-collapse:collapse;font-size:15px}
 @media (prefers-reduced-motion:reduce){.lane .bar span{transition:none}}
 .pod{display:flex;gap:14px;align-items:center}
 .medal{flex:none;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font:800 26px var(--disp);color:#2a1a00;box-shadow:inset 0 -4px 0 #0002}
-.m1{background:#f3c64b}.m2{background:#cfd4da}.m3{background:#d99a5f}.mx{background:var(--soft);color:var(--ink)}
+.m4{background:#9fb3c8}.m1{background:#f3c64b}.m2{background:#cfd4da}.m3{background:#d99a5f}.mx{background:var(--soft);color:var(--ink)}
 .lbl{font-size:13px;font-weight:700;color:var(--mut)}
 .big{font:700 24px/1.15 var(--disp);margin:2px 0}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
@@ -247,7 +247,7 @@ table.t{width:100%;border-collapse:collapse;font-size:15px}
 .modal{position:fixed;inset:0;background:#0008;display:none;place-items:center;z-index:60;padding:16px}
 .modal.on{display:grid}
 .modal .card{max-width:440px;width:100%}
-@media(max-width:1000px){.g3{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.rlayout{grid-template-columns:minmax(0,1fr)}.evlist{max-height:42vh}}
+@media(max-width:1200px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.g4{grid-template-columns:minmax(0,1fr)}}@media(max-width:1000px){.g3{grid-template-columns:minmax(0,1fr)}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.rlayout{grid-template-columns:minmax(0,1fr)}.evlist{max-height:42vh}}
 @media(max-width:860px){.app{grid-template-columns:minmax(0,1fr)}.g2{grid-template-columns:minmax(0,1fr)}
  .side{position:fixed;inset:0 auto 0 0;width:min(300px,86vw);height:100dvh;z-index:50;transform:translateX(-102%);transition:transform .2s ease;box-shadow:0 0 40px #0006;padding-bottom:90px}
  .app.open .side{transform:none}.railbtn{display:none}
@@ -312,7 +312,7 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
 const ord=n=>{const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0])};
 const POSW=['','First','Second','Third','Fourth','Fifth','Sixth','Seventh','Eighth'];
-const RANKL=['Champion House','Runner-up','2nd Runner-up'];
+const RANKL=['Champion House','Runner-up','2nd Runner-up','3rd Runner-up'];
 const KEY='sjs_sports_app_v1';
 const PCSS=`.p-doc{font-family:Barlow,'Segoe UI',Arial,sans-serif;color:#111;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .p-head{text-align:center;border-bottom:3px double #333;padding-bottom:8px;margin-bottom:14px}
@@ -785,7 +785,7 @@ function pHome(){
  const s=S(),c=calc();const pct=c.total?Math.round(c.done/c.total*100):0;
  const all=Object.values(c.all);const bb=best(all.filter(a=>a.gender==='B')),bg=best(all.filter(a=>a.gender==='G'));
  const fin=c.done&&c.done===c.total;
- const pod=c.done||c.st.some(x=>x.total)?c.st.slice(0,3).map(x=>`<div class="card pod"><span class="medal m${Math.min(x.rank,3)}">${x.rank}</span><div><div class="lbl">${RANKL[x.rank-1]||ord(x.rank)}${fin?'':' · so far'}</div><div class="big">${chip(x.h)}</div><div class="mut">${x.total} points</div></div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">No results yet. Open <a href="#results">Enter results</a> to start the scoreboard.</div>';
+ const pod=c.done||c.st.some(x=>x.total)?c.st.slice(0,4).map(x=>`<div class="card pod"><span class="medal m${Math.min(x.rank,4)}">${x.rank}</span><div><div class="lbl">${RANKL[x.rank-1]||ord(x.rank)}${fin?'':' · so far'}</div><div class="big">${chip(x.h)}</div><div class="mut">${x.total} points</div></div></div>`).join(''):'<div class="empty" style="grid-column:1/-1">No results yet. Open <a href="#results">Enter results</a> to start the scoreboard.</div>';
  const feed=c.feed.slice(0,7).map(({e,r})=>{const w=r.rows.filter(x=>x.pos==1);return`<li><span><b>${esc(e.name)}</b> <span class="tiny">${esc(e.gender)} · ${esc(catName(e.catId))}</span></span><span>${w.map(x=>`${chip(Hs(x.houseId))} ${esc(x.name||'')} ${x.perf?`<span class="tiny">${esc(x.perf)} ${unitOf(e.measure)}</span>`:''}`).join(' ')}</span></li>`}).join('');
  const catChamps=s.cats.map(ct=>{const l=Object.values(c.cats[ct.id]||{});const b=best(l.filter(a=>a.gender==='B')),g=best(l.filter(a=>a.gender==='G'));
   return`<tr><td><b>${esc(ct.name)}</b></td><td>${b.length?b.map(p=>`${esc(p.name)} ${dot(Hs(p.houseId))}<span class="tiny">${p.pts}</span>`).join('<br>'):'<span class="mut">—</span>'}</td><td>${g.length?g.map(p=>`${esc(p.name)} ${dot(Hs(p.houseId))}<span class="tiny">${p.pts}</span>`).join('<br>'):'<span class="mut">—</span>'}</td></tr>`}).join('');
@@ -793,7 +793,7 @@ function pHome(){
  <section class="hero"><div class="kick">${esc(DB.app.school)}</div><h1>${esc(s.title)} ${esc(s.year)}</h1>
   <div class="meta"><span>${c.done} of ${c.total} events completed</span><div class="prog"><span style="width:${pct}%"></span></div>${s.date?`<span>${esc(fmtDate(s.date))}</span>`:''}${s.venue?`<span>${esc(s.venue)}</span>`:''}</div>
   <div class="lanes">${lanesHTML(c)}</div></section>
- <div class="g3" style="margin-top:16px">${pod}</div>
+ <div class="${c.st.length>3&&(c.done||c.st.some(x=>x.total))?'g4':'g3'}" style="margin-top:16px">${pod}</div>
  ${!isVO()&&(c.done||0)>0?`<div class="card noprint" style="margin-top:16px"><div class="row" style="justify-content:space-between;align-items:center"><div><h3 style="margin:0">Share the results on WhatsApp</h3><span class="tiny">Results, house points and what comes next — ready to paste in the staff or parents group.</span></div><button class="btn pri" data-act="copyDay">Copy summary</button></div>${(s.days||[]).length?`<div class="chips" style="margin-top:8px"><button class="chip ${!ui.sumDay?'on':''}" data-act="sumDay" data-id="">Whole meet</button>${s.days.map(d=>`<button class="chip ${ui.sumDay===d.id?'on':''}" data-act="sumDay" data-id="${d.id}">${esc(d.name)}</button>`).join('')}</div>`:''}</div>`:''}
  <div class="g2" style="margin-top:16px">
   <div class="card pod"><span class="medal m1">B</span><div><div class="lbl">Best Athlete – Boy (whole meet)</div>${personLine(bb)}</div></div>
@@ -1651,9 +1651,9 @@ function pChampions(){
  const k=ui.champCat&&ks.includes(ui.champCat)?ui.champCat:'';
  const src=k?Object.values(c.cats[k]||{}):Object.values(c.all);
  const boys=src.filter(a=>a.gender==='B').sort(cmpI),girls=src.filter(a=>a.gender==='G').sort(cmpI);
- const pod=c.st.slice(0,3).map(x=>`<div class="card pod"><span class="medal m${Math.min(x.rank,3)}">${x.rank}</span><div><div class="lbl">${RANKL[x.rank-1]||ord(x.rank)}</div><div class="big">${chip(x.h)}</div><div class="mut">${x.total} pts · ${x.g}G ${x.si}S ${x.b}B</div></div></div>`).join('');
- return`<h2>Champions</h2><p class="lead">Champion House, Runner-up and the Best Boy and Best Girl of each category, worked out from every saved result.</p>
- <div class="g3">${pod}</div>
+ const pod=c.st.slice(0,4).map(x=>`<div class="card pod"><span class="medal m${Math.min(x.rank,4)}">${x.rank}</span><div><div class="lbl">${RANKL[x.rank-1]||ord(x.rank)}</div><div class="big">${chip(x.h)}</div><div class="mut">${x.total} pts · ${x.g}G ${x.si}S ${x.b}B</div></div></div>`).join('');
+ return`<h2>Champions</h2><p class="lead">Champion House, Runner-ups and the Best Boy and Best Girl of each category, worked out from every saved result.</p>
+ <div class="${c.st.length>3?'g4':'g3'}">${pod}</div>
  <div class="row" style="margin:18px 0 12px">${[['','Whole meet'],...ks.map(x=>[x,catName(x)])].map(([v,l])=>`<button class="btn sm ${k===v?'pri':''}" data-act="champCat" data-id="${v}">${esc(l)}</button>`).join('')}</div>
  <div class="g2"><div class="card pod"><span class="medal m1">B</span><div><div class="lbl">Best Boy · ${esc(k?catName(k):'whole meet')}</div>${personLine(best(boys))}</div></div><div class="card pod"><span class="medal m1">G</span><div><div class="lbl">Best Girl · ${esc(k?catName(k):'whole meet')}</div>${personLine(best(girls))}</div></div></div>
  <div class="g2" style="margin-top:16px"><div class="card"><h3>Top boys</h3><div class="scroll">${rankTable(boys)}</div></div><div class="card"><h3>Top girls</h3><div class="scroll">${rankTable(girls)}</div></div></div>
