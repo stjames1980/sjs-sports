@@ -298,6 +298,7 @@ table.t{width:100%;border-collapse:collapse;font-size:15px}
 .navlgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-top:8px}
 .rh{display:flex;flex-direction:column;gap:6px}.rhi{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:12px}.rhi>span{display:flex;flex-direction:column}.rhi.ok{background:color-mix(in srgb,#1f7a4d 7%,transparent)}.rhc{width:30px;height:30px;border-radius:8px;border:2px solid var(--line);background:var(--card);font:800 16px Barlow,sans-serif;color:#fff;cursor:pointer}.rhi.ok .rhc{background:#1f7a4d;border-color:#1f7a4d}
 .btn.wa{background:#1fa855;border-color:#1fa855;color:#fff}.btn.wa:hover{background:#178a45}
+.dangerz{border:1.5px solid color-mix(in srgb,#b42318 40%,var(--line))}
 </style>
 <style id="pcss"></style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
@@ -1997,7 +1998,10 @@ function pAthletes(){
  <td><select data-col="athletes" data-id="${a.id}" data-f="catId">${opt('','—',a.catId)}${s.cats.map(x=>opt(x.id,x.name,a.catId)).join('')}</select></td>
  <td>${I('chest',a,64,'Chest number')}</td><td>${I('adm',a,84,'Admission number')}</td>
  <td class="n">${evCount[a.id]||0}</td><td class="n">${p?`<b>${p.pts}</b> <span class="tiny">${p.g}G ${p.s}S ${p.b}B</span>`:'0'}</td><td><button class="x" data-act="delAth" data-id="${a.id}" aria-label="Delete member">×</button></td></tr>`}).join('')||'<tr><td colspan="13"><div class="empty">No members yet — add one above or upload your Excel list.</div></td></tr>'}
- </tbody></table></div>${pager}</div>`;
+ </tbody></table></div>${pager}</div>
+ ${canManage()&&(s.athletes.length||ui.athUndo)?(()=>{const filt=s.athletes.length&&list.length<s.athletes.length;return`<div class="card dangerz" style="margin-top:16px"><h3 style="margin-top:0">Delete members</h3>
+  <p class="tiny" style="margin-top:0">For a new list, e.g. last year’s students. A backup file is downloaded first, and <b>Undo</b> brings everyone back. Results already saved keep their names and points; the members’ event entries are removed.</p>
+  <div class="row">${filt?`<button class="btn danger" data-act="athDelAll" data-id="shown">🗑 Delete the ${list.length} shown (filtered)</button>`:''}${s.athletes.length?`<button class="btn danger" data-act="athDelAll" data-id="all">🗑 Delete all ${s.athletes.length} members</button>`:''}${ui.athUndo?`<button class="btn" data-act="athUndo">↶ Undo — bring back ${ui.athUndo.n} members</button>`:''}</div></div>`})():''}`;
 }
 /* ---------- event entries ---------- */
 function eligible(e,s=S()){return s.athletes.filter(a=>(!e.catId||a.catId===e.catId||!a.catId)&&(e.gender==='Boys'?a.gender!=='G':e.gender==='Girls'?a.gender!=='B':true))}
@@ -3180,6 +3184,15 @@ const ACT={
   const fh=x=>s.houses.find(h=>norm(h.name)===norm(x)),fc=x=>s.cats.find(c=>norm(c.name)===norm(x));
   lines.forEach(l=>{const p=l.split(/\t|,/).map(x=>x.trim());if(!p[0]||/^name$/i.test(p[0])){skip++;return}const g=norm(p[2]);s.athletes.push({id:uid(),name:p[0],cls:p[1]||'',gender:/^(b|boy|m|male)/.test(g)?'B':/^(g|girl|f|female)/.test(g)?'G':'',houseId:(fh(p[3])||{}).id||'',catId:(fc(p[4])||{}).id||'',chest:p[5]||''});n++});
   save();rerender();toast(`${n} athletes imported${skip?` · ${skip} lines skipped`:''}`)},
+ athDelAll:async el=>{if(isLocked())return;const s=S(),f=ui.af||{};const shown=el.dataset.id==='shown';
+  const L=shown?s.athletes.filter(a=>(!f.cat||(f.cat==='_none'?!a.catId:a.catId===f.cat))&&(!f.h||(f.h==='_none'?!a.houseId:a.houseId===f.h))&&(!f.g||a.gender===f.g)&&(!f.sec||norm(a.sec)===norm(f.sec))&&(!f.cls||(f.cls==='_none'?!String(a.cls||'').trim():norm(a.cls)===norm(f.cls)))&&(!f.q||norm([a.name,a.cls,a.sec,a.roll,a.chest,a.adm].join(' ')).includes(norm(f.q)))):s.athletes.slice();
+  if(!L.length){toast('No members to delete');return}const ids=new Set(L.map(a=>a.id));const ent=Object.values(s.entries||{}).reduce((n,l)=>n+l.filter(id=>ids.has(id)).length,0);
+  if(!await ask(shown?`Delete ${L.length} members?`:`Delete ALL ${L.length} members?`,`${shown?'The members shown by your filter':'Every member of '+s.year}${ent?` and their ${ent} event entries`:''} will be deleted${isLive()?' on every device':''}. A backup file is downloaded first. Saved results keep their names and points. You can Undo straight after.`,'Delete'))return;
+  if(L.length>50&&!await ask('Are you sure?',`This removes ${L.length} students from the member list. Tap Delete once more to confirm.`,'Delete'))return;
+  ACT.backup();ui.athUndo={n:L.length,ath:clone(L),ent:clone(s.entries||{})};
+  s.athletes=s.athletes.filter(a=>!ids.has(a.id));const E=s.entries||{};Object.keys(E).forEach(k=>E[k]=E[k].filter(id=>!ids.has(id)));
+  save();rerender();toast(`${L.length} members deleted · backup downloaded · Undo is on this page`)},
+ athUndo:()=>{const s=S(),u=ui.athUndo;if(!u)return;const have=new Set(s.athletes.map(a=>a.id));s.athletes=s.athletes.concat(u.ath.filter(a=>!have.has(a.id)));s.entries=u.ent;ui.athUndo=null;save();rerender();toast(`${u.n} members are back`)},
  delAth:async el=>{const s=S();const used=s.events.some(e=>(s.results[e.id]?.rows||[]).some(r=>r.athId===el.dataset.id));if(used&&!await ask('Delete this athlete?','They appear in results. Their places stay but are no longer linked to this record.','Delete'))return;s.athletes=s.athletes.filter(a=>a.id!==el.dataset.id);const E=s.entries||{};Object.keys(E).forEach(k=>E[k]=E[k].filter(id=>id!==el.dataset.id));save();rerender()},
  addHouse:()=>{S().houses.push({id:uid(),name:'New House',color:'#7b4fd6',captain:'',vice:'',master:''});save();rerender()},
  delHouse:async el=>{const s=S();const h=Hs(el.dataset.id);const used=Object.values(s.results).some(r=>(r.rows||[]).some(x=>x.houseId===h.id));if(!await ask(`Delete ${h.name} house?`,used?'This house has points in results. Those places will lose their house.':'You can add it again later.','Delete'))return;s.houses=s.houses.filter(x=>x!==h);save();rerender()},
@@ -3410,7 +3423,7 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  if(isLive()){SY.last={};SY.ready={};SY.subSid=null;SY.remoteActive=DB.active;try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}subscribe()}
  save();location.hash='#home';render();toast('Backup restored')}
 
-const MANAGE_ACTS=new Set('jaAdd rhT rhClr sigDel heatFinal schReset subOk approveRes approveAll needOk pinEv planDays planGo planUndo brDel brAdd brReset qpSave qpDel qpGroup qpReset pubToggle practiceStart practiceEnd hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
+const MANAGE_ACTS=new Set('jaAdd athDelAll athUndo rhT rhClr sigDel heatFinal schReset subOk approveRes approveAll needOk pinEv planDays planGo planUndo brDel brAdd brReset qpSave qpDel qpGroup qpReset pubToggle practiceStart practiceEnd hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
 const SCORE_ACTS=new Set(['callSub','callMark','callAll','callClr','jmClear','jmUnsave','jmOn','jmAdd','jmDel','jmFill','jmHouses','jmSave','fxSaveRes','fxCreate','fxOff','fxAdd','fxDelM','fxUse','saveRes','clearRes','restoreVer','heatOn','heatOff','heatAdd','heatDel','heatRowAdd','heatRowDel','heatMake','heatMarkQ']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn,[data-sigin],[data-navl]';
 function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
