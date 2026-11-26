@@ -310,6 +310,7 @@ textarea[data-ccc]{width:100%;font:inherit;padding:8px 10px;border:1px solid var
 .crec{border:2px solid #2563eb;margin:4px 0 14px}.citem{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;background:color-mix(in srgb,var(--soft) 50%,var(--card))}.cparts{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}.cparts label{margin:0}.cparts textarea{width:100%;font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}.cres{display:flex;flex-direction:column;gap:6px}.hrs{border:0;border-top:1px dashed var(--line);margin:4px 0}
 .sno{width:44px;text-align:center!important;color:var(--mut)}
 .memb{grid-column:1/-1;border:1px dashed var(--line);border-radius:10px;padding:8px 10px;margin:2px 0 6px;background:color-mix(in srgb,var(--soft) 60%,transparent)}.memchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.mchip{display:inline-flex;align-items:center;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 4px 3px 10px;font-size:13px}.mchip .x{width:22px;height:22px;min-height:0}.memb input{width:100%}
+.offbar{border-color:#2563eb;background:color-mix(in srgb,#2563eb 10%,var(--card));align-items:center;flex-wrap:wrap}
 </style>
 <style id="pcss"></style>
 <script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
@@ -573,6 +574,7 @@ async function googleSignInOld(auth){const pv=new firebase.auth.GoogleAuthProvid
  const late=new Promise((_,rej)=>setTimeout(()=>rej({code:'sjs/timeout'}),45000));
  try{return await Promise.race([auth.signInWithPopup(pv).then(r=>r.user),viaState,late])}catch(e){if(e&&/popup-blocked|operation-not-supported/.test(e.code||'')){try{sessionStorage.setItem('sjs_live_redirect','1')}catch(x){}await auth.signInWithRedirect(pv);return null}throw e}}
 async function liveStart(interactive){
+ let wasOn=false;try{wasOn=!!localStorage.getItem(LIVE_KEY)}catch(e){}
  SY.state='connecting';SY.err='';paintLive();
  if(!await fbInit()){SY.state='off';paintLive();if(interactive)toast(SY.err);return}
  const auth=firebase.auth();
@@ -586,7 +588,7 @@ async function liveStart(interactive){
  if(!snap.exists){
   if(!await ask('Start live sharing?','No shared sports data exists yet. Upload the data on this device so every staff phone sees the same points?','Upload and share')){liveStop(false);return}
   try{await pushAll(Object.keys(DB.sessions),true)}catch(e){liveFail(e);return}
- }else{try{localStorage.setItem(KEY+'_before_live',JSON.stringify(DB))}catch(e){}}
+ }else{try{localStorage.setItem(KEY+'_before_live',JSON.stringify(DB));if(!wasOn&&!localStorage.getItem(KEY+'_offline'))localStorage.setItem(KEY+'_offline',JSON.stringify({at:Date.now(),db:DB}))}catch(e){}}
  SY.state='live';subscribe();paintLive();rerender();if(interactive)toast(spRole()==='viewer'?`Signed in as ${loginName(u.email)} — View only. If you were given a role, ask the Admin to check the login in Users & roles.`:'Live sharing is on · your access: '+ROLE_L[spRole()]);
 }
 function liveStop(signOut){
@@ -3212,7 +3214,21 @@ function dayText(day){const s=S(),c=calc();const dn=day?(dayById(day)||{}).name:
  if(tm){const l=dayEvents(tm.id).filter(e=>e.dayId===tm.id&&!hasRes(e)).slice(0,6);if(l.length){L.push('',`*Tomorrow — ${tm.name}${tm.date?', '+fmtDate(tm.date):''}*`);l.forEach(e=>L.push(`• ${e.time?fmtTime(e.time)+' ':''}${e.name} (${e.gender}, ${catName(e.catId)})${e.venue?' · '+e.venue:''}`));if(l[0].time)L.push(`Please be on time — the first event starts at ${fmtTime(l[0].time)}.`)}}
  const nx=nextEvents(5);if(!tm&&nx.length&&!(c.done===c.total)){L.push('','*Coming up*');nx.forEach(e=>L.push(`• ${e.dayId&&dayById(e.dayId)?dayById(e.dayId).name+' ':''}${e.time?fmtTime(e.time)+' ':''}${e.name} (${e.gender}, ${catName(e.catId)})`))}
  return L.join('\n')}
+
+/* ---------- work done on this computer while live sharing was off → add it to the shared data ---------- */
+function offData(){try{const o=JSON.parse(localStorage.getItem(KEY+'_offline')||'null');return o&&o.db?o:null}catch(e){return null}}
+function offDiff(){const o=offData();if(!o||!isLive())return null;const s=S();const L=(o.db.sessions||{})[s.id];if(!L||!Array.isArray(L.events))return null;
+ const R=[],E=[],A=[],V=[],B=[];const cur=s.results||{};const ev=new Set(s.events.map(e=>e.id)),ath=new Set(s.athletes.map(a=>a.id));
+ (L.events||[]).forEach(e=>{if(!ev.has(e.id))V.push(e)});
+ Object.entries(L.results||{}).forEach(([eid,r])=>{if(!r||!r.rows||!r.rows.length)return;const c=cur[eid];if(!c||!c.rows||!c.rows.length||(r.at||0)>(c.at||0)&&JSON.stringify(r.rows)!==JSON.stringify(c.rows))R.push([eid,r])});
+ (L.athletes||[]).forEach(a=>{if(!ath.has(a.id))A.push(a)});
+ Object.entries(L.entries||{}).forEach(([eid,l])=>{const have=new Set((s.entries||{})[eid]||[]);(l||[]).forEach(id=>{if(!have.has(id))E.push([eid,id])})});
+ const bon=new Set((s.bonus||[]).map(b=>b.id));(L.bonus||[]).forEach(b=>{if(!bon.has(b.id))B.push(b)});
+ const mg=canManage();const n=R.length+(mg?E.length+A.length+V.length+B.length:0);return n?{o,R,E,A,V,B,mg,n}:null}
+function offBanner(){const d=offDiff();if(!d||!canScore())return'';const parts=[d.R.length&&`${d.R.length} result${d.R.length>1?'s':''}`,d.mg&&d.E.length&&`${d.E.length} entr${d.E.length>1?'ies':'y'}`,d.mg&&d.A.length&&`${d.A.length} student${d.A.length>1?'s':''}`,d.mg&&d.V.length&&`${d.V.length} event${d.V.length>1?'s':''}`,d.mg&&d.B.length&&`${d.B.length} special point${d.B.length>1?'s':''}`].filter(Boolean);
+ return`<div class="banner offbar"><b>Work from before live sharing</b><span class="mut">This computer has ${parts.join(', ')} saved on ${esc(fmtWhen(d.o.at))} while live sharing was off. They are not in the shared data yet.</span><button class="btn sm pri" data-act="offMerge">Add to the shared data</button><button class="btn sm" data-act="offShow">Show</button><button class="btn sm" data-act="offDrop">Ignore</button></div>${ui.offShow?`<div class="card" style="margin-bottom:12px"><b>Not yet shared</b><ul class="chkl">${d.R.map(([eid,r])=>{const e=S().events.find(x=>x.id===eid)||(d.V.find(x=>x.id===eid))||{name:'?'};return`<li>Result: <b>${esc(e.name)}</b> — ${esc(rowsSummary(r.rows))}</li>`}).join('')}${d.mg?d.A.slice(0,50).map(a=>`<li>Student: ${esc(a.name)}</li>`).join('')+d.V.map(e=>`<li>Event: ${esc(e.name)}</li>`).join('')+(d.E.length?`<li>${d.E.length} event entries</li>`:'')+d.B.map(b=>`<li>Special points: ${esc(b.reason)} (${b.pts})</li>`).join(''):''}</ul></div>`:''}`}
 function topBars(p){const s=S();let h='';
+ try{h+=offBanner()}catch(e){}
  if(s.practice)h+=`<div class="banner pracbar"><b>PRACTICE</b><span>Results here do not count — this is a practice copy for training staff.</span>${isMgr()||!isLive()?'<button class="btn sm" data-act="practiceEnd">End practice</button>':''}</div>`;
  if(!s.practice&&(p==='home'||p==='sessions')&&canManage()&&!isVO()){let lb=0;try{lb=+localStorage.getItem('sjs_sports_lastbk')||0}catch(e){}const lr=lastResultAt(s);
   if(lr&&lr>lb&&Date.now()-lb>4*3600e3)h+=`<div class="banner bkbar"><b>Keep a safe copy</b><span class="mut">${lb?'Last backup on this device: '+esc(fmtWhen(lb))+'.':'No backup downloaded on this device yet.'} New results were saved since then.</span><button class="btn sm pri" data-act="backup">Download backup</button></div>`}
@@ -3434,6 +3450,13 @@ const ACT={
  memUse:el=>{const r=ui.draft&&ui.draft.rows[+el.dataset.r];if(!r)return;const s=S();const ent=((s.entries||{})[ui.draft.eid]||[]).map(id=>s.athletes.find(a=>a.id===id)).filter(a=>a&&a.houseId===r.houseId);r.mem=r.mem||[];ent.forEach(a=>{if(!r.mem.some(m=>m.a===a.id))r.mem.push({a:a.id})});$('#editor').innerHTML=editorHTML();toast(`${ent.length} players added — remove anyone who did not play`)},
  memDel:el=>{const r=ui.draft&&ui.draft.rows[+el.dataset.r];if(!r||!r.mem)return;r.mem.splice(+el.dataset.i,1);$('#editor').innerHTML=editorHTML()},
  memClr:el=>{const r=ui.draft&&ui.draft.rows[+el.dataset.r];if(!r)return;r.mem=[];$('#editor').innerHTML=editorHTML()},
+ offShow:()=>{ui.offShow=!ui.offShow;rerender()},
+ offDrop:async()=>{if(!await ask('Ignore the work from before live sharing?','It will not be added to the shared data. A backup file of it is downloaded first, so nothing is lost.','Ignore it'))return;const o=offData();if(o){await saveFile(`SJS_Sports_offline_work_${new Date(o.at).toISOString().slice(0,10)}.json`,JSON.stringify(o.db,null,1))}try{localStorage.removeItem(KEY+'_offline')}catch(e){}rerender();toast('Ignored — a backup file of it was downloaded')},
+ offMerge:async()=>{const d=offDiff();if(!d)return;const s=S();if(!await ask('Add this work to the shared data?',`${d.R.length} result(s)${d.mg?`, ${d.E.length} entries, ${d.A.length} students, ${d.V.length} events, ${d.B.length} special points`:''} from this computer will be added for everyone. A newer result from this computer replaces the shared one; the shared one is kept in its history.`,'Add for everyone'))return;
+  if(d.mg){d.V.forEach(e=>s.events.push(e));d.A.forEach(a=>s.athletes.push(a));s.entries=s.entries||{};d.E.forEach(([eid,id])=>{(s.entries[eid]=s.entries[eid]||[]).push(id)});s.bonus=s.bonus||[];d.B.forEach(b=>s.bonus.push(b))}
+  d.R.forEach(([eid,r])=>{const c=s.results[eid];const hist=[...(c&&c.rows&&c.rows.length?[{rows:c.rows,at:c.at,by:c.by||''}]:[]),...((c&&c.hist)||[]),...(r.hist||[])].slice(0,8);s.results[eid]={...(c||{}),...r,hist,...okStamp(),log:[{at:Date.now(),by:whoAmI(),t:'Added from work saved on another computer while live sharing was off'},...((c&&c.log)||[])].slice(0,40)}});
+  if(!d.mg||!(d.E.length+d.A.length+d.V.length+d.B.length)||true){}
+  save();const left=offDiff();if(!left||!left.n){try{localStorage.removeItem(KEY+'_offline')}catch(e){}}rerender();toast('Added — every device now has this work')},
  approveRes:el=>{const s=S(),r=s.results[el.dataset.id];if(!r)return;delete r.pend;r.okBy=whoAmI();r.okAt=Date.now();logEv(el.dataset.id,'Approved the result');save();rerender();const e=s.events.find(x=>x.id===el.dataset.id);toast(`Approved — ${e?e.name:'result'} is now in the house points`);afterResult(e)},
  subOk:async()=>{const s=S();if(!await ask(s.subOk?'Stop scorers replacing students?':'Let scorers replace absent students?',s.subOk?'Only the Admin and Sports In-charge can replace students again.':'Scorers will see Replace in the Call room. Each replacement is logged with their name. The Admin must paste the latest Firebase rules first, or their replacements will not be saved online.',s.subOk?'Turn off':'Turn on'))return;s.subOk=!s.subOk;save();rerender();toast(s.subOk?'Scorers can now replace absent students':'Only managers can replace students')},
  approveAll:async()=>{const s=S();const l=s.events.filter(e=>isPend(e));if(!l.length||!await ask(`Approve ${l.length} results?`,l.map(e=>e.name).join(', '),'Approve all'))return;l.forEach(e=>{const r=s.results[e.id];delete r.pend;r.okBy=whoAmI();r.okAt=Date.now()});save();rerender();toast(`${l.length} results approved`);afterResult(null)},
@@ -3651,7 +3674,7 @@ async function restore(txt){let d;try{d=JSON.parse(txt)}catch(e){toast('That is 
  save();location.hash='#home';render();toast('Backup restored')}
 
 const MANAGE_ACTS=new Set('jaAdd ccaItemAdd ccaItemDel ppExAdd ppExDel ccaAdd ccaDel ccaPlan ccaUndo athDelAll athUndo rhT rhClr sigDel heatFinal schReset subOk approveRes approveAll needOk pinEv planDays planGo planUndo brDel brAdd brReset qpSave qpDel qpGroup qpReset pubToggle practiceStart practiceEnd hRedo arrangeDay arrangeUndo bulkOrg mBulk impGo hAuto hSet hUndo hAutoClass delLogo clearDemo useSchoolLogo toggleLock recatAll stdReset stdDelGroup stdDel stdApplyAll stdApply stdAddItem stdAddGroup sjsImport sjsGo ordUp ordDown newSess delType delSess delHouse delEvent delDay delCat delBonus delAth copyEvents clearResults catUp catDown cTheme cResetWords cLayout bulkDay autoTime autoChest autoCat addType addHouse addEvent addDay addCatQuick addCat addBonus addAth enSwapGo enAdd enDel setRec preset restoreFile restorePaste resetAll roleAdd roleDel tscOn'.split(' '));
-const SCORE_ACTS=new Set(['memUse','memDel','memClr','callSub','callMark','callAll','callClr','jmClear','jmUnsave','jmOn','jmAdd','jmDel','jmFill','jmHouses','jmSave','fxSaveRes','fxCreate','fxOff','fxAdd','fxDelM','fxUse','saveRes','clearRes','restoreVer','heatOn','heatOff','heatAdd','heatDel','heatRowAdd','heatRowDel','heatMake','heatMarkQ']);
+const SCORE_ACTS=new Set(['offMerge','offShow','offDrop','memUse','memDel','memClr','callSub','callMark','callAll','callClr','jmClear','jmUnsave','jmOn','jmAdd','jmDel','jmFill','jmHouses','jmSave','fxSaveRes','fxCreate','fxOff','fxAdd','fxDelM','fxUse','saveRes','clearRes','restoreVer','heatOn','heatOff','heatAdd','heatDel','heatRowAdd','heatRowDel','heatMake','heatMarkQ']);
 const WRITE_SEL='[data-f],[data-app],[data-cert],[data-col],[data-ses],[data-std],#logoIn,#xlsIn,[data-sigin],[data-navl],[data-pp],[data-ccc],[data-cr],[data-ci],[data-cp]';
 function blockAct(a){if(NOSHARE_ACTS.has(a)&&isVO()){toast(NOPERM_V);return true}if(MANAGE_ACTS.has(a)&&!canManage()){toast(NOPERM_M);return true}if(SCORE_ACTS.has(a)&&!canScore()){toast(NOPERM_S);return true}return false}
 function blockField(el){if(!el.matches||!el.matches(WRITE_SEL)||canManage())return false;toast(NOPERM_M);rerender();return true}
